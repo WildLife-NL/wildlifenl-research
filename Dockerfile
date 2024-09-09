@@ -20,7 +20,8 @@ RUN npm run build
 FROM nginx:alpine
 
 # Create necessary directories and set permissions
-RUN mkdir -p /var/cache/nginx /var/run /tmp/nginx
+RUN mkdir -p /var/cache/nginx /var/run /tmp/nginx /var/cache/nginx/client_temp \
+    && chown -R 1001:0 /var/cache/nginx /var/run /tmp/nginx /usr/share/nginx/html /etc/nginx
 
 # Copies the build output from the previous stage
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
