@@ -19,8 +19,6 @@ RUN npm run build
 # Serves the app with Nginx
 FROM nginx:alpine
 
-# OpenShift requires a non-rooted user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Create necessary directories and set permissions
 RUN mkdir -p /var/cache/nginx /var/run /tmp/nginx && \
@@ -31,9 +29,6 @@ COPY --from=build /usr/src/app/build /usr/share/nginx/html
 
 # Copies the custom Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
-
-# Ensure Nginx runs as a non-root user (OpenShift policy)
-USER appuser
 
 # Expose port 8080 for OpenShift (non-root)
 EXPOSE 8080
