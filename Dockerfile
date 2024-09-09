@@ -19,10 +19,8 @@ RUN npm run build
 # Serves the app with Nginx
 FROM nginx:alpine
 
-
 # Create necessary directories and set permissions
-RUN mkdir -p /var/cache/nginx /var/run /tmp/nginx && \
-    chown -R appuser:appgroup /var/cache/nginx /var/run /tmp/nginx /etc/nginx /usr/share/nginx/html
+RUN mkdir -p /var/cache/nginx /var/run /tmp/nginx
 
 # Copies the build output from the previous stage
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
