@@ -1,9 +1,5 @@
 FROM nginx:alpine
 
-RUN mkdir /var/log/nginx
-RUN mkdir /var/cache/nginx 
-RUN mkdir /var/run
-
 RUN chmod -R 777 /var/log/nginx /var/cache/nginx/ \
 && chmod -R 777 /var/run \
 && chmod -R 777 /etc/nginx/*
