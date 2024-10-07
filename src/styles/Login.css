@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Overpass:wght@100;200;300;400;600;700;800&family=Roboto:wght@100;300;400;500&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.left-section,
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.left-section {
+  background-color: white;
+}
+
+.right-section {
+  /* Updated background properties */
+  background-color: #3F9D45;
+  background-image: url('../../public/assets/loginbackground.png'); /* Correct relative path from the CSS file */
+  background-size: cover;      /* Make the image cover the entire section */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat;/* Prevent the image from repeating */
+  position: relative;          /* Set position to relative for stacking context */
+}
+
+.top-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30vh; /* Adjust as needed */
+}
+
+.ResearchConnectText,
+.WildlifeNLContainer {
+  margin: 0;
+}
+
+.ResearchConnectText {
+  color: #27A966;
+  font-family: 'Overpass', sans-serif;
+  font-size: 2.7vw;
+  font-weight: 200;
+  text-align: center;
+  user-select: none;
+}
+
+.WildlifeNLContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.LoginLogo {
+  height: 20vh;
+  margin-right: 2vw;
+  user-select: none;
+  pointer-events: none;
+}
+
+.WildlifeNLText {
+  color: #FFF;
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  font-family: 'Overpass', sans-serif;
+  font-size: 2.7vw;
+  font-weight: 800;
+  user-select: none;
+}
+
+/* Updated Login Form Styles */
+.login-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 6vh;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.email-label {
+  width: 510px;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 32px;
+  font-weight: 300;
+  line-height: normal;
+  margin-bottom: 15px;
+  margin-left: 5px;
+  user-select: none;
+}
+
+.input-bar {
+  width: 510px;
+  height: 82px;
+  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  background: transparent;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  margin-bottom: 20px;
+}
+
+.email-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-family: 'Roboto', sans-serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: rgb(0, 0, 0);
+  outline: none;
+}
+
+.signin-button {
+  width: 546px;
+  height: 82px;
+  border-radius: 12px;
+  background: #27A966;
+  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  user-select: none;
+}
+
+.signin-button:hover {
+  background-color: #1e8a53; /* Slightly darker on hover */
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .top-content {
+    height: auto;
+    margin-bottom: 2rem;
+  }
+
+  .WildlifeNLText,
+  .ResearchConnectText {
+    font-size: 5vw;
+  }
+
+  .email-label,
+  .input-bar,
+  .signin-button {
+    width: 80%; /* Adjust width for smaller screens */
+  }
+
+  .email-input {
+    font-size: 5vw;
+  }
+
+  .signin-button {
+    font-size: 5vw;
+  }
+}

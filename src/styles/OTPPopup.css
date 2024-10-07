@@ -1,0 +1,256 @@
+/* Import fonts if not already imported */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup Content */
+.otp-popup {
+  width: 80%;
+  max-width: 800px;
+  background: #FFF;
+  border-radius: 20px;
+  padding: 2rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Email SVG */
+.email-svg {
+  width: 193.333px;
+  height: 126.75px;
+  flex-shrink: 0;
+  margin-bottom: 2rem;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Send Email Component */
+.send-email-component h1 {
+  color: #000;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.96px;
+  margin: 0;
+  user-select: none;
+}
+
+.send-email-component p {
+  color: #000;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: -0.64px;
+  margin: 1rem 0 2rem 0;
+  user-select: none;
+}
+
+/* OTP Inputs */
+.otp-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem; /* Adjust spacing between inputs */
+  margin-bottom: 1rem; /* Reduced margin-bottom to accommodate error message */
+}
+
+.otp-inputs input {
+  width: 60px;
+  height: 80px;
+  border-radius: 20px;
+  border: 2px solid #000;
+  background: #D9D9D9;
+  text-align: center;
+  font-size: 2rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.otp-inputs input.active,
+.otp-inputs input.filled {
+  background: #FFF;
+}
+
+.otp-inputs input.filled {
+  color: #27A966;
+}
+
+/* Hover effect for OTP Inputs */
+.otp-inputs input:hover {
+  border-color: #27A966;
+  cursor: text;
+}
+
+.otp-inputs input::-webkit-inner-spin-button,
+.otp-inputs input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Error Message Container */
+.error-container {
+  height: 2rem; /* Reserve space for the error message */
+  margin-bottom: 1rem; /* Space between error and resend code */
+}
+
+/* Error Message */
+.error {
+  color: red;
+  font-size: 1.5rem;
+  margin: 0;
+  text-align: center;
+}
+
+/* Resend Code */
+.resend-code {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.resend-code p {
+  color: #000;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0.9px;
+  margin: 0;
+}
+
+.resend-code button {
+  background: none;
+  border: none;
+  color: #27A966;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: 0.9px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+/* Hover effect for Resend Code Button */
+.resend-code button:hover {
+  color: #1e8a53; /* Slightly darker green */
+}
+
+.resend-code button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.resend-code button:disabled:hover {
+  color: #ccc;
+}
+
+/* Verify and Cancel Buttons */
+.verify-cancel-buttons {
+  display: flex;
+  gap: 2rem;
+}
+
+.cancel-button,
+.verify-button {
+  width: 200px;
+  height: 50px;
+  border-radius: 12px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.cancel-button {
+  border: 1px solid #000;
+  background: #FFF;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+/* Hover effect for Cancel Button */
+.cancel-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.verify-button {
+  background: #27A966;
+  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+  color: #FFF;
+  border: none;
+}
+
+/* Hover effect for Verify Button */
+.verify-button:hover {
+  background-color: #1e8a53; /* Slightly darker green */
+}
+
+.verify-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.verify-button:disabled:hover {
+  background-color: #ccc;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .otp-popup {
+    width: 90%;
+    padding: 1rem;
+  }
+
+  .email-svg {
+    width: 150px;
+    height: auto;
+  }
+
+  .otp-inputs input {
+    width: 40px;
+    height: 60px;
+    font-size: 1.5rem;
+    border-radius: 10px;
+  }
+
+  .verify-cancel-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cancel-button,
+  .verify-button {
+    width: 100%;
+  }
+}
