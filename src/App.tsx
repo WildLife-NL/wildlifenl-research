@@ -1,27 +1,41 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Activity from './pages/Activity';
+import Profile from './pages/Profile';
+import Export from './pages/Export';
+import ExperimentCreation from './pages/ExperimentCreation';
+import Unauthorized from './pages/Unauthorized';
 import { isAuthenticated } from './services/authService';
+import AuthWrapper from './components/AuthWrapper';
 
 const App: React.FC = () => {
   return (
     <Router>
-      <Routes>
-        {/* Public Route - Login */}
-        <Route path="/login" element={<Login />} />
+      <AuthWrapper>
+        <Routes>
+          {/* Default Route - Redirects to dashboard or login */}
+          <Route
+            path="/"
+            element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />}
+          />
 
-        {/* Private Route - Redirects to login if not authenticated */}
-        <Route
-          path="/dashboard"
-          element={
-            isAuthenticated() ? <Dashboard /> : <Navigate to="/login" replace />
-          }
-        />
+          {/* Public Route - Login */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Default Route - Redirects to login if no route matches */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          {/* Private Routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/export" element={<Export />} />
+          <Route path="/experimentcreation" element={<ExperimentCreation />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+
+          {/* Wildcard Route */}
+          <Route path="*" element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />} />
+        </Routes>
+      </AuthWrapper>
     </Router>
   );
 };

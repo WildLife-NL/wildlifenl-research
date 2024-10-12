@@ -1,0 +1,132 @@
+/* Navbar Container */
+.navbar {
+  width: 100%;
+  height: 90px;
+  background: #734100;
+  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3%;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+/* Left Side (Logo and Title) */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  pointer-events: none;
+}
+
+.navbar-logo {
+  width: 75px;
+  height: 67px;
+  border-radius: 33.5px;
+  margin-right: 20px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.navbar-title {
+  color: #FFF;
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  font-family: 'Overpass', sans-serif;
+  font-size: 54px;
+  font-weight: 800;
+  line-height: normal;
+  padding-top: 3%;
+  user-select: none;
+}
+
+/* Actions Container */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Ensure centering */
+  gap: 15%; /* Adjust gap between actions */
+  flex-grow: 1; /* Allow it to take up available space */
+  padding: 0; /* Remove the padding that pushes it right */
+  padding-right: 20%;
+  user-select: none;
+}
+
+
+/* Individual Action */
+.navbar-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.navbar-action:hover {
+  transform: translateY(-5px);
+}
+
+.navbar-icon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 5px;
+  fill: #FFF;
+  transition: fill 0.2s;
+  user-select: none;
+  pointer-events: none;
+}
+
+.navbar-action:hover .navbar-icon {
+  fill: #27A966;
+}
+
+.navbar-action p {
+  color: #FFF;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: 0.6px;
+  margin: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Hover Effect for Text */
+.navbar-action:hover p {
+  color: #27A966;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+  }
+
+  .navbar-left {
+    margin-bottom: 1rem;
+  }
+
+  .navbar-actions {
+    gap: 30px;
+  }
+
+  .navbar-title {
+    font-size: 36px;
+  }
+
+  .navbar-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navbar-action p {
+    font-size: 16px;
+  }
+}

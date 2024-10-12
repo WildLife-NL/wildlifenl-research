@@ -1,0 +1,295 @@
+/* Dashboard Container */
+.dashboard-container {
+  font-family: 'Roboto', sans-serif;
+  position: relative;
+}
+
+/* Experiments Title */
+.experiments-title {
+  color: #000;
+  font-size: 50px;
+  font-weight: 700;
+  margin-top: 100px; /* Adjust for navbar height */
+  margin-left: 24px;
+  user-select: none;
+}
+
+/* Filters Container */
+.filters-container {
+  display: flex;
+  justify-content: space-between; /* Spread filters evenly */
+  align-items: center;
+  margin-top: 20px;
+  margin-left: 5%;
+  margin-right: 5%; /* Added right margin to align with left */
+}
+
+/* Filter Styles */
+.filter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Filter Labels */
+.filter-label {
+  color: #000;
+  font-size: 20px;
+  font-weight: 500;
+  margin-right: 10px; /* Space between label and input */
+  user-select: none;
+}
+
+/* LivingLab Filter */
+.dropdown {
+  position: relative;
+  width: 225px;
+}
+
+.dropdown-button {
+  width: 100%;
+  height: 50px;
+  background: #27A966;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+  pointer-events: none;
+}
+
+.dropdown-icon {
+  position: absolute;
+  right: 15px;
+  width: 17px;
+  height: 11px;
+  transition: transform 0.2s;
+  transform: rotate(180deg); /* Point up when not hovered */
+}
+
+.dropdown-icon-hover {
+  transform: rotate(0deg); /* Point down when hovered */
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 12px;
+  margin-top: 5px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Date Range Filter */
+.date-inputs {
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  position: relative;
+}
+
+.date-input input[type="date"] {
+  width: 200px;
+  height: 50px;
+  padding: 0 10px;
+  font-size: 25px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.55);
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.date-input input[type="date"]:hover:not(:focus) {
+  border-color: #27A966;
+  box-shadow: 0 0 5px #27A966;
+}
+
+/* Date Separator */
+.date-separator {
+  margin: 0 10px;
+  font-size: 20px;
+}
+
+/* Search Filter */
+.search-filter {
+  position: relative;
+}
+
+.search-input {
+  position: relative;
+}
+
+.search-input input[type="text"] {
+  width: 350px;
+  height: 50px;
+  padding: 0 10px;
+  padding-right: 40px; /* Prevent text overlap with icon */
+  font-size: 25px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0, 0);
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input input[type="text"]:hover:not(:focus) {
+  border-color: #27A966;
+  box-shadow: 0 0 5px #27A966;
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 30px;
+  height: 30px;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Table Container */
+.table-container {
+  margin-top: 20px;
+  margin-left: 5%; /* Added margins to prevent touching edges */
+  margin-right: 5%;
+  overflow-x: auto;
+  user-select: none;
+}
+
+.experiments-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.experiments-table th,
+.experiments-table td {
+  padding: 10px;
+  text-align: center;
+}
+
+.experiments-table th {
+  background: #D9D9D9; /* Updated color */
+  border: 1px solid #000; /* Added border */
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+}
+
+.experiments-table td {
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.45px;
+}
+
+.experiments-table th,
+.experiments-table td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.30); /* Optional horizontal lines */
+}
+
+.sort-icon {
+  margin-left: 5px;
+  width: 10px;
+  height: 10px;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+
+.sort-ascending {
+  transform: rotate(180deg);
+}
+
+.sort-descending {
+  transform: rotate(0deg);
+}
+
+/* Hover Effect for Experiment Rows */
+.experiments-table tbody tr:hover {
+  background-color: rgba(217, 217, 217, 0.8);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Row Styles */
+.row-even {
+  background-color: rgba(217, 217, 217, 0.60);
+}
+
+.row-odd {
+  background-color: rgba(217, 217, 217, 0.40);
+}
+
+.experiments-table input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+/* Add Experiment Button */
+.add-experiment-button {
+  position: fixed;
+  bottom: 12px; /* 12px from bottom */
+  right: 6px;   /* 6px from right */
+  width: 106px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.add-experiment-button img {
+  width: 100%;
+  height: auto;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px; /* Adjust as needed */
+}
+
+.spinner {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #27A966; /* Green */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

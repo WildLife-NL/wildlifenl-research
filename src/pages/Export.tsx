@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
-const Dashboard: React.FC = () => {
+const Export: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -11,10 +12,12 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h1>Hello there!</h1>
+      {/* Navbar */}
+      <Navbar />
+      <h1>Export</h1>
       <button onClick={handleLogout}>Logout</button>
     </div>
   );
 };
 
-export default Dashboard;
+export default Export;

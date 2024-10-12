@@ -1,16 +1,18 @@
 const API_URL = '/auth/';
 
-export const requestOTP = async (email: string): Promise<Response> => {
+
+export const requestOTP = async (
+  email: string,
+): Promise<Response> => {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json, application/problem+json',
+        Accept: 'application/json, application/problem+json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        displayNameApp: 'MyApp',
-        displayNameUser: 'Jane Smith',
+        displayNameApp: 'ResearchConnect',
         email,
       }),
     });
@@ -21,6 +23,7 @@ export const requestOTP = async (email: string): Promise<Response> => {
     throw error;
   }
 };
+
 
 export const verifyOTP = async (email: string, code: string): Promise<string | null> => {
   const response = await fetch(API_URL, {

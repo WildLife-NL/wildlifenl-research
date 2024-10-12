@@ -23,9 +23,18 @@ const Login: React.FC = () => {
     };
   }, [loading]);
 
+  const extractDisplayName = (email: string): string => {
+    const emailLocalPart = email.split('@')[0];
+    const nameParts = emailLocalPart.split(/[^a-zA-Z0-9]+/);
+    const capitalizedParts = nameParts.map(
+      (part) => part.charAt(0).toUpperCase() + part.slice(1)
+    );
+    return capitalizedParts.join(' ');
+  };
+
+
   const handleRequestOTP = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Form submitted');
     setLoading(true);
     try {
       const response = await requestOTP(email);

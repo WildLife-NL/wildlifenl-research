@@ -88,7 +88,7 @@ const OTPPopup: React.FC<OTPPopupProps> = ({ email, onClose }) => {
       const token = await verifyOTP(email, otp);
       if (token) {
         localStorage.setItem('authToken', token);
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else {
         setError('Invalid OTP, please try again.');
       }
@@ -130,7 +130,6 @@ const OTPPopup: React.FC<OTPPopupProps> = ({ email, onClose }) => {
       <div className="otp-popup">
         {/* Email SVG at the top */}
         <div className="email-svg">
-          {/* Insert the SVG code or image here */}
           <img src="/assets/emailvector.svg" alt="Email Icon" />
         </div>
 
