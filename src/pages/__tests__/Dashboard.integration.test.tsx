@@ -339,25 +339,30 @@ describe('Dashboard Integration Tests', () => {
 
   // CATEGORY 5: RESPONSIVENESS AND UI ELEMENTS
 
-  test('DROPDOWN HOVER STATES', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+  test('DROPDOWN CLICK STATES', async () => {
+  // Mock API calls
+  (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
+  (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
 
-    render(
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    );
+  // Render the Dashboard component
+  render(
+    <MemoryRouter>
+      <Dashboard />
+    </MemoryRouter>
+  );
 
-    const dropdownIcon = screen.getByAltText('Dropdown Icon');
-    expect(dropdownIcon).toHaveClass('dropdown-icon');
+  const dropdownButton = screen.getByTestId('livinglab-dropdown-button');
 
-    fireEvent.mouseEnter(dropdownIcon);
-    expect(dropdownIcon).toHaveClass('dropdown-icon-hover');
+  const dropdownIcon = screen.getByAltText('Dropdown Icon');
+  expect(dropdownIcon).toHaveClass('dropdown-icon');
+  expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
 
-    fireEvent.mouseLeave(dropdownIcon);
-    expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
-  });
+  fireEvent.click(dropdownButton);
+  expect(dropdownIcon).toHaveClass('dropdown-icon-hover');
+
+  fireEvent.click(dropdownButton);
+  expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
+});
 
   test('ALTERNATING ROW COLORS', async () => {
     (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);

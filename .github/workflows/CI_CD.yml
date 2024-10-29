@@ -34,7 +34,7 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Run Jest Unit Tests
-        run: npm test -- --ci "**/*.unit.test.tsx"
+        run: npm test -- --ci --testPathPattern ".*\\.unit\\.test\\.tsx$"
 
   integration-tests:
     name: Run Integration Tests
@@ -49,7 +49,7 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Run Jest Integration Tests
-        run: npm test -- --ci "**/*.integration.test.tsx"
+        run: npm test -- --ci --testPathPattern ".*\\.integration\\.test\\.tsx$"
 
   cypress-tests:
     name: Run Cypress Tests
