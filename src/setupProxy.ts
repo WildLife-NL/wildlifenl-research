@@ -1,4 +1,4 @@
-import { Application } from 'express';
+/* import { Application } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
 module.exports = function(app: Application) {
@@ -38,3 +38,4 @@ module.exports = function(app: Application) {
     })
   );
 };
+*/

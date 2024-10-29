@@ -61,7 +61,7 @@
   justify-content: center;
   position: relative;
   user-select: none;
-  pointer-events: none;
+  cursor: pointer; /* Allow clicking */
 }
 
 .dropdown-icon {
@@ -70,11 +70,11 @@
   width: 17px;
   height: 11px;
   transition: transform 0.2s;
-  transform: rotate(180deg); /* Point up when not hovered */
+  transform: rotate(180deg); /* Point up when closed */
 }
 
 .dropdown-icon-hover {
-  transform: rotate(0deg); /* Point down when hovered */
+  transform: rotate(0deg); /* Point down when open */
 }
 
 .dropdown-content {
@@ -90,7 +90,7 @@
   margin-top: 5px;
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown.open .dropdown-content {
   display: block;
 }
 

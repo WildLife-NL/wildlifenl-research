@@ -30,6 +30,9 @@ const Dashboard: React.FC = () => {
   // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // State for dropdown open/close
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   // Fetch living labs and experiments on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -190,41 +193,46 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  // State for dropdown hover
-  const [isDropdownHovered, setIsDropdownHovered] = useState(false);
-
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" data-testid="dashboard-container">
       {/* Navbar */}
       <Navbar />
 
       {/* Experiments Title */}
-      <h1 className="experiments-title">Experiments</h1>
+      <h1 className="experiments-title" data-testid="experiments-title">
+        Experiments
+      </h1>
 
       {/* Filters Container */}
-      <div className="filters-container">
+      <div className="filters-container" data-testid="filters-container">
         {/* LivingLab Filter */}
-        <div className="filter livinglab-filter">
+        <div className="filter livinglab-filter" data-testid="livinglab-filter">
           <label className="filter-label">Filter by LivingLab:</label>
           <div
-            className="dropdown"
-            onMouseEnter={() => setIsDropdownHovered(true)}
-            onMouseLeave={() => setIsDropdownHovered(false)}
+            className={`dropdown ${isDropdownOpen ? 'open' : ''}`}
           >
-            <button className="dropdown-button">
+            <button
+              className="dropdown-button"
+              data-testid="livinglab-dropdown-button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
               {selectedLivingLab}
               <img
                 src="/assets/vsvg.svg"
                 alt="Dropdown Icon"
-                className={`dropdown-icon ${isDropdownHovered ? 'dropdown-icon-hover' : ''}`}
+                className={`dropdown-icon ${isDropdownOpen ? 'dropdown-icon-hover' : ''}`}
               />
             </button>
-            <div className="dropdown-content">
+            <div className="dropdown-content" data-testid="livinglab-dropdown-content">
               {livingLabs.map((lab) => (
                 <div
                   key={lab.ID}
+                  data-testid={`livinglab-option-${lab.ID}`}
                   className="dropdown-item"
-                  onClick={() => setSelectedLivingLab(lab.name)}
+                  onClick={() => {
+                    setSelectedLivingLab(lab.name);
+                    setIsDropdownOpen(false);
+                  }}
                 >
                   {lab.name}
                 </div>
@@ -234,7 +242,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Date Range Filter */}
-        <div className="filter date-filter">
+        <div className="filter date-filter" data-testid="date-filter">
           <label className="filter-label">Filter by date range:</label>
           <div className="date-inputs">
             <div className="date-input">
@@ -242,6 +250,7 @@ const Dashboard: React.FC = () => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                data-testid="start-date-input"
               />
             </div>
             <span className="date-separator">-</span>
@@ -250,19 +259,21 @@ const Dashboard: React.FC = () => {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                data-testid="end-date-input"
               />
             </div>
           </div>
         </div>
 
         {/* Search Filter */}
-        <div className="filter search-filter">
+        <div className="filter search-filter" data-testid="search-filter">
           <div className="search-input">
             <input
               type="text"
               placeholder="Search experiment..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              data-testid="search-input"
             />
             <img src="/assets/SearchSVG.svg" alt="Search Icon" className="search-icon" />
           </div>
@@ -271,14 +282,17 @@ const Dashboard: React.FC = () => {
 
       {/* Loading Animation or Experiments Table */}
       {isLoading ? (
-        <div className="loading-container">
+        <div className="loading-container" data-testid="loading-container">
           <div className="spinner"></div>
         </div>
       ) : (
         <>
           {/* Experiments Table */}
-          <div className="table-container">
-            <table className="experiments-table">
+          <div className="table-container" data-testid="table-container">
+            <table
+              className="experiments-table"
+              data-testid="experiments-table"
+            >
               <thead>
                 <tr>
                   <th onClick={() => requestSort('livingLab')}>
@@ -343,6 +357,7 @@ const Dashboard: React.FC = () => {
                       type="checkbox"
                       checked={selectAll}
                       onChange={handleSelectAllChange}
+                      data-testid="select-all-checkbox"
                     />
                   </th>
                 </tr>
@@ -353,28 +368,42 @@ const Dashboard: React.FC = () => {
                   return (
                     <tr
                       key={exp.ID}
+                      data-testid={`experiment-row-${exp.ID}`}
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
-                      // Removed onClick from the entire row to allow checkbox clicks
                       style={{ cursor: 'pointer' }}
                     >
                       <td onClick={() => handleExperimentClick(exp.ID)}>
                         {exp.livingLab?.name || 'All LivingLabs'}
                       </td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>{exp.name}</td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>{exp.questionnaires}</td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>{exp.messages}</td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>{exp.user?.name || 'N/A'}</td>
+                      <td
+                        data-testid="experiment-name"
+                        onClick={() => handleExperimentClick(exp.ID)}
+                      >
+                        {exp.name}
+                      </td>
+                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                        {exp.questionnaires}
+                      </td>
+                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                        {exp.messages}
+                      </td>
+                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                        {exp.user?.name || 'N/A'}
+                      </td>
                       <td onClick={() => handleExperimentClick(exp.ID)}>
                         {new Date(exp.start).toLocaleDateString()} -{' '}
                         {new Date(exp.end).toLocaleDateString()}
                       </td>
                       <td onClick={() => handleExperimentClick(exp.ID)}>{status}</td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>{exp.responses}</td>
+                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                        {exp.responses}
+                      </td>
                       <td>
                         <input
                           type="checkbox"
                           checked={selectedExperiments[exp.ID] || false}
                           onChange={() => handleCheckboxChange(exp.ID)}
+                          data-testid={`experiment-checkbox-${exp.ID}`}
                         />
                       </td>
                     </tr>
@@ -385,7 +414,11 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Add Experiment Button */}
-          <button className="add-experiment-button" onClick={navigateToCreateExperiment}>
+          <button
+            className="add-experiment-button"
+            onClick={navigateToCreateExperiment}
+            data-testid="add-experiment-button"
+          >
             <img src="/assets/AddButtonSVG.svg" alt="Add Experiment" />
           </button>
         </>
