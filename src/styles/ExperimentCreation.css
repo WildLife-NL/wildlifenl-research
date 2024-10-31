@@ -1,0 +1,259 @@
+/* Page Title */
+.experiment-creation-page-title {
+  color: #000;
+  font-size: 50px;
+  font-weight: 700;
+  margin-top: 90px; /* Adjust for navbar height */
+  margin-left: 24px;
+  user-select: none;
+}
+
+/* Content Box */
+.experiment-creation-content-box {
+  position: absolute;
+  top: 170px; /* Position it below the title */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1460px;
+  height: auto; /* Adjust height to fit content */
+  flex-shrink: 0;
+  border: 1px solid #000;
+  background: rgba(217, 217, 217, 0.00);
+  padding: 20px 0; /* Add padding for inner spacing */
+}
+
+/* Flex Container for Duration and LivingLab Sections */
+.experiment-creation-flex-container {
+  display: flex;
+  align-items: flex-start; /* Align items at the top */
+  justify-content: flex-start; /* Align items to the start horizontally */
+  gap: 80px; /* Increased space between the two sections */
+  margin-top: 20px; /* Adjust as needed for spacing from above elements */
+  padding: 0 140px; /* Align with the left padding of other elements */
+}
+
+/* Section Label */
+.experiment-creation-section-label {
+  display: block; /* Ensure labels take full width */
+  width: 250px;
+  height: 32px;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 27px;
+  font-weight: 300;
+  line-height: normal;
+  margin-left: 140px; /* Align with input fields */
+  margin-top: 15px; /* Space above labels */
+}
+
+
+/* Text Input */
+.experiment-creation-text-input {
+  width: calc(100% - 280px); /* Adjust based on padding */
+  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  background: rgba(196, 196, 196, 0.0);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  padding: 22px 41px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 25px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.55);
+  margin-left: 140px; /* Align with labels */
+  margin-top: 5px; /* Space below labels */
+}
+
+/* Title Input */
+.experiment-creation-title-input {
+  height: 25px; /* Match the date input height */
+}
+
+/* Description Label */
+.experiment-creation-description-label {
+  margin-top: 30px; /* Positioned beneath the title input */
+}
+
+/* Description Input */
+.experiment-creation-description-input {
+  top: auto; /* Remove absolute positioning */
+  height: 160px;
+  resize: none;
+}
+
+/* Duration Section */
+.experiment-creation-duration-section {
+  flex: 1; /* Allow it to take up available space */
+}
+
+/* Section Number */
+.experiment-creation-section-number {
+  display: block; /* Ensure it takes up full width above inputs */
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px; /* Space between number and inputs */
+}
+
+/* Date Inputs */
+.experiment-creation-date-inputs {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+/* Date Input */
+.experiment-creation-date-input input[type='date'] {
+  width: 200px;
+  height: 50px; /* Ensure consistent height */
+  padding: 0 10px;
+  font-size: 25px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.55);
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.experiment-creation-date-input input[type='date']:hover:not(:focus) {
+  border-color: #27A966;
+  box-shadow: 0 0 5px #27A966;
+}
+
+/* Date Separator */
+.experiment-creation-date-separator {
+  margin: 0 10px;
+  font-size: 20px;
+}
+
+/* LivingLab Section */
+.experiment-creation-livinglab-section {
+  flex: 1; /* Allow it to take up available space */
+  display: flex;
+  flex-direction: column; /* Stack labels and dropdown vertically */
+  align-items: flex-start;
+}
+
+/* LivingLab Content */
+.experiment-creation-livinglab-content {
+  display: flex;
+  flex-direction: row; /* Arrange label and dropdown horizontally */
+  align-items: center;
+  margin-top: 0px; /* Space above the LivingLab inputs */
+}
+
+/* LivingLab Label */
+.experiment-creation-livinglab-label {
+  margin-right: 10px; /* Space between label and dropdown */
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+
+}
+
+/* Dropdown */
+.experiment-creation-dropdown {
+  position: relative;
+  width: 225px;
+}
+
+/* Dropdown Button */
+.experiment-creation-dropdown-button {
+  width: 100%; /* Adjusted to fill the parent width */
+  height: 50px; /* Match the date input height */
+  background: #27A966;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(39, 169, 102, 0.25); /* Adjusted color to match the button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Added position relative */
+  user-select: none;
+  cursor: pointer;
+  padding: 0 15px; /* Added padding for left and right */
+}
+
+.experiment-creation-dropdown-button:focus {
+  outline: none; /* Remove default focus outline */
+}
+
+/* Dropdown Icon */
+.experiment-creation-dropdown-icon {
+  position: absolute; /* Changed to absolute positioning */
+  right: 15px; /* Position the icon 15px from the right */
+  width: 17px;
+  height: 11px;
+  transition: transform 0.2s;
+}
+
+.experiment-creation-dropdown-icon-hover {
+  transform: rotate(0deg);
+}
+
+/* Dropdown Content */
+.experiment-creation-dropdown-content {
+  display: none;
+  position: absolute;
+  bottom: 55px; /* Position the dropdown content above the button */
+  left: 0; /* Align with the left of the button */
+  background-color: #fff;
+  min-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0px -8px 16px rgba(0, 0, 0, 0.2); /* Adjusted shadow to point upwards */
+  z-index: 1;
+  border-radius: 12px;
+  margin-bottom: 5px; /* Space between button and dropdown content */
+}
+
+.experiment-creation-dropdown.experiment-creation-open .experiment-creation-dropdown-content {
+  display: block;
+}
+
+.experiment-creation-dropdown-item {
+  padding: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.experiment-creation-dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* Submit Button */
+.experiment-creation-submit-button {
+  position: fixed; /* Changed from absolute to fixed */
+  bottom: 12px;    
+  right: 6px;      
+  width: 106px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000;   /* Ensure it's above other elements */
+}
+
+@media (max-width: 1600px) {
+  .experiment-creation-flex-container {
+    flex-direction: column;
+    gap: 40px;
+    padding: 0 50px;
+  }
+
+  .experiment-creation-dropdown-button {
+    width: 100%;
+  }
+}

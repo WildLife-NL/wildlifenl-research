@@ -1,6 +1,7 @@
 import { Experiment } from '../types/experiment';
 
-const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/experiments/';
+const EXPERIMENT_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/experiment/';
+const EXPERIMENTS_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/experiments/';
 
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
@@ -14,7 +15,7 @@ export const addExperiment = async (experimentData: any): Promise<Experiment> =>
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}`, {
+    const response = await fetch(`${EXPERIMENT_API_URL}`, {
       method: 'POST',
       headers: {
         Accept: 'application/json, application/problem+json',
@@ -48,7 +49,7 @@ export const getExperiments = async (): Promise<Experiment[]> => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}`, {
+    const response = await fetch(`${EXPERIMENTS_API_URL}`, {
       method: 'GET',
       headers: {
         Accept: 'application/json, application/problem+json',
@@ -80,7 +81,7 @@ export const getExperimentByID = async (id: string): Promise<Experiment> => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}${id}`, {
+    const response = await fetch(`${EXPERIMENTS_API_URL}${id}`, {
       method: 'GET',
       headers: {
         Accept: 'application/json, application/problem+json',
@@ -112,7 +113,7 @@ export const getMyExperiments = async (): Promise<Experiment[]> => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}me/`, {
+    const response = await fetch(`${EXPERIMENTS_API_URL}me/`, {
       method: 'GET',
       headers: {
         Accept: 'application/json, application/problem+json',
