@@ -1,0 +1,9 @@
+<svg width="106" height="102" viewBox="0 0 106 102" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="AddQuestionnaireButton">
+<g id="Ellipse 1">
+<ellipse cx="53" cy="51" rx="53" ry="51" fill="#27A966"/>
+<path d="M104 51C104 77.9901 81.2397 100 53 100C24.7603 100 2 77.9901 2 51C2 24.0099 24.7603 2 53 2C81.2397 2 104 24.0099 104 51Z" stroke="black" stroke-opacity="0.02" stroke-width="4"/>
+</g>
+<path id="Vector" d="M83 55.2857H57.2857V81H48.7143V55.2857H23V46.7143H48.7143V21H57.2857V46.7143H83V55.2857Z" fill="white"/>
+</g>
+</svg>

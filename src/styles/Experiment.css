@@ -1,0 +1,363 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.experiment-container {
+  position: relative;
+  max-width: 1920px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Title styling */
+.experiment-view-title {
+  position: absolute;
+  top: 90px;
+  left: 25px;
+  width: 433px;
+  height: 60px;
+
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 50px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Experiment Details Component */
+.experiment-details-component {
+  position: absolute;
+  top: 160px;
+  left: 12%;
+  width: 1300px;
+  height: 470px;
+
+  border: 1px solid #000;
+  background: rgba(217, 217, 217, 0);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Experiment Title Component */
+.experiment-title-comp {
+  position: relative;
+  margin-top: 25px;
+  margin-left: 142px;
+  width: 1040px;
+  height: 105px;
+}
+
+.experiment-title-text {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 250px;
+  height: 36px;
+
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 27px;
+  font-weight: 300;
+  line-height: normal;
+}
+
+.experiment-textbar {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 1040px;
+  height: 56px;
+
+  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  background: rgba(196, 196, 196, 0);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.experiment-textbar-content {
+  margin: 13px 15px 17px 15px;
+  width: 723px;
+
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: normal;
+}
+
+/* Description Component */
+.description-comp {
+  position: relative;
+  margin-top: 25px;
+  margin-left: 142px;
+  width: 1040px;
+  height: 185px;
+}
+
+.description-text {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 250px;
+  height: 36px;
+
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 27px;
+  font-weight: 300;
+  line-height: normal;
+}
+
+.description-textbar {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 1040px;
+  height: 136px;
+
+  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  background: rgba(196, 196, 196, 0);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.description-textbar-content {
+  margin: 13px 15px 17px 15px;
+  width: 985px;
+  height: 100px;
+
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: normal;
+}
+
+/* Duration Set Component */
+.duration-set-comp {
+  position: absolute;
+  top: 360px;
+  left: 146px;
+  width: 543px;
+  height: 93px;
+}
+
+.duration-text {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  width: 220px;
+  height: 23px;
+
+  color: #000;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+}
+
+.time-set {
+  position: absolute;
+  top: 43px;
+  left: 0;
+  display: flex;
+  align-items: center;
+}
+
+.time-set-box {
+  width: 250px;
+  height: 48px;
+
+  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  background: rgba(196, 196, 196, 0);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  align-items: center;
+  padding-left: 27px;
+
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+}
+
+.date-separator {
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Location Set Component */
+.location-set-comp {
+  position: absolute;
+  top: 360px;
+  left: 725px;
+  width: 250px;
+  height: 93px; /* Updated height to match .duration-set-comp */
+}
+
+.location-text {
+  position: absolute;
+  top: 0px;
+  right: 22px;
+  width: 250px;
+  height: 45px;
+
+  color: #000;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+}
+
+.location-box {
+  position: absolute;
+  top: 43px;
+  left: 0;
+  width: 250px;
+  height: 48px;
+
+  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  background: rgba(196, 196, 196, 0);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  align-items: center;
+  padding: 0 15px; /* Even padding on both sides */
+  overflow: hidden; /* Prevent overflow */
+}
+
+.location-box-text {
+  flex: 1; 
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: clamp(16px, 5vw, 25px); 
+  font-weight: 300;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
+  text-align: left;
+  line-height: 48px; 
+}
+
+/* Stop Experiment Button */
+.stop-experiment-button {
+  position: absolute;
+  top: 395px;
+  left: 1015px;
+  width: 250px;
+  height: 62px;
+
+  border-radius: 12px;
+  background: #E81E21;
+  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+
+  color: #FFF;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.9px;
+  line-height: 62px; /* Center text vertically */
+  border: none;
+  cursor: pointer;
+}
+
+
+/* Buttons Container */
+.buttons-container {
+  position: absolute;
+  top: 600px; /* Adjust as needed */
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 38px 300px;
+}
+
+/* Common Styles for Overview Buttons */
+.overview-button {
+  display: flex;
+  flex-direction: column;
+  width: 445px;
+  height: 147px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  border: 1px solid #000;
+  background-color: #ffffff;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.overview-button:focus {
+  outline: none;
+}
+
+.overview-button .button-top {
+  width: 445px;
+  height: 64px;
+  border-radius: 13px 13px 0 0;
+  background: #27A966;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Text Inside the Top Section */
+.button-text {
+  margin-left: 21px;
+  color: #FFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: 0.95px;
+}
+
+/* Icon Inside the Top Section */
+.questionnaire-overview-button .button-icon {
+  position: absolute;
+  top: 13px;
+  left: 267px;
+  width: 32px;
+  height: 36px;
+}
+
+.message-overview-button .button-icon {
+  position: absolute;
+  top: 20px;
+  left: 194px;
+  width: 27px;
+  height: 27px;
+}
+
+/* Content Section of the Button */
+.button-content {
+  position: absolute;
+  top: 80px;
+  left: 14px;
+  width: 350px;
+  height: 49px;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 21px;
+  font-weight: 400;
+  letter-spacing: 0.63px;
+}
