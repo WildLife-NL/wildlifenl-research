@@ -73,37 +73,6 @@ export const getExperiments = async (): Promise<Experiment[]> => {
   }
 };
 
-// Get Experiment By ID
-export const getExperimentByID = async (id: string): Promise<Experiment> => {
-  try {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${EXPERIMENTS_API_URL}${id}`, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json, application/problem+json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log(`Get Experiment By ID (${id}) response:`, response);
-
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    } else {
-      const errorData = await response.json();
-      console.error(`Failed to fetch experiment with ID ${id}:`, errorData);
-      throw new Error('Failed to fetch experiment by ID');
-    }
-  } catch (error) {
-    console.error(`Get Experiment By ID (${id}) error:`, error);
-    throw error;
-  }
-};
 
 // Get My Experiments
 export const getMyExperiments = async (): Promise<Experiment[]> => {
@@ -133,6 +102,40 @@ export const getMyExperiments = async (): Promise<Experiment[]> => {
     }
   } catch (error) {
     console.error('Get My Experiments error:', error);
+    throw error;
+  }
+};
+
+// Update Experiment
+export const updateExperiment = async (experimentData: Experiment): Promise<Experiment> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(EXPERIMENT_API_URL, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json, application/problem+json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(experimentData),
+    });
+
+    console.log('Update Experiment response:', response);
+
+    if (response.ok) {
+      const data = await response.json();
+      return data as Experiment;
+    } else {
+      const errorData = await response.json();
+      console.error('Failed to update experiment:', errorData);
+      throw new Error('Failed to update experiment');
+    }
+  } catch (error) {
+    console.error('Update Experiment error:', error);
     throw error;
   }
 };

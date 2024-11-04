@@ -11,6 +11,8 @@ export interface Experiment {
   user: User;
   livingLab: LivingLab;
   responses?: number;
-  questionnaires?: number;
-  messages?: number;
+  numberOfQuestionnaires?: number;
+  numberOfMessages?: number;
+  messageActivity: number;       
+  questionnaireActivity: number;
 }

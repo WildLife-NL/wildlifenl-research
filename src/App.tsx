@@ -6,6 +6,9 @@ import Activity from './pages/Activity';
 import Profile from './pages/Profile';
 import Export from './pages/Export';
 import ExperimentCreation from './pages/ExperimentCreation';
+import Experiment from './pages/Experiment';
+import MessageCreation from './pages/MessageCreation';
+import MessageDashboard from './pages/MessageDashboard';
 import Unauthorized from './pages/Unauthorized';
 import { isAuthenticated } from './services/authService';
 import AuthWrapper from './components/AuthWrapper';
@@ -30,6 +33,10 @@ const App: React.FC = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/export" element={<Export />} />
           <Route path="/experimentcreation" element={<ExperimentCreation />} />
+          <Route path="/experiment/:id" element={<Experiment />} />
+          <Route path="/messagecreation/:id" element={<MessageCreation />} />
+          <Route path="/messagedashboard/:id" element={<MessageDashboard />} />
+          {/* Unauthorized Route */}
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Wildcard Route */}

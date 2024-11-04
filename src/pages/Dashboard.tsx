@@ -51,6 +51,12 @@ const Dashboard: React.FC = () => {
         };
         setLivingLabs([allLivingLabsOption, ...labs]);
 
+         // Calculate responses for each experiment
+        const experimentsWithResponses = exps.map((exp) => ({
+          ...exp,
+          responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
+        }));
+
         // Initialize selected experiments state
         const initialSelected = exps.reduce((acc, exp) => {
           acc[exp.ID] = false;
@@ -60,8 +66,8 @@ const Dashboard: React.FC = () => {
         setSelectedExperiments(initialSelected);
 
         // Set experiments and filtered experiments
-        setExperiments(exps);
-        setFilteredExperiments(exps);
+        setExperiments(experimentsWithResponses);
+        setFilteredExperiments(experimentsWithResponses);
 
         setIsLoading(false); // Finish loading
       } catch (error) {
@@ -117,8 +123,11 @@ const Dashboard: React.FC = () => {
             bValue = new Date(b[sortConfig.key]).getTime() || 0;
             break;
           case 'responses':
-          case 'questionnaires':
-          case 'messages':
+            aValue = (a.messageActivity ?? 0) + (a.questionnaireActivity ?? 0);
+            bValue = (b.messageActivity ?? 0) + (b.questionnaireActivity ?? 0);
+            break;
+          case 'numberOfQuestionnaires':
+          case 'numberOfMessages':
             aValue = a[sortConfig.key] ?? 0;
             bValue = b[sortConfig.key] ?? 0;
             break;
@@ -163,8 +172,8 @@ const Dashboard: React.FC = () => {
   };
 
   // Handle navigation to experiment details page
-  const handleExperimentClick = (experimentID: string) => {
-    navigate(`/experiment/${experimentID}`);
+  const handleExperimentClick = (experiment: Experiment) => {
+    navigate(`/experiment/${experiment.ID}`, { state: { experiment } });
   };
 
   // Handle checkbox change
@@ -311,20 +320,20 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('name')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('questionnaires')}>
+                  <th onClick={() => requestSort('numberOfQuestionnaires')}>
                     Questionnaires
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('questionnaires')}`}
+                      className={`sort-icon ${getSortIconClass('numberOfQuestionnaires')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('messages')}>
+                  <th onClick={() => requestSort('numberOfMessages')}>
                     Messages
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('messages')}`}
+                      className={`sort-icon ${getSortIconClass('numberOfMessages')}`}
                     />
                   </th>
                   <th onClick={() => requestSort('user')}>
@@ -372,30 +381,30 @@ const Dashboard: React.FC = () => {
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
                       style={{ cursor: 'pointer' }}
                     >
-                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                      <td onClick={() => handleExperimentClick(exp)}>
                         {exp.livingLab?.name || 'All LivingLabs'}
                       </td>
                       <td
                         data-testid="experiment-name"
-                        onClick={() => handleExperimentClick(exp.ID)}
+                        onClick={() => handleExperimentClick(exp)}
                       >
                         {exp.name}
                       </td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>
-                        {exp.questionnaires}
+                      <td onClick={() => handleExperimentClick(exp)}>
+                        {exp.numberOfQuestionnaires}
                       </td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>
-                        {exp.messages}
+                      <td onClick={() => handleExperimentClick(exp)}>
+                        {exp.numberOfMessages}
                       </td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                      <td onClick={() => handleExperimentClick(exp)}>
                         {exp.user?.name || 'N/A'}
                       </td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                      <td onClick={() => handleExperimentClick(exp)}>
                         {new Date(exp.start).toLocaleDateString()} -{' '}
                         {new Date(exp.end).toLocaleDateString()}
                       </td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>{status}</td>
-                      <td onClick={() => handleExperimentClick(exp.ID)}>
+                      <td onClick={() => handleExperimentClick(exp)}>{status}</td>
+                      <td onClick={() => handleExperimentClick(exp)}>
                         {exp.responses}
                       </td>
                       <td>
