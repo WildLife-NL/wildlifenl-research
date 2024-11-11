@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isAuthenticated } from '../services/authService';
+// components/AuthWrapper.tsx
+
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { isAuthenticated, getUserRole } from '../services/authService';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -8,27 +10,33 @@ interface AuthWrapperProps {
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const checkAuthStatus = () => {
+    const checkAuthStatus = async () => {
       if (isAuthenticated()) {
-        if (window.location.pathname === '/login') {
-          navigate('/dashboard', { replace: true });
+        const role = await getUserRole();
+        if (role === 3) {
+          // User has the Researcher role
+          setLoading(false); // Allow rendering of protected components
+        } else {
+          // User does not have the Researcher role
+          navigate('/unauthorized', { replace: true });
         }
       } else {
-        if (window.location.pathname !== '/login') {
-          navigate('/login', { replace: true });
-        }
+        // User is not authenticated
+        navigate('/login', { replace: true });
       }
     };
 
     checkAuthStatus();
+  }, [navigate, location]);
 
-    // Set an interval to keep checking if the user is authenticated
-    const intervalId = setInterval(checkAuthStatus, 5000); // Check every 5 seconds
-
-    return () => clearInterval(intervalId); 
-  }, [navigate]);
+  if (loading) {
+    // You can show a loading indicator while checking authentication
+    return <div>Loading...</div>;
+  }
 
   return <>{children}</>;
 };

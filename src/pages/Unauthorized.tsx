@@ -8,8 +8,8 @@ const Unauthorized: React.FC = () => {
         It seems like you don't have the <strong>Researcher</strong> role right now.
       </p>
       <p>
-        If you believe this is a mistake or you should have the necessary role, please contact 
-        <a href="mailto:email@example.com" > email@example.com</a> for further assistance.
+        If you believe this is a mistake or you should have the necessary role,
+        please contact the organization
       </p>
     </div>
   );
