@@ -13,7 +13,7 @@ const ExperimentCreation: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedLivingLabID, setSelectedLivingLabID] = useState('');
-  const [selectedLivingLabName, setSelectedLivingLabName] = useState('Select LivingLab');
+  const [selectedLivingLabName, setSelectedLivingLabName] = useState('All');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // State variable for living labs
@@ -46,7 +46,7 @@ const ExperimentCreation: React.FC = () => {
       description: experimentDescription,
       start: formattedStartDate,
       end: formattedEndDate,
-      livingLabID: selectedLivingLabID,
+      ...(selectedLivingLabID && { livingLabID: selectedLivingLabID }),
     };
 
     try {
@@ -151,22 +151,36 @@ const ExperimentCreation: React.FC = () => {
                       {loadingLabs ? (
                         <div>Loading...</div>
                       ) : (
-                        livingLabs.map((lab) => (
+                        <>
+                          {/* "All" Option */}
                           <div
-                            key={lab.ID}
                             className="experiment-creation-dropdown-item"
                             onClick={() => {
-                              setSelectedLivingLabID(lab.ID);
-                              setSelectedLivingLabName(lab.name);
+                              setSelectedLivingLabID(''); // Empty string represents 'All'
+                              setSelectedLivingLabName('All');
                               setIsDropdownOpen(false);
                             }}
                           >
-                            {lab.name}
+                            All
                           </div>
-                        ))
+                          {/* LivingLab Options */}
+                          {livingLabs.map((lab) => (
+                            <div
+                              key={lab.ID}
+                              className="experiment-creation-dropdown-item"
+                              onClick={() => {
+                                setSelectedLivingLabID(lab.ID);
+                                setSelectedLivingLabName(lab.name);
+                                setIsDropdownOpen(false);
+                              }}
+                            >
+                              {lab.name}
+                            </div>
+                          ))}
+                        </>
                       )}
                     </div>
-                  )}
+                    )}
                 </div>
               </div>
             </div>
