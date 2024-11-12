@@ -16,7 +16,7 @@ const MessageDashboard: React.FC = () => {
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
 
-  const { messages = [] } = location.state || {};
+  const { messages = [], experiment } = location.state || {};
 
   const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
@@ -177,7 +177,7 @@ const MessageDashboard: React.FC = () => {
 
       {/* Messages Title */}
       <h1 className="messages-title" data-testid="messages-title">
-        Messages
+      Messages for Experiment: {experiment?.name || `Experiment ${id}`}
       </h1>
 
       {/* Filters Container */}
