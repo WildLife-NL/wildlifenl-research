@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/ExperimentCreation.css';
@@ -15,11 +15,13 @@ const ExperimentCreation: React.FC = () => {
   const [selectedLivingLabID, setSelectedLivingLabID] = useState('');
   const [selectedLivingLabName, setSelectedLivingLabName] = useState('All');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  const [dateError, setDateError] = useState('');
   // State variable for living labs
   const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
   const [loadingLabs, setLoadingLabs] = useState(true);
-
+  
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<HTMLInputElement>(null);
   // Initialize navigate function
   const navigate = useNavigate();
 
@@ -37,10 +39,26 @@ const ExperimentCreation: React.FC = () => {
     fetchLivingLabs();
   }, []);
 
-  const handleSubmitExperiment = async () => {
+  const handleSubmitExperiment = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
+  
+    // Perform custom validation
+    const isValid = validateDates();
+  
+    // Trigger native validation messages
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+  
+    if (!isValid) {
+      return;
+    }
+  
     const formattedStartDate = new Date(startDate).toISOString();
     const formattedEndDate = endDate ? new Date(endDate).toISOString() : null;
-
+  
     const experimentData = {
       name: experimentTitle,
       description: experimentDescription,
@@ -48,7 +66,7 @@ const ExperimentCreation: React.FC = () => {
       ...(formattedEndDate && { end: formattedEndDate }),
       ...(selectedLivingLabID && { livingLabID: selectedLivingLabID }),
     };
-
+  
     try {
       // Call the addExperiment API
       const response = await addExperiment(experimentData);
@@ -60,18 +78,55 @@ const ExperimentCreation: React.FC = () => {
     }
   };
 
+  const validateDates = (): boolean => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+  
+    let isValid = true;
+  
+    // Reset custom validity
+    if (startDateRef.current) {
+      startDateRef.current.setCustomValidity('');
+    }
+    if (endDateRef.current) {
+      endDateRef.current.setCustomValidity('');
+    }
+  
+    // Validate Start Date
+    if (start < now) {
+      if (startDateRef.current) {
+        startDateRef.current.setCustomValidity('Start date cannot be in the past.');
+      }
+      isValid = false;
+    }
+  
+    // Validate End Date
+    if (endDate) {
+      if (end && end <= start) {
+        if (endDateRef.current) {
+          endDateRef.current.setCustomValidity('End date must be later than start date.');
+        }
+        isValid = false;
+      }
+    }
+  
+    return isValid;
+  };
+
+
   return (
     <div className="experiment-creation-container">
       {/* Navbar */}
       <Navbar />
-
+  
       {/* Main Container */}
       <div className="experiment-creation-main-container">
         {/* Title */}
         <h1 className="experiment-creation-page-title">New Experiment</h1>
-
+  
         {/* Content Box */}
-        <div className="experiment-creation-content-box">
+        <form className="experiment-creation-content-box" onSubmit={handleSubmitExperiment} noValidate>
           {/* Experiment Title */}
           <label className="experiment-creation-section-label experiment-creation-title-label">
             Experiment Title
@@ -82,8 +137,9 @@ const ExperimentCreation: React.FC = () => {
             placeholder="Enter experiment title..."
             value={experimentTitle}
             onChange={(e) => setExperimentTitle(e.target.value)}
+            required
           />
-
+  
           {/* Description */}
           <label className="experiment-creation-section-label experiment-creation-description-label">
             Description
@@ -93,8 +149,9 @@ const ExperimentCreation: React.FC = () => {
             placeholder="Enter experiment description..."
             value={experimentDescription}
             onChange={(e) => setExperimentDescription(e.target.value)}
+            required
           />
-
+  
           {/* Duration and LivingLab Sections */}
           <div className="experiment-creation-flex-container">
             {/* Duration of Experiment */}
@@ -107,7 +164,12 @@ const ExperimentCreation: React.FC = () => {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      validateDates();
+                    }}
+                    ref={startDateRef}
+                    required
                   />
                 </div>
                 <span className="experiment-creation-date-separator">-</span>
@@ -115,12 +177,16 @@ const ExperimentCreation: React.FC = () => {
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      validateDates();
+                    }}
+                    ref={endDateRef}
                   />
                 </div>
               </div>
             </div>
-
+  
             {/* Specify LivingLab */}
             <div className="experiment-creation-livinglab-section">
               <label className="experiment-creation-section-number">
@@ -136,6 +202,7 @@ const ExperimentCreation: React.FC = () => {
                   }`}
                 >
                   <button
+                    type="button"
                     className="experiment-creation-dropdown-button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
@@ -180,24 +247,24 @@ const ExperimentCreation: React.FC = () => {
                         </>
                       )}
                     </div>
-                    )}
+                  )}
                 </div>
               </div>
             </div>
           </div>
-
+  
           {/* Submit Button */}
           <button
+            type="submit"
             className="experiment-creation-submit-button"
-            onClick={handleSubmitExperiment}
             data-testid="submit-experiment-button"
           >
             <img src="/assets/saveSVG.svg" alt="Submit Experiment" />
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
-};
+}
 
 export default ExperimentCreation;
