@@ -298,14 +298,6 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('numberOfMessages')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('user')}>
-                    Creator
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('user')}`}
-                    />
-                  </th>
                   <th onClick={() => requestSort('start')}>
                     Date Range
                     <img
@@ -349,9 +341,6 @@ const Dashboard: React.FC = () => {
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.numberOfMessages}
-                      </td>
-                      <td onClick={() => handleExperimentClick(exp)}>
-                        {exp.user?.name || 'N/A'}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>
                       {formatDate(exp.start)} - {exp.end ? formatDate(exp.end) : 'No End Date'}
