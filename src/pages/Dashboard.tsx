@@ -97,10 +97,6 @@ const Dashboard: React.FC = () => {
         let bValue: any;
 
         switch (sortConfig.key) {
-          case 'user':
-            aValue = a.user?.name || '';
-            bValue = b.user?.name || '';
-            break;
           case 'livingLab':
             aValue = a.livingLab?.name || '';
             bValue = b.livingLab?.name || '';
