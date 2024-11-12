@@ -216,11 +216,6 @@
   background-color: rgba(217, 217, 217, 0.40);
 }
 
-.messages-table input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-}
-
 /* Add Message Button */
 .add-message-button {
   position: fixed;

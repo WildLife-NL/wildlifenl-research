@@ -24,10 +24,6 @@ const MessageDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Message; direction: string } | null>(null);
 
-  // State for checkboxes
-  const [selectedMessages, setSelectedMessages] = useState<{ [key: string]: boolean }>({});
-  const [selectAll, setSelectAll] = useState<boolean>(false);
-
   // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -39,14 +35,6 @@ const MessageDashboard: React.FC = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
-        // Initialize selected messages state
-        const initialSelected = messages.reduce((acc: { [key: string]: boolean }, msg: Message) => {
-          acc[msg.answerID] = false;
-          return acc;
-        }, {} as { [key: string]: boolean });
-
-        setSelectedMessages(initialSelected);
 
         // Extract unique interaction types from messages
         const interactionTypesSet = new Set<string>();
@@ -144,31 +132,6 @@ const MessageDashboard: React.FC = () => {
     navigate(`/message/${message.answerID}`, { state: { message } });
   };
 
-  // Handle checkbox change
-  const handleCheckboxChange = (messageID: string) => {
-    setSelectedMessages((prevSelected) => {
-      const newSelected = {
-        ...prevSelected,
-        [messageID]: !prevSelected[messageID],
-      };
-      const allSelected = Object.values(newSelected).every((selected) => selected);
-      setSelectAll(allSelected);
-      return newSelected;
-    });
-  };
-
-  // Handle select all checkbox change
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
-    setSelectedMessages((prevSelected) => {
-      const newSelected = { ...prevSelected };
-      Object.keys(newSelected).forEach((key) => {
-        newSelected[key] = newSelectAll;
-      });
-      return newSelected;
-    });
-  };
 
   return (
     <div className="message-dashboard-container" data-testid="message-dashboard-container">
@@ -296,14 +259,6 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('encounterMinutes')}`}
                     />
                   </th>
-                  <th>
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAllChange}
-                      data-testid="select-all-checkbox"
-                    />
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -335,14 +290,6 @@ const MessageDashboard: React.FC = () => {
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.encounterMinutes}
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedMessages[msg.answerID] || false}
-                          onChange={() => handleCheckboxChange(msg.answerID)}
-                          data-testid={`message-checkbox-${msg.answerID}`}
-                        />
                       </td>
                     </tr>
                   );

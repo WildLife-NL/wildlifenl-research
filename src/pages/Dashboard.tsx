@@ -23,10 +23,6 @@ const Dashboard: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Experiment; direction: string } | null>(null);
 
-  // State for checkboxes
-  const [selectedExperiments, setSelectedExperiments] = useState<{ [key: string]: boolean }>({});
-  const [selectAll, setSelectAll] = useState<boolean>(false);
-
   // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -57,13 +53,6 @@ const Dashboard: React.FC = () => {
           responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
         }));
 
-        // Initialize selected experiments state
-        const initialSelected = exps.reduce((acc, exp) => {
-          acc[exp.ID] = false;
-          return acc;
-        }, {} as { [key: string]: boolean });
-
-        setSelectedExperiments(initialSelected);
 
         // Set experiments and filtered experiments
         setExperiments(experimentsWithResponses);
@@ -174,32 +163,6 @@ const Dashboard: React.FC = () => {
   // Handle navigation to experiment details page
   const handleExperimentClick = (experiment: Experiment) => {
     navigate(`/experiment/${experiment.ID}`, { state: { experiment } });
-  };
-
-  // Handle checkbox change
-  const handleCheckboxChange = (experimentID: string) => {
-    setSelectedExperiments((prevSelected) => {
-      const newSelected = {
-        ...prevSelected,
-        [experimentID]: !prevSelected[experimentID],
-      };
-      const allSelected = Object.values(newSelected).every((selected) => selected);
-      setSelectAll(allSelected);
-      return newSelected;
-    });
-  };
-
-  // Handle select all checkbox change
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
-    setSelectedExperiments((prevSelected) => {
-      const newSelected = { ...prevSelected };
-      Object.keys(newSelected).forEach((key) => {
-        newSelected[key] = newSelectAll;
-      });
-      return newSelected;
-    });
   };
 
   return (
@@ -361,14 +324,6 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('responses')}`}
                     />
                   </th>
-                  <th>
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAllChange}
-                      data-testid="select-all-checkbox"
-                    />
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -406,14 +361,6 @@ const Dashboard: React.FC = () => {
                       <td onClick={() => handleExperimentClick(exp)}>{status}</td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.responses}
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedExperiments[exp.ID] || false}
-                          onChange={() => handleCheckboxChange(exp.ID)}
-                          data-testid={`experiment-checkbox-${exp.ID}`}
-                        />
                       </td>
                     </tr>
                   );
