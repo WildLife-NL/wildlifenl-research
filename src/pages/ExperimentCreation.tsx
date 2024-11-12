@@ -39,13 +39,13 @@ const ExperimentCreation: React.FC = () => {
 
   const handleSubmitExperiment = async () => {
     const formattedStartDate = new Date(startDate).toISOString();
-    const formattedEndDate = new Date(endDate).toISOString();
+    const formattedEndDate = endDate ? new Date(endDate).toISOString() : null;
 
     const experimentData = {
       name: experimentTitle,
       description: experimentDescription,
       start: formattedStartDate,
-      end: formattedEndDate,
+      ...(formattedEndDate && { end: formattedEndDate }),
       ...(selectedLivingLabID && { livingLabID: selectedLivingLabID }),
     };
 

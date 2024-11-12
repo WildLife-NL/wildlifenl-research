@@ -53,7 +53,6 @@ const Dashboard: React.FC = () => {
           responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
         }));
 
-
         // Set experiments and filtered experiments
         setExperiments(experimentsWithResponses);
         setFilteredExperiments(experimentsWithResponses);
@@ -355,8 +354,7 @@ const Dashboard: React.FC = () => {
                         {exp.user?.name || 'N/A'}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>
-                        {new Date(exp.start).toLocaleDateString()} -{' '}
-                        {new Date(exp.end).toLocaleDateString()}
+                      {formatDate(exp.start)} - {exp.end ? formatDate(exp.end) : 'No End Date'}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>{status}</td>
                       <td onClick={() => handleExperimentClick(exp)}>
@@ -384,15 +382,27 @@ const Dashboard: React.FC = () => {
 };
 
 // Function to determine the status based on date range
-const getStatus = (startDate: string, endDate: string): string => {
+const getStatus = (startDate: string, endDate?: string | null): string => {
   const today = new Date();
-  if (new Date(startDate) > today) {
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : null;
+
+  if (start > today) {
     return 'Upcoming';
-  } else if (new Date(endDate) < today) {
+  } else if (end && end < today) {
     return 'Completed';
   } else {
     return 'Live';
   }
+};
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return 'No Date';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
+  return date.toLocaleDateString();
 };
 
 export default Dashboard;
