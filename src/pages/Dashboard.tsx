@@ -313,7 +313,7 @@ const Dashboard: React.FC = () => {
                     />
                   </th>
                   <th onClick={() => requestSort('name')}>
-                    Experiment
+                    Name
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
