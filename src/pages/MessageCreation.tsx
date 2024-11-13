@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useRef} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageCreation.css';
@@ -30,6 +30,12 @@ const MessageCreation: React.FC = () => {
   const [encounterMeters, setEncounterMeters] = useState('');
   const [encounterMinutes, setEncounterMinutes] = useState('');
 
+  const messageTitleRef = useRef<HTMLInputElement>(null);
+  const messageTextRef = useRef<HTMLInputElement>(null);
+  const encounterMetersRef = useRef<HTMLInputElement>(null);
+  const encounterMinutesRef = useRef<HTMLInputElement>(null);
+  const speciesDropdownRef = useRef<HTMLButtonElement>(null);
+
   // Triggers list
   const triggers = [
     { id: 'encounter', name: 'Encounter' },
@@ -60,20 +66,64 @@ const MessageCreation: React.FC = () => {
     },
   ];
 
-  const handleSubmitMessage = async () => {
+  const validateForm = (): boolean => {
+    let isValid = true;
+
+    // Reset custom validity messages
+    messageTitleRef.current?.setCustomValidity('');
+    messageTextRef.current?.setCustomValidity('');
+    encounterMetersRef.current?.setCustomValidity('');
+    encounterMinutesRef.current?.setCustomValidity('');
+
+    // Validate Message Title
+    if (messageTitle.trim() === '') {
+      messageTitleRef.current?.setCustomValidity('Message title is required.');
+      isValid = false;
+    }
+
+    // Validate Message Text
+    if (messageText.trim() === '') {
+      messageTextRef.current?.setCustomValidity('Message text is required.');
+      isValid = false;
+    }
+
+    if (selectedSpeciesID === '') {
+      speciesDropdownRef.current?.setCustomValidity('Please select a species.');
+      isValid = false;
+    }
+    
+    // Validate Encounter Fields if Trigger is 'encounter'
+    if (selectedTriggerID === 'encounter') {
+      const meters = Number(encounterMeters);
+      const minutes = Number(encounterMinutes);
+
+      if (isNaN(meters) || meters < 1) {
+        encounterMetersRef.current?.setCustomValidity('Meters must be at least 1.');
+        isValid = false;
+      }
+
+      if (isNaN(minutes) || minutes < 1) {
+        encounterMinutesRef.current?.setCustomValidity('Minutes must be at least 1.');
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  };
+
+  const handleSubmitMessage = async (e: React.FormEvent) => {
     // Validate inputs
-    if (!messageTitle.trim()) {
-      alert('Message title is required.');
+    e.preventDefault();
+
+    const isValid = validateForm();
+
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      form.reportValidity();
       return;
     }
 
-    if (!selectedTriggerID) {
-      alert('Please select a valid trigger.');
-      return;
-    }
-
-    if (!selectedSpeciesID) {
-      alert('Please select a species.');
+    if (!isValid) {
       return;
     }
 
@@ -91,17 +141,6 @@ const MessageCreation: React.FC = () => {
       // Convert encounterMeters and encounterMinutes to numbers
       const meters = Number(encounterMeters);
       const minutes = Number(encounterMinutes);
-
-      if (isNaN(meters) || meters < 1) {
-        alert('Encounter Meters must be a number greater than or equal to 1.');
-        return;
-      }
-
-      if (isNaN(minutes) || minutes < 1) {
-        alert('Encounter Minutes must be a number greater than or equal to 1.');
-        return;
-      }
-
       messageData.encounterMeters = meters;
       messageData.encounterMinutes = minutes;
     }
@@ -122,17 +161,26 @@ const MessageCreation: React.FC = () => {
     <div className="message-creation-container">
       {/* Navbar */}
       <Navbar />
-
+  
       {/* Main Container */}
       <div className="message-creation-main-container">
         {/* Title */}
         <h1 className="message-creation-page-title">New Message</h1>
-
+  
         {/* Content Box */}
-        <div className="message-creation-content-box">
+        <form
+          className="message-creation-content-box"
+          onSubmit={handleSubmitMessage}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
+          noValidate
+        >
           {/* Message Title */}
           <label className="message-creation-section-label message-creation-title-label">
-            Message Title
+            Message Title *
           </label>
           <input
             type="text"
@@ -140,11 +188,13 @@ const MessageCreation: React.FC = () => {
             placeholder="Enter message title..."
             value={messageTitle}
             onChange={(e) => setMessageTitle(e.target.value)}
+            required
+            ref={messageTitleRef}
           />
-
+  
           {/* Message Text */}
           <label className="message-creation-section-label message-creation-text-label">
-            Message Text
+            Message Text * 
           </label>
           <input
             type="text"
@@ -152,13 +202,15 @@ const MessageCreation: React.FC = () => {
             placeholder="Enter message text..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
+            required
+            ref={messageTextRef}
           />
 
           {/* Severity, Trigger, Species, and Conditional Fields */}
           <div className="message-creation-flex-container">
             {/* Severity */}
             <div className="message-creation-severity-section">
-              <label className="message-creation-section-number">1. Severity</label>
+              <label className="message-creation-section-number">1. Severity *</label>
               <div className="message-creation-slider-input">
                 <input
                   type="range"
@@ -175,7 +227,7 @@ const MessageCreation: React.FC = () => {
 
             {/* Specify Trigger */}
             <div className="message-creation-trigger-section">
-              <label className="message-creation-section-number">2. Specify Trigger</label>
+              <label className="message-creation-section-number">2. Specify Trigger *</label>
               <div className="message-creation-trigger-content">
                 <div
                   className={`message-creation-dropdown ${
@@ -219,7 +271,7 @@ const MessageCreation: React.FC = () => {
 
             {/* Specify Species */}
             <div className="message-creation-species-section">
-              <label className="message-creation-section-number">3. Species</label>
+              <label className="message-creation-section-number">3. Species *</label>
               <div className="message-creation-species-content">
                 <div
                   className={`message-creation-dropdown ${
@@ -229,6 +281,7 @@ const MessageCreation: React.FC = () => {
                   <button
                     className="message-creation-dropdown-button"
                     onClick={() => setIsSpeciesDropdownOpen(!isSpeciesDropdownOpen)}
+                    ref={speciesDropdownRef}
                   >
                     {selectedSpeciesName}
                     <img
@@ -264,7 +317,7 @@ const MessageCreation: React.FC = () => {
                 {/* Encounter Meters */}
                 <div className="message-creation-encounter-meters-section">
                   <label className="message-creation-section-number">
-                    4. Encounter Meters
+                    4. Encounter Meters *
                   </label>
                   <input
                     type="number"
@@ -273,13 +326,15 @@ const MessageCreation: React.FC = () => {
                     value={encounterMeters}
                     onChange={(e) => setEncounterMeters(e.target.value)}
                     min="1"
+                    required
+                    ref={encounterMetersRef}
                   />
                 </div>
 
                 {/* Encounter Minutes */}
                 <div className="message-creation-encounter-minutes-section">
                   <label className="message-creation-section-number">
-                    5. Encounter Minutes
+                    5. Encounter Minutes *
                   </label>
                   <input
                     type="number"
@@ -288,6 +343,8 @@ const MessageCreation: React.FC = () => {
                     value={encounterMinutes}
                     onChange={(e) => setEncounterMinutes(e.target.value)}
                     min="1"
+                    required
+                    ref={encounterMinutesRef}
                   />
                 </div>
               </>
@@ -296,16 +353,17 @@ const MessageCreation: React.FC = () => {
 
           {/* Submit Button */}
           <button
-            className="message-creation-submit-button"
-            onClick={handleSubmitMessage}
-            data-testid="submit-message-button"
-          >
-            <img src="/assets/saveSVG.svg" alt="Submit Message" />
+              type="submit"
+              className="message-creation-submit-button"
+              data-testid="submit-message-button"
+            >
+              <img src="/assets/saveSVG.svg" alt="Submit Message" />
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
-};
+}
+
 
 export default MessageCreation;
