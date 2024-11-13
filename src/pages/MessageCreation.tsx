@@ -300,6 +300,7 @@ const MessageCreation: React.FC = () => {
                             setSelectedSpeciesID(species.ID);
                             setSelectedSpeciesName(species.commonName);
                             setIsSpeciesDropdownOpen(false);
+                            speciesDropdownRef.current?.setCustomValidity('');
                           }}
                         >
                           {species.commonName} ({species.name})

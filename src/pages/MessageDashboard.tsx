@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageDashboard.css';
+import { getMessagesByExperimentID } from '../services/messageService';
 
 // Import types
 import { Message } from '../types/message';
+import { Experiment } from '../types/experiment';
 
 interface InteractionType {
   ID: string;
@@ -13,12 +15,12 @@ interface InteractionType {
 
 const MessageDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { id } = useParams<{ id: string }>();
 
-  const { messages = [], experiment } = location.state || {};
 
   const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [experiment] = useState<Experiment | null>(null);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [selectedInteractionType, setSelectedInteractionType] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -29,6 +31,24 @@ const MessageDashboard: React.FC = () => {
 
   // State for dropdown open/close
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Fetch messages on component mount
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const fetchedMessages = await getMessagesByExperimentID(id);
+        setMessages(fetchedMessages);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [id]);
 
   // Fetch interaction types on component mount
   useEffect(() => {
