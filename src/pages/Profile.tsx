@@ -8,18 +8,19 @@ import '../styles/Profile.css';
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        setIsLoading(true);
         const profile = await getMyProfile();
         setUser(profile);
+        setIsLoading(false);
       } catch (err) {
         setError('Failed to load profile.');
-      } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -30,14 +31,6 @@ const Profile: React.FC = () => {
     localStorage.removeItem('authToken'); // Remove the token from local storage
     navigate('/login'); // Redirect to the login page
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
 
   return (
     <div className="profile-page">
