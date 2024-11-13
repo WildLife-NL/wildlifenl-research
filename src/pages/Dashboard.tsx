@@ -167,7 +167,7 @@ const Dashboard: React.FC = () => {
 
       {/* Experiments Title */}
       <h1 className="experiments-title" data-testid="experiments-title">
-        Experiments
+        My Experiments
       </h1>
 
       {/* Filters Container */}
