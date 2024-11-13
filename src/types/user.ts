@@ -4,7 +4,6 @@ export interface Role {
 }
 
 export interface User {
-  $schema: string;
   ID: string;
   name: string;
   email: string;

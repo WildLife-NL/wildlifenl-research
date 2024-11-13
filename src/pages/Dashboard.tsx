@@ -23,10 +23,6 @@ const Dashboard: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Experiment; direction: string } | null>(null);
 
-  // State for checkboxes
-  const [selectedExperiments, setSelectedExperiments] = useState<{ [key: string]: boolean }>({});
-  const [selectAll, setSelectAll] = useState<boolean>(false);
-
   // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -56,14 +52,6 @@ const Dashboard: React.FC = () => {
           ...exp,
           responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
         }));
-
-        // Initialize selected experiments state
-        const initialSelected = exps.reduce((acc, exp) => {
-          acc[exp.ID] = false;
-          return acc;
-        }, {} as { [key: string]: boolean });
-
-        setSelectedExperiments(initialSelected);
 
         // Set experiments and filtered experiments
         setExperiments(experimentsWithResponses);
@@ -109,10 +97,6 @@ const Dashboard: React.FC = () => {
         let bValue: any;
 
         switch (sortConfig.key) {
-          case 'user':
-            aValue = a.user?.name || '';
-            bValue = b.user?.name || '';
-            break;
           case 'livingLab':
             aValue = a.livingLab?.name || '';
             bValue = b.livingLab?.name || '';
@@ -176,32 +160,6 @@ const Dashboard: React.FC = () => {
     navigate(`/experiment/${experiment.ID}`, { state: { experiment } });
   };
 
-  // Handle checkbox change
-  const handleCheckboxChange = (experimentID: string) => {
-    setSelectedExperiments((prevSelected) => {
-      const newSelected = {
-        ...prevSelected,
-        [experimentID]: !prevSelected[experimentID],
-      };
-      const allSelected = Object.values(newSelected).every((selected) => selected);
-      setSelectAll(allSelected);
-      return newSelected;
-    });
-  };
-
-  // Handle select all checkbox change
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
-    setSelectedExperiments((prevSelected) => {
-      const newSelected = { ...prevSelected };
-      Object.keys(newSelected).forEach((key) => {
-        newSelected[key] = newSelectAll;
-      });
-      return newSelected;
-    });
-  };
-
   return (
     <div className="dashboard-container" data-testid="dashboard-container">
       {/* Navbar */}
@@ -209,7 +167,7 @@ const Dashboard: React.FC = () => {
 
       {/* Experiments Title */}
       <h1 className="experiments-title" data-testid="experiments-title">
-        Experiments
+        My Experiments
       </h1>
 
       {/* Filters Container */}
@@ -313,7 +271,7 @@ const Dashboard: React.FC = () => {
                     />
                   </th>
                   <th onClick={() => requestSort('name')}>
-                    Experiment
+                    Name
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
@@ -336,14 +294,6 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('numberOfMessages')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('user')}>
-                    Creator
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('user')}`}
-                    />
-                  </th>
                   <th onClick={() => requestSort('start')}>
                     Date Range
                     <img
@@ -359,14 +309,6 @@ const Dashboard: React.FC = () => {
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
                       className={`sort-icon ${getSortIconClass('responses')}`}
-                    />
-                  </th>
-                  <th>
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAllChange}
-                      data-testid="select-all-checkbox"
                     />
                   </th>
                 </tr>
@@ -397,23 +339,11 @@ const Dashboard: React.FC = () => {
                         {exp.numberOfMessages}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>
-                        {exp.user?.name || 'N/A'}
-                      </td>
-                      <td onClick={() => handleExperimentClick(exp)}>
-                        {new Date(exp.start).toLocaleDateString()} -{' '}
-                        {new Date(exp.end).toLocaleDateString()}
+                      {formatDate(exp.start)} - {exp.end ? formatDate(exp.end) : 'No End Date'}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>{status}</td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.responses}
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedExperiments[exp.ID] || false}
-                          onChange={() => handleCheckboxChange(exp.ID)}
-                          data-testid={`experiment-checkbox-${exp.ID}`}
-                        />
                       </td>
                     </tr>
                   );
@@ -437,15 +367,27 @@ const Dashboard: React.FC = () => {
 };
 
 // Function to determine the status based on date range
-const getStatus = (startDate: string, endDate: string): string => {
+const getStatus = (startDate: string, endDate?: string | null): string => {
   const today = new Date();
-  if (new Date(startDate) > today) {
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : null;
+
+  if (start > today) {
     return 'Upcoming';
-  } else if (new Date(endDate) < today) {
+  } else if (end && end < today) {
     return 'Completed';
   } else {
     return 'Live';
   }
+};
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return 'No Date';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
+  return date.toLocaleDateString();
 };
 
 export default Dashboard;

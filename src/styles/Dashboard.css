@@ -250,10 +250,6 @@
   background-color: rgba(217, 217, 217, 0.40);
 }
 
-.experiments-table input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-}
 
 /* Add Experiment Button */
 .add-experiment-button {

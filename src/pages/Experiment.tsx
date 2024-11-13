@@ -2,7 +2,6 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/Experiment.css';
-import { getMessagesByExperimentID } from '../services/messageService';
 import { Experiment as ExperimentType } from '../types/experiment';
 import { updateExperiment } from '../services/experimentService'; // Import the update function
 
@@ -30,8 +29,7 @@ const Experiment: React.FC = () => {
   const handleMessageOverviewClick = async () => {
     if (!experiment) return;
     try {
-      const messages = await getMessagesByExperimentID(experiment.ID);
-      navigate(`/messagedashboard/${experiment.ID}`, { state: { messages, experiment } });
+      navigate(`/messagedashboard/${experiment.ID}`);
     } catch (error) {
       console.error('Error fetching messages:', error);
       // Optionally display an error message to the user

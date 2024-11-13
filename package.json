@@ -1,5 +1,5 @@
 {
-  "name": "reacttestfrontend",
+  "name": "researchconnect",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -56,6 +56,5 @@
     "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.1.0"
-  },
-  "proxy": "https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl"
+  }
 }

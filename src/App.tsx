@@ -10,39 +10,44 @@ import Experiment from './pages/Experiment';
 import MessageCreation from './pages/MessageCreation';
 import MessageDashboard from './pages/MessageDashboard';
 import Unauthorized from './pages/Unauthorized';
-import { isAuthenticated } from './services/authService';
 import AuthWrapper from './components/AuthWrapper';
 
 const App: React.FC = () => {
   return (
     <Router>
-      <AuthWrapper>
-        <Routes>
-          {/* Default Route - Redirects to dashboard or login */}
-          <Route
-            path="/"
-            element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />}
-          />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
 
-          {/* Public Route - Login */}
-          <Route path="/login" element={<Login />} />
+        {/* Unauthorized Route */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Private Routes */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/activity" element={<Activity />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/export" element={<Export />} />
-          <Route path="/experimentcreation" element={<ExperimentCreation />} />
-          <Route path="/experiment/:id" element={<Experiment />} />
-          <Route path="/messagecreation/:id" element={<MessageCreation />} />
-          <Route path="/messagedashboard/:id" element={<MessageDashboard />} />
-          {/* Unauthorized Route */}
-          <Route path="/unauthorized" element={<Unauthorized />} />
+        {/* Protected Routes */}
+        <Route
+          path="/*"
+          element={
+            <AuthWrapper>
+              <Routes>
+                {/* Default Route - Redirects to dashboard */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Wildcard Route */}
-          <Route path="*" element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />} />
-        </Routes>
-      </AuthWrapper>
+                {/* Private Routes */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/activity" element={<Activity />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/export" element={<Export />} />
+                <Route path="/experimentcreation" element={<ExperimentCreation />} />
+                <Route path="/experiment/:id" element={<Experiment />} />
+                <Route path="/messagecreation/:id" element={<MessageCreation />} />
+                <Route path="/messagedashboard/:id" element={<MessageDashboard />} />
+
+                {/* Wildcard Route */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </AuthWrapper>
+          }
+        />
+      </Routes>
     </Router>
   );
 };
