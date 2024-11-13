@@ -231,20 +231,20 @@ const MessageDashboard: React.FC = () => {
             >
               <thead>
                 <tr>
-                  <th onClick={() => requestSort('trigger')}>
-                    Trigger
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('trigger')}`}
-                    />
-                  </th>
                   <th onClick={() => requestSort('name')}>
                     Name
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
                       className={`sort-icon ${getSortIconClass('name')}`}
+                    />
+                  </th>
+                  <th onClick={() => requestSort('trigger')}>
+                    Trigger
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('trigger')}`}
                     />
                   </th>
                   <th onClick={() => requestSort('text')}>
@@ -290,15 +290,16 @@ const MessageDashboard: React.FC = () => {
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
                       style={{ cursor: 'pointer' }}
                     >
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.trigger}
-                      </td>
                       <td
                         data-testid="message-name"
                         onClick={() => handleMessageClick(msg)}
                       >
                         {msg.name}
                       </td>
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {msg.trigger}
+                      </td>
+                      
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.text}
                       </td>
