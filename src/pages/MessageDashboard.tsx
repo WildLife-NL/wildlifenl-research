@@ -152,6 +152,11 @@ const MessageDashboard: React.FC = () => {
     navigate(`/message/${message.answerID}`, { state: { message } });
   };
 
+  // Function to truncate text to a specified length
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
 
   return (
     <div className="message-dashboard-container" data-testid="message-dashboard-container">
@@ -160,7 +165,7 @@ const MessageDashboard: React.FC = () => {
 
       {/* Messages Title */}
       <h1 className="messages-title" data-testid="messages-title">
-      Messages for Experiment: {experiment?.name || `Experiment ${id}`}
+      Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
       </h1>
 
       {/* Filters Container */}
@@ -294,14 +299,14 @@ const MessageDashboard: React.FC = () => {
                         data-testid="message-name"
                         onClick={() => handleMessageClick(msg)}
                       >
-                        {msg.name}
+                        {truncateText(msg.name, 20)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.trigger}
                       </td>
                       
                       <td onClick={() => handleMessageClick(msg)}>
-                        {msg.text}
+                        {truncateText(msg.text, 12)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.severity}

@@ -160,6 +160,11 @@ const Dashboard: React.FC = () => {
     navigate(`/experiment/${experiment.ID}`, { state: { experiment } });
   };
 
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <div className="dashboard-container" data-testid="dashboard-container">
       {/* Navbar */}
@@ -327,7 +332,7 @@ const Dashboard: React.FC = () => {
                         data-testid="experiment-name"
                         onClick={() => handleExperimentClick(exp)}
                       >
-                        {exp.name}
+                        {truncateText(exp.name, 37)}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.livingLab?.name || 'All LivingLabs'}
