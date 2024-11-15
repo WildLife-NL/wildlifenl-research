@@ -77,7 +77,7 @@ body {
   height: 56px;
 
   border-radius: 12px;
-  border: 3px solid rgba(0, 0, 0, 0.25);
+  border: 3px solid rgba(0, 0, 0, 0.651);
   background: rgba(196, 196, 196, 0);
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
 }
@@ -89,7 +89,7 @@ body {
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-size: 22px;
-  font-weight: 300;
+  font-weight: 500;
   line-height: normal;
 }
 
@@ -124,7 +124,7 @@ body {
   height: 136px;
 
   border-radius: 12px;
-  border: 3px solid rgba(0, 0, 0, 0.25);
+  border: 3px solid rgba(0, 0, 0, 0.651);
   background: rgba(196, 196, 196, 0);
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
 }
@@ -137,7 +137,7 @@ body {
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-size: 20px;
-  font-weight: 300;
+  font-weight: 500;
   line-height: normal;
 }
 
@@ -178,7 +178,7 @@ body {
   height: 48px;
 
   border-radius: 12px;
-  border: 3px solid rgba(0, 0, 0, 0.25);
+  border: 3px solid rgba(0, 0, 0, 0.651);
   background: rgba(196, 196, 196, 0);
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
 
@@ -189,7 +189,7 @@ body {
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-size: 22px;
-  font-weight: 300;
+  font-weight: 500;
 }
 
 .date-separator {
@@ -230,7 +230,7 @@ body {
   height: 48px;
 
   border-radius: 12px;
-  border: 3px solid rgba(0, 0, 0, 0.25);
+  border: 3px solid rgba(0, 0, 0, 0.651);
   background: rgba(196, 196, 196, 0);
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
 
@@ -245,7 +245,7 @@ body {
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-size: clamp(16px, 5vw, 25px); 
-  font-weight: 300;
+  font-weight: 400;
   white-space: nowrap; 
   overflow: hidden;
   text-overflow: ellipsis; 
