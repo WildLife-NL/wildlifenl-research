@@ -3,6 +3,9 @@
   font-family: 'Roboto', sans-serif;
   position: relative;
   overflow-x: hidden; 
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Messages Title */
@@ -146,9 +149,11 @@
 /* Table Container */
 .message-table-container {
   margin-top: 20px;
-  margin-left: 5%;
-  margin-right: 5%;
+  margin-left: 2%;
+  margin-right: 2%;
   overflow-x: auto;
+  overflow-y: auto; /* Enables vertical scrolling */
+  max-height: calc(100vh - 180px); /* Set desired maximum height */
   user-select: none;
 }
 
@@ -253,4 +258,23 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar Styling (Optional) */
+.message-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.message-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.message-table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.message-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

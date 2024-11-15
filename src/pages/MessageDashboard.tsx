@@ -8,7 +8,7 @@ import { getMessagesByExperimentID } from '../services/messageService';
 import { Message } from '../types/message';
 import { Experiment } from '../types/experiment';
 
-interface InteractionType {
+interface TriggerType {
   ID: string;
   name: string;
 }
@@ -18,11 +18,11 @@ const MessageDashboard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
 
-  const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]);
+  const [interactionTypes, setInteractionTypes] = useState<TriggerType[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [experiment] = useState<Experiment | null>(null);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
-  const [selectedInteractionType, setSelectedInteractionType] = useState<string>('All');
+  const [selectedTriggerType, setSelectedInteractionType] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Message; direction: string } | null>(null);
 
@@ -69,13 +69,13 @@ const MessageDashboard: React.FC = () => {
           name: type,
         }));
 
-        // Include 'All InteractionTypes' as default option
-        const allInteractionTypesOption: InteractionType = {
+        // Include 'All TriggernTypes' as default option
+        const allTriggerTypesOption: TriggerType = {
           ID: 'all',
           name: 'All',
         };
 
-        setInteractionTypes([allInteractionTypesOption, ...interactionTypesData]);
+        setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
 
         setFilteredMessages(messages);
 
@@ -94,9 +94,9 @@ const MessageDashboard: React.FC = () => {
   useEffect(() => {
     let filtered = [...messages];
 
-    // Filter by InteractionType
-    if (selectedInteractionType !== 'All') {
-      filtered = filtered.filter((msg: Message) => msg.trigger === selectedInteractionType);
+    // Filter by TriggerType
+    if (selectedTriggerType !== 'All') {
+      filtered = filtered.filter((msg: Message) => msg.trigger === selectedTriggerType);
     }
 
     // Filter by search query
@@ -123,7 +123,7 @@ const MessageDashboard: React.FC = () => {
     }
 
     setFilteredMessages(filtered);
-  }, [selectedInteractionType, searchQuery, sortConfig, messages]);
+  }, [selectedTriggerType, searchQuery, sortConfig, messages]);
 
   // Handle sorting
   const requestSort = (key: keyof Message) => {
@@ -152,6 +152,11 @@ const MessageDashboard: React.FC = () => {
     navigate(`/message/${message.answerID}`, { state: { message } });
   };
 
+  // Function to truncate text to a specified length
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
 
   return (
     <div className="message-dashboard-container" data-testid="message-dashboard-container">
@@ -160,12 +165,12 @@ const MessageDashboard: React.FC = () => {
 
       {/* Messages Title */}
       <h1 className="messages-title" data-testid="messages-title">
-      Messages for Experiment: {experiment?.name || `Experiment ${id}`}
+      Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
       </h1>
 
       {/* Filters Container */}
       <div className="message-filters-container" data-testid="filters-container">
-        {/* InteractionType Filter */}
+        {/* TriggerType Filter */}
         <div className="message-filter interactiontype-filter" data-testid="interactiontype-filter">
           <label className="filter-label">Filter by trigger:</label>
           <div
@@ -176,7 +181,7 @@ const MessageDashboard: React.FC = () => {
               data-testid="interactiontype-dropdown-button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {selectedInteractionType}
+              {selectedTriggerType}
               <img
                 src="/assets/vsvg.svg"
                 alt="Dropdown Icon"
@@ -231,20 +236,20 @@ const MessageDashboard: React.FC = () => {
             >
               <thead>
                 <tr>
-                  <th onClick={() => requestSort('trigger')}>
-                    Interaction
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('trigger')}`}
-                    />
-                  </th>
                   <th onClick={() => requestSort('name')}>
                     Name
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
                       className={`sort-icon ${getSortIconClass('name')}`}
+                    />
+                  </th>
+                  <th onClick={() => requestSort('trigger')}>
+                    Trigger
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('trigger')}`}
                     />
                   </th>
                   <th onClick={() => requestSort('text')}>
@@ -290,17 +295,18 @@ const MessageDashboard: React.FC = () => {
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
                       style={{ cursor: 'pointer' }}
                     >
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.trigger}
-                      </td>
                       <td
                         data-testid="message-name"
                         onClick={() => handleMessageClick(msg)}
                       >
-                        {msg.name}
+                        {truncateText(msg.name, 20)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
-                        {msg.text}
+                        {msg.trigger}
+                      </td>
+                      
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {truncateText(msg.text, 12)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.severity}

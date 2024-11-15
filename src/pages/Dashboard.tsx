@@ -160,6 +160,11 @@ const Dashboard: React.FC = () => {
     navigate(`/experiment/${experiment.ID}`, { state: { experiment } });
   };
 
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <div className="dashboard-container" data-testid="dashboard-container">
       {/* Navbar */}
@@ -262,20 +267,20 @@ const Dashboard: React.FC = () => {
             >
               <thead>
                 <tr>
-                  <th onClick={() => requestSort('livingLab')}>
-                    LivingLab
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('livingLab')}`}
-                    />
-                  </th>
                   <th onClick={() => requestSort('name')}>
                     Name
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
                       className={`sort-icon ${getSortIconClass('name')}`}
+                    />
+                  </th>
+                  <th onClick={() => requestSort('livingLab')}>
+                    LivingLab
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('livingLab')}`}
                     />
                   </th>
                   <th onClick={() => requestSort('numberOfQuestionnaires')}>
@@ -323,14 +328,14 @@ const Dashboard: React.FC = () => {
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
                       style={{ cursor: 'pointer' }}
                     >
-                      <td onClick={() => handleExperimentClick(exp)}>
-                        {exp.livingLab?.name || 'All LivingLabs'}
-                      </td>
                       <td
                         data-testid="experiment-name"
                         onClick={() => handleExperimentClick(exp)}
                       >
-                        {exp.name}
+                        {truncateText(exp.name, 37)}
+                      </td>
+                      <td onClick={() => handleExperimentClick(exp)}>
+                        {exp.livingLab?.name || 'All LivingLabs'}
                       </td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.numberOfQuestionnaires}
