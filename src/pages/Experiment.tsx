@@ -131,7 +131,7 @@ const Experiment: React.FC = () => {
               />
             </div>
             <div className="button-content">
-              <p>Amount: {experiment.numberOfQuestionnaires || 0}</p>
+              <p>Number of Questionnaires: {experiment.numberOfQuestionnaires || 0}</p>
               <p>Responses: {experiment.questionnaireActivity || 0}</p>
             </div>
           </button>
@@ -150,7 +150,7 @@ const Experiment: React.FC = () => {
               />
             </div>
             <div className="button-content">
-              <p>Amount: {experiment.numberOfMessages || 0}</p>
+              <p>Number of Messages: {experiment.numberOfMessages || 0}</p>
               <p>Sent: {experiment.messageActivity || 0}</p>
             </div>
           </button>
