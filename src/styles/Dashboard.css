@@ -2,7 +2,9 @@
 .dashboard-container {
   font-family: 'Roboto', sans-serif;
   position: relative;
-  overflow-x: hidden; 
+  display: flex;
+  flex-direction: column;
+  /* Removed overflow-x to enable scrollbar */
 }
 
 /* Experiments Title */
@@ -13,6 +15,7 @@
   margin-top: 100px; /* Adjust for navbar height */
   margin-left: 24px;
   user-select: none;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Filters Container */
@@ -22,7 +25,8 @@
   align-items: center;
   margin-top: 20px;
   margin-left: 5%;
-  margin-right: 5%; /* Added right margin to align with left */
+  margin-right: 5%; /* Align with left margin */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Filter Styles */
@@ -155,7 +159,7 @@
   padding-right: 40px; /* Prevent text overlap with icon */
   font-size: 25px;
   font-weight: 300;
-  color: rgba(0, 0, 0, 0);
+  color: rgba(0, 0, 0, 0); /* Hidden text */
   border: 3px solid rgba(0, 0, 0, 0.25);
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
@@ -165,6 +169,10 @@
 .search-input input[type="text"]:hover:not(:focus) {
   border-color: #27A966;
   box-shadow: 0 0 5px #27A966;
+}
+
+.search-input input[type="text"]:focus {
+  color: #000; /* Reveal text on focus */
 }
 
 .search-icon {
@@ -180,12 +188,15 @@
 /* Table Container */
 .table-container {
   margin-top: 20px;
-  margin-left: 5%; /* Added margins to prevent touching edges */
+  margin-left: 5%; /* Margins to prevent touching edges */
   margin-right: 5%;
   overflow-x: auto;
+  overflow-y: auto; /* Enables vertical scrolling */
+  height: calc(100vh - 270px); /* Adjusted total offset */
   user-select: none;
 }
 
+/* Experiments Table */
 .experiments-table {
   width: 100%;
   border-collapse: collapse;
@@ -250,7 +261,6 @@
   background-color: rgba(217, 217, 217, 0.40);
 }
 
-
 /* Add Experiment Button */
 .add-experiment-button {
   position: fixed;
@@ -262,6 +272,7 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
 }
 
 .add-experiment-button img {
@@ -269,6 +280,7 @@
   height: auto;
 }
 
+/* Loading Container */
 .loading-container {
   display: flex;
   justify-content: center;
@@ -288,4 +300,63 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar Styling (Optional) */
+.table-container::-webkit-scrollbar {
+  width: 8px; /* Increased width for better visibility */
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive Adjustments (Optional) */
+@media (max-width: 768px) {
+  .experiments-title {
+    font-size: 36px;
+    margin-top: 70px;
+    margin-left: 16px;
+  }
+
+  .filter-label {
+    font-size: 18px;
+  }
+
+  .dropdown-button {
+    height: 45px;
+    font-size: 18px;
+  }
+
+  .search-input input[type="text"] {
+    width: 250px;
+    height: 45px;
+    font-size: 20px;
+  }
+
+  .search-icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  .experiments-table th,
+  .experiments-table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .add-experiment-button {
+    width: 90px;
+    height: 90px;
+  }
 }
