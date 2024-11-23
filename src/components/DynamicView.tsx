@@ -10,14 +10,14 @@ interface DynamicViewProps {
 
 const DynamicView: React.FC<DynamicViewProps> = ({ fields }) => {
   return (
-    <div className="container">
+    <div className="dynamic-view-container">
       {fields.map((field, index) => (
-        <div key={index} className="field">
-          <div className="field-content">
-            <div className="field-name">{field.name}</div>
-            <div className="field-value">{field.value}</div>
+        <div key={index} className="dynamic-view-field">
+          <div className="dynamic-view-field-content">
+            <div className="dynamic-view-field-name">{field.name}</div>
+            <div className="dynamic-view-field-value">{field.value}</div>
           </div>
-          <div className="line"></div>
+          <div className="dynamic-view-line"></div>
         </div>
       ))}
     </div>

@@ -1,4 +1,4 @@
-.container {
+.dynamic-view-container {
   /* Remove fixed width to allow dynamic sizing */
   border: 1px solid #000;
   background: rgba(217, 217, 217, 0.0);
@@ -11,16 +11,16 @@
   max-width: 100%; /* Prevents the container from exceeding the viewport width */
 }
 
-.field {
+.dynamic-view-field {
   margin-bottom: 16px;
 }
 
-.field-content {
+.dynamic-view-field-content {
   display: flex;
   align-items: center;
 }
 
-.field-name {
+.dynamic-view-field-name {
   width: 550px; /* You can adjust or remove this fixed width */
   color: #000;
   font-family: Roboto;
@@ -29,7 +29,7 @@
   letter-spacing: 0.75px;
 }
 
-.field-value {
+.dynamic-view-field-value {
   width: 816px; /* You can adjust or remove this fixed width */
   color: #0F0F0F;
   font-family: Roboto;
@@ -39,14 +39,14 @@
   margin-left: 16px;
 }
 
-.line {
+.dynamic-view-line {
   width: 100%; /* Makes the line span the full width of the container */
   height: 3px;
   background-color: #00000058;
   margin-top: 8px;
 }
 
-.field-value {
+.dynamic-view-field-value {
   height: auto; /* Allows dynamic height based on content */
   overflow-wrap: break-word;
   word-break: break-word;
