@@ -79,49 +79,46 @@ const Experiment: React.FC = () => {
       <div className="experiment-container">
         {/* Title */}
         <h1 className="experiment-view-title">Experiment View</h1>
-  
+
         {/* Experiment Details Component */}
         <div className="experiment-details-component">
           <DynamicView fields={fields} />
         </div>
-  
+
         {/* Buttons Container */}
         <div className="buttons-container">
           {/* Questionnaire Overview Button */}
           <button
-  className="view-questionnaires-button"
-  onClick={handleQuestionnaireOverviewClick}
->
-  <span className="view-questionnaires-button-text">View Questionnaires</span>
-  <img
-    src="/assets/questionnaireSVG.svg"
-    alt="Questionnaire Icon"
-    className="view-questionnaires-button-icon"
-  />
-</button>
-  
-            {/* View Messages Button */}
-<button
-  className="view-messages-button"
-  onClick={handleMessageOverviewClick}
->
-  <span className="view-messages-button-text">View Messages</span>
-  <img
-    src="/assets/messageSVG.svg"
-    alt="Message Icon"
-    className="view-messages-button-icon"
-  />
-</button>
+            className="view-questionnaires-button"
+            onClick={handleQuestionnaireOverviewClick}
+          >
+            <span className="view-questionnaires-button-text">View Questionnaires</span>
+            <img
+              src="/assets/questionnaireSVG.svg"
+              alt="Questionnaire Icon"
+              className="view-questionnaires-button-icon"
+            />
+          </button>
 
-    
+          {/* View Messages Button */}
+          <button
+            className="view-messages-button"
+            onClick={handleMessageOverviewClick}
+          >
+            <span className="view-messages-button-text">View Messages</span>
+            <img
+              src="/assets/messageSVG.svg"
+              alt="Message Icon"
+              className="view-messages-button-icon"
+            />
+          </button>
+
           {/* Stop Experiment Button */}
           <button
             className="stop-experiment-button"
             onClick={handleStopExperiment}
           >
-            
-              <span className="stop-button-text">Stop Experiment</span>
-            
+            <span className="stop-button-text">Stop Experiment</span>
           </button>
         </div>
       </div>
