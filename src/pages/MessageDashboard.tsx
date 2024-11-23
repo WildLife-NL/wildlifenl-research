@@ -17,6 +17,13 @@ const MessageDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
+  const severityLabels: { [key: number]: string } = {
+    1: 'debug',
+    2: 'info',
+    3: 'warning',
+    4: 'urgent',
+    5: 'critical',
+  };
 
   const [interactionTypes, setInteractionTypes] = useState<TriggerType[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -69,10 +76,18 @@ const MessageDashboard: React.FC = () => {
           name: type,
         }));
 
-        // Include 'All TriggernTypes' as default option
+        // Include 'All TriggerTypes' as default option
         const allTriggerTypesOption: TriggerType = {
           ID: 'all',
           name: 'All',
+        };
+
+        const severityLabels: { [key: number]: string } = {
+          1: 'debug',
+          2: 'info',
+          3: 'warning',
+          4: 'urgent',
+          5: 'critical',
         };
 
         setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
@@ -309,7 +324,7 @@ const MessageDashboard: React.FC = () => {
                         {truncateText(msg.text, 12)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
-                        {msg.severity}
+                        {severityLabels[msg.severity] || 'Unknown'}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.encounterMeters}
