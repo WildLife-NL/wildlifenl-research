@@ -32,6 +32,8 @@ const MessageDashboard: React.FC = () => {
   const [selectedTriggerType, setSelectedInteractionType] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Message; direction: string } | null>(null);
+  const [showEncounterMeters, setShowEncounterMeters] = useState<boolean>(false);
+  const [showEncounterMinutes, setShowEncounterMinutes] = useState<boolean>(false);
 
   // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -71,24 +73,24 @@ const MessageDashboard: React.FC = () => {
           }
         });
 
-        const interactionTypesData = Array.from(interactionTypesSet).map((type) => ({
-          ID: type,
-          name: type,
-        }));
-
         // Include 'All TriggerTypes' as default option
         const allTriggerTypesOption: TriggerType = {
           ID: 'all',
           name: 'All',
         };
 
-        const severityLabels: { [key: number]: string } = {
-          1: 'debug',
-          2: 'info',
-          3: 'warning',
-          4: 'urgent',
-          5: 'critical',
-        };
+        const interactionTypesData = Array.from(interactionTypesSet).map((type) => ({
+          ID: type,
+          name: type,
+        }));
+
+        setShowEncounterMeters(filteredMessages.some(
+          (msg) => msg.encounterMeters != null && msg.encounterMinutes > 0
+        ));
+      
+        setShowEncounterMinutes(filteredMessages.some(
+          (msg) => msg.encounterMinutes != null && msg.encounterMinutes > 0
+        ));
 
         setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
 
@@ -283,22 +285,26 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('severity')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('encounterMeters')}>
-                    Encounter Meters
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('encounterMeters')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('encounterMinutes')}>
-                    Encounter Minutes
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('encounterMinutes')}`}
-                    />
-                  </th>
+                  {showEncounterMeters && (
+                    <th onClick={() => requestSort('encounterMeters')}>
+                      Encounter Meters
+                      <img
+                        src="/assets/vblacksvg.svg"
+                        alt="Sort Icon"
+                        className={`sort-icon ${getSortIconClass('encounterMeters')}`}
+                      />
+                    </th>
+                  )}
+                  {showEncounterMinutes && (
+                    <th onClick={() => requestSort('encounterMinutes')}>
+                      Encounter Minutes
+                      <img
+                        src="/assets/vblacksvg.svg"
+                        alt="Sort Icon"
+                        className={`sort-icon ${getSortIconClass('encounterMinutes')}`}
+                      />
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -326,13 +332,17 @@ const MessageDashboard: React.FC = () => {
                       <td onClick={() => handleMessageClick(msg)}>
                         {severityLabels[msg.severity] || 'Unknown'}
                       </td>
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.encounterMeters}
-                      </td>
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.encounterMinutes}
-                      </td>
-                    </tr>
+                      {showEncounterMeters && (
+        <td onClick={() => handleMessageClick(msg)}>
+          {msg.encounterMeters}
+        </td>
+      )}
+      {showEncounterMinutes && (
+        <td onClick={() => handleMessageClick(msg)}>
+          {msg.encounterMinutes}
+        </td>
+      )}
+    </tr>
                   );
                 })}
               </tbody>
