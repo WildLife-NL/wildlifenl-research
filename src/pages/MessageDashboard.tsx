@@ -136,7 +136,16 @@ const MessageDashboard: React.FC = () => {
       filtered.sort((a: Message, b: Message) => {
         let aValue: any = a[sortConfig.key] || '';
         let bValue: any = b[sortConfig.key] || '';
-
+    
+        if (sortConfig.key === 'species') {
+          aValue = a.species?.commonName.toLowerCase() || '';
+          bValue = b.species?.commonName.toLowerCase() || '';
+        } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+    
+        // Move comparison logic outside
         if (aValue < bValue) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -269,8 +278,13 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('name')}`}
                     />
                   </th>
-                  <th>
+                  <th onClick={() => requestSort('species')}>
                     Species
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('species')}`}
+                    />
                   </th>
                   <th onClick={() => requestSort('trigger')}>
                     Trigger
@@ -349,16 +363,16 @@ const MessageDashboard: React.FC = () => {
                         {severityLabels[msg.severity] || 'Unknown'}
                       </td>
                       {showEncounterMeters && (
-        <td onClick={() => handleMessageClick(msg)}>
-          {msg.encounterMeters}
-        </td>
-      )}
-      {showEncounterMinutes && (
-        <td onClick={() => handleMessageClick(msg)}>
-          {msg.encounterMinutes}
-        </td>
-      )}
-    </tr>
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {msg.encounterMeters}
+                      </td>
+                    )}
+                    {showEncounterMinutes && (
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {msg.encounterMinutes}
+                      </td>
+                    )}
+                  </tr>
                   );
                 })}
               </tbody>
