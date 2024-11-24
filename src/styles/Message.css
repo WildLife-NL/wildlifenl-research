@@ -1,0 +1,71 @@
+/* Message.css */
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Message Container */
+.message-container {
+  max-width: 1200px; /* Set a max width */
+  margin: 0 auto;    /* Center the container */
+  padding: 20px; 
+}
+
+/* Title Styling */
+.message-view-title {
+  position: absolute;
+  top: 90px;
+  left: 25px;
+  width: 433px;
+  height: 60px;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Message Details Component */
+.message-details-component {
+  width: 100%;        
+  margin-top: 160px;  
+}
+
+/* Message Not Found Styling */
+.message-not-found {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  font-size: 24px;
+  color: #555;
+}
+
+/* Additional Responsive Styles (Optional) */
+@media (max-width: 768px) {
+  .message-view-title {
+    font-size: 36px;
+    width: auto;
+    left: 10px;
+  }
+
+  .message-details-component {
+    margin-top: 140px;
+  }
+
+  .dynamic-view {
+    padding: 15px;
+  }
+
+  .field-name {
+    display: block;
+    margin-bottom: 5px;
+  }
+}

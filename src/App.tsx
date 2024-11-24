@@ -9,6 +9,7 @@ import ExperimentCreation from './pages/ExperimentCreation';
 import Experiment from './pages/Experiment';
 import MessageCreation from './pages/MessageCreation';
 import MessageDashboard from './pages/MessageDashboard';
+import Message from './pages/Message';
 import Unauthorized from './pages/Unauthorized';
 import AuthWrapper from './components/AuthWrapper';
 
@@ -40,6 +41,7 @@ const App: React.FC = () => {
                 <Route path="/experiment/:id" element={<Experiment />} />
                 <Route path="/messagecreation/:id" element={<MessageCreation />} />
                 <Route path="/messagedashboard/:id" element={<MessageDashboard />} />
+                <Route path="/message/:id" element={<Message />} />
 
                 {/* Wildcard Route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
