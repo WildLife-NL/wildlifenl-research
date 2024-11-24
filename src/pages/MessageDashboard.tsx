@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageDashboard.css';
 import { getMessagesByExperimentID } from '../services/messageService';
+import { Species } from '../types/species';
 
 // Import types
 import { Message } from '../types/message';
@@ -268,6 +269,9 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('name')}`}
                     />
                   </th>
+                  <th>
+                    Species
+                  </th>
                   <th onClick={() => requestSort('trigger')}>
                     Trigger
                     <img
@@ -328,6 +332,11 @@ const MessageDashboard: React.FC = () => {
                         onClick={() => handleMessageClick(msg)}
                       >
                         {truncateText(msg.name, 20)}
+                      </td>
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {msg.species
+                          ? `${msg.species.commonName} (${msg.species.name})`
+                          : 'Unknown Species'}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.trigger}

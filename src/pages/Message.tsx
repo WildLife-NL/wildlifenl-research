@@ -53,9 +53,11 @@ const Message: React.FC = () => {
           : 'N/A',
     },
     {
-      name: 'Species ID',
+      name: 'Species',
       value:
-        message.speciesID !== undefined ? message.speciesID.toString() : 'N/A',
+        message.species !== undefined
+          ? `${message.species.commonName} (${message.species.name})`
+          : 'N/A',
     },
     {
       name: 'Experiment ID',
