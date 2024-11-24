@@ -84,13 +84,6 @@ const MessageDashboard: React.FC = () => {
           name: type,
         }));
 
-        setShowEncounterMeters(filteredMessages.some(
-          (msg) => msg.encounterMeters != null && msg.encounterMinutes > 0
-        ));
-      
-        setShowEncounterMinutes(filteredMessages.some(
-          (msg) => msg.encounterMinutes != null && msg.encounterMinutes > 0
-        ));
 
         setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
 
@@ -106,6 +99,20 @@ const MessageDashboard: React.FC = () => {
 
     fetchData();
   }, [messages]);
+
+  useEffect(() => {
+    setShowEncounterMeters(
+      filteredMessages.some(
+        (msg) => msg.encounterMeters != null && msg.encounterMeters > 0
+      )
+    );
+  
+    setShowEncounterMinutes(
+      filteredMessages.some(
+        (msg) => msg.encounterMinutes != null && msg.encounterMinutes > 0
+      )
+    );
+  }, [filteredMessages]);
 
   // Apply filters whenever filter state changes
   useEffect(() => {
