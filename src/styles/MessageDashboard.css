@@ -275,7 +275,7 @@
 
 /* Scrollbar Styling (Optional) */
 .message-table-container::-webkit-scrollbar {
-  width: 8px; /* Increased width for better visibility */
+  width: 8px; 
 }
 
 .message-table-container::-webkit-scrollbar-track {

@@ -166,7 +166,6 @@ const MessageCreation: React.FC = () => {
       <div className="message-creation-main-container">
         {/* Title */}
         <h1 className="message-creation-page-title">New Message</h1>
-  
         {/* Content Box */}
         <form
           className="message-creation-content-box"
@@ -298,7 +297,7 @@ const MessageCreation: React.FC = () => {
                           className="message-creation-dropdown-item"
                           onClick={() => {
                             setSelectedSpeciesID(species.ID);
-                            setSelectedSpeciesName(species.commonName);
+                            setSelectedSpeciesName(`${species.commonName} (${species.name})`);
                             setIsSpeciesDropdownOpen(false);
                             speciesDropdownRef.current?.setCustomValidity('');
                           }}
@@ -361,8 +360,8 @@ const MessageCreation: React.FC = () => {
               <img src="/assets/saveSVG.svg" alt="Submit Message" />
           </button>
         </form>
+       </div>
       </div>
-    </div>
   );
 }
 

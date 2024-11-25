@@ -10,16 +10,14 @@
 
 /* Content Box */
 .message-creation-content-box {
-  position: absolute;
-  top: 170px; /* Position it below the title */
-  left: 50%;
-  transform: translateX(-50%);
   width: 1460px;
-  height: auto; /* Adjust height to fit content */
-  flex-shrink: 0;
+  margin: 20px auto; /* Center the content box */
   border: 1px solid #000;
   background: rgba(217, 217, 217, 0.00);
-  padding: 20px 0; /* Add padding for inner spacing */
+  padding: 20px;
+  border-radius: 12px; /* Optional: Add rounded corners */
+  max-height: calc(100vh - 200px); /* Adjust based on header and margins */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 /* Section Label */
@@ -56,8 +54,8 @@
 /* Flex Container for Sections */
 .message-creation-flex-container {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column; /* Stack items vertically */
+  gap: 20px; /* Adjust spacing between sections */
   margin-top: 20px;
   padding: 0 140px;
 }
@@ -147,7 +145,7 @@
 
 /* Dropdown Button */
 .message-creation-dropdown-button {
-  width: 100%;
+  width: 40%;
   height: 50px;
   background: #27A966;
   color: #fff;
@@ -227,7 +225,7 @@
 .message-creation-submit-button {
   position: fixed;
   bottom: 12px;
-  right: 6px;
+  right: 20px;
   width: 106px;
   height: 102px;
   background: none;
@@ -235,6 +233,25 @@
   padding: 0;
   cursor: pointer;
   z-index: 1000;
+}
+
+/* Custom Scrollbar Styles */
+.message-creation-content-box::-webkit-scrollbar {
+  width: 6px; /* Increased width for better visibility */
+}
+
+.message-creation-content-box::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.message-creation-content-box::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.message-creation-content-box::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 @media (max-width: 1600px) {
