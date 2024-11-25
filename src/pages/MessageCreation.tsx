@@ -1,14 +1,10 @@
-import React, { useState, useRef} from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageCreation.css';
 import { addMessage } from '../services/messageService';
-
-interface Species {
-  ID: string;
-  name: string;
-  commonName: string;
-}
+import { Species } from '../types/species';
+import { getAllSpecies } from '../services/speciesService';
 
 const MessageCreation: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +19,7 @@ const MessageCreation: React.FC = () => {
   const [selectedTriggerName, setSelectedTriggerName] = useState('Encounter');
   const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState(false);
 
+  const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesID, setSelectedSpeciesID] = useState('');
   const [selectedSpeciesName, setSelectedSpeciesName] = useState('Select Species');
   const [isSpeciesDropdownOpen, setIsSpeciesDropdownOpen] = useState(false);
@@ -43,28 +40,18 @@ const MessageCreation: React.FC = () => {
   ];
 
   // Species list
-  const speciesList: Species[] = [
-    {
-      ID: '2e6e75fb-4888-4c8d-81c6-ab31c63a7ecb',
-      name: 'Bison bonasus',
-      commonName: 'Wisent',
-    },
-    {
-      ID: '79952c1b-3f43-4d6e-9ff0-b6057fda6fc1',
-      name: 'Bos taurus',
-      commonName: 'Schotse hooglander',
-    },
-    {
-      ID: 'cf83db9d-dab7-4542-bc00-08c87d1da68d',
-      name: 'Canis lupus',
-      commonName: 'Wolf',
-    },
-    {
-      ID: '28775ecb-1af6-4b22-a87a-e15b1999d55c',
-      name: 'Sus scrofa',
-      commonName: 'Wild Zwijn',
-    },
-  ];
+    // Fetch species list when component mounts
+    useEffect(() => {
+      const fetchSpecies = async () => {
+        try {
+          const species = await getAllSpecies();
+          setSpeciesList(species);
+        } catch (error) {
+          console.error('Error fetching species:', error);
+        }
+      };
+      fetchSpecies();
+    }, []);
 
   const validateForm = (): boolean => {
     let isValid = true;
