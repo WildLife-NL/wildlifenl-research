@@ -7,6 +7,7 @@ import Profile from './pages/Profile';
 import Export from './pages/Export';
 import ExperimentCreation from './pages/ExperimentCreation';
 import Experiment from './pages/Experiment';
+import QuestionnaireDashboard from './pages/QuestionnaireDashboard';
 import MessageCreation from './pages/MessageCreation';
 import MessageDashboard from './pages/MessageDashboard';
 import Message from './pages/Message';
@@ -39,6 +40,7 @@ const App: React.FC = () => {
                 <Route path="/export" element={<Export />} />
                 <Route path="/experimentcreation" element={<ExperimentCreation />} />
                 <Route path="/experiment/:id" element={<Experiment />} />
+                <Route path="/questionnairedashboard/:id" element={<QuestionnaireDashboard />} />
                 <Route path="/messagecreation/:id" element={<MessageCreation />} />
                 <Route path="/messagedashboard/:id" element={<MessageDashboard />} />
                 <Route path="/message/:id" element={<Message />} />

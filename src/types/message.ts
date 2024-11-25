@@ -1,7 +1,6 @@
 import { Species } from "./species";
 
 export interface Message{
-  $schema: string;
   answerID: string;
   encounterMeters: number;
   encounterMinutes: number;
