@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageCreation.css';
 import { addMessage } from '../services/messageService';
-import { Species } from '../types/species';
 import { getAllSpecies } from '../services/speciesService';
+import { getAllTriggerTypes } from '../services/triggerTypeService';
+import { Species } from '../types/species';
 
 const MessageCreation: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,9 +16,10 @@ const MessageCreation: React.FC = () => {
   const [messageText, setMessageText] = useState('');
   const [severity, setSeverity] = useState(1);
 
-  const [selectedTriggerID, setSelectedTriggerID] = useState('encounter');
-  const [selectedTriggerName, setSelectedTriggerName] = useState('Encounter');
-  const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState(false);
+  const [triggerTypes, setTriggerTypes] = useState<string[]>([]);
+  const [selectedTriggerID, setSelectedTriggerID] = useState<string>('encounter'); // Default trigger ID
+  const [selectedTriggerName, setSelectedTriggerName] = useState<string>('Encounter'); // Default trigger name
+  const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState<boolean>(false);
 
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesID, setSelectedSpeciesID] = useState('');
@@ -33,11 +35,23 @@ const MessageCreation: React.FC = () => {
   const encounterMinutesRef = useRef<HTMLInputElement>(null);
   const speciesDropdownRef = useRef<HTMLButtonElement>(null);
 
-  // Triggers list
-  const triggers = [
-    { id: 'encounter', name: 'Encounter' },
-    { id: 'alarm', name: 'Alarm' },
-  ];
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  // Fetch trigger types when component mounts
+  useEffect(() => {
+    const fetchTriggerTypes = async () => {
+      try {
+        const triggers = await getAllTriggerTypes();
+        const filteredTriggers = triggers.filter((trigger) => trigger.toLowerCase() !== 'answer'); //Temporary Solution
+        setTriggerTypes(filteredTriggers);
+      } catch (error) {
+        console.error('Error fetching trigger types:', error);
+        // Optionally, handle the error (e.g., show a notification)
+      }
+    };
+    fetchTriggerTypes();
+  }, []);
+
 
   // Species list
     // Fetch species list when component mounts
@@ -233,20 +247,20 @@ const MessageCreation: React.FC = () => {
                   </button>
                   {isTriggerDropdownOpen && (
                     <div className="message-creation-dropdown-content">
-                      {triggers.map((trigger) => (
+                      {triggerTypes.map((trigger) => (
                         <div
-                          key={trigger.id}
+                          key={trigger}
                           className="message-creation-dropdown-item"
                           onClick={() => {
-                            setSelectedTriggerID(trigger.id);
-                            setSelectedTriggerName(trigger.name);
+                            setSelectedTriggerID(trigger);
+                            setSelectedTriggerName(capitalize(trigger));
                             setIsTriggerDropdownOpen(false);
                             // Reset conditional fields
                             setEncounterMeters('');
                             setEncounterMinutes('');
                           }}
                         >
-                          {trigger.name}
+                          {capitalize(trigger)}
                         </div>
                       ))}
                     </div>
