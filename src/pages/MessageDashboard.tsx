@@ -174,7 +174,7 @@ const MessageDashboard: React.FC = () => {
 
   // Handle navigation to message details page
   const handleMessageClick = (message: Message) => {
-    navigate(`/message/${message.answerID}`, { state: { message } });
+    navigate(`/message/${id}`, { state: { message } });
   };
 
   // Function to truncate text to a specified length

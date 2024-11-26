@@ -10,3 +10,10 @@ export interface Questionnaire{
   name: string;
   questions: Array<Question>;
 }
+
+export interface AddQuestionnaire{
+  experimentID: string;
+  identifier: string;
+  interactionTypeID: string;
+  name: string;
+}

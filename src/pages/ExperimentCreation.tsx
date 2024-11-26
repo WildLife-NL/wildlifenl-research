@@ -15,7 +15,6 @@ const ExperimentCreation: React.FC = () => {
   const [selectedLivingLabID, setSelectedLivingLabID] = useState('');
   const [selectedLivingLabName, setSelectedLivingLabName] = useState('None');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [dateError, setDateError] = useState('');
   // State variable for living labs
   const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
   const [loadingLabs, setLoadingLabs] = useState(true);

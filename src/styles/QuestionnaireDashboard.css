@@ -28,6 +28,13 @@
   flex-shrink: 0;
 }
 
+/* Filter Styles */
+.questionnaire-filter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 /* Filter Labels */
 .filter-label {
   color: #000;
@@ -35,6 +42,70 @@
   font-weight: 500;
   margin-right: 10px;
   user-select: none;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+  width: 225px;
+}
+
+.dropdown-button {
+  width: 100%;
+  height: 50px;
+  background: #27A966;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+}
+
+.dropdown-icon {
+  position: absolute;
+  right: 15px;
+  width: 17px;
+  height: 11px;
+  transition: transform 0.2s;
+  transform: rotate(180deg);
+}
+
+.dropdown-icon-hover {
+  transform: rotate(0deg);
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 12px;
+  margin-top: 5px;
+}
+
+.dropdown.open .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
 }
 
 /* Search Filter */
@@ -53,7 +124,7 @@
   padding-right: 40px;
   font-size: 25px;
   font-weight: 300;
-  color: rgba(0, 0, 0, 0); /* Hidden text */
+  color: rgba(0, 0, 0, 0);
   border: 3px solid rgba(0, 0, 0, 0.25);
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
@@ -66,7 +137,7 @@
 }
 
 .search-input input[type="text"]:focus {
-  color: #000; /* Reveal text on focus */
+  color: #000;
 }
 
 .search-icon {
@@ -192,12 +263,8 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Scrollbar Styling */
@@ -228,6 +295,11 @@
   }
 
   .filter-label {
+    font-size: 18px;
+  }
+
+  .dropdown-button {
+    height: 45px;
     font-size: 18px;
   }
 
