@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
-import '../styles/Message.css'; // Updated to point to Message.css
+import '../styles/Message.css';
 import { Message as MessageType } from '../types/message';
 
 const Message: React.FC = () => {
@@ -60,8 +60,12 @@ const Message: React.FC = () => {
           : 'N/A',
     },
     {
-      name: 'Experiment ID',
-      value: message.experimentID || 'N/A',
+      name: 'Activity',
+      value: message.activity.toString(),
+    },
+    {
+      name: 'Experiment',
+      value: message.experiment.name || 'N/A',
     },
   ];
 

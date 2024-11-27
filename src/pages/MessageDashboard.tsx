@@ -337,6 +337,14 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('severity')}`}
                     />
                   </th>
+                  <th onClick={() => requestSort('activity')}>
+                    Activity
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('activity')}`}
+                    />
+                  </th>
                   {showEncounterMeters && (
                     <th onClick={() => requestSort('encounterMeters')}>
                       Encounter Meters
@@ -363,8 +371,8 @@ const MessageDashboard: React.FC = () => {
                 {filteredMessages.map((msg: Message, index: number) => {
                   return (
                     <tr
-                      key={msg.answerID}
-                      data-testid={`message-row-${msg.answerID}`}
+                      key={msg.ID}
+                      data-testid={`message-row-${msg.ID}`}
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
                       style={{ cursor: 'pointer' }}
                     >
@@ -388,6 +396,9 @@ const MessageDashboard: React.FC = () => {
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {severityLabels[msg.severity] || 'Unknown'}
+                      </td>
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {msg.activity.toString()}
                       </td>
                       {showEncounterMeters && (
                       <td onClick={() => handleMessageClick(msg)}>
