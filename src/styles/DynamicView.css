@@ -9,6 +9,8 @@
   width: fit-content; /* Allows the width to adjust based on content */
   height: fit-content;
   max-width: 100%; /* Prevents the container from exceeding the viewport width */
+  overflow-y: auto;
+  max-height: 62vh;
 }
 
 .dynamic-view-field {
@@ -51,4 +53,23 @@
   overflow-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
+}
+
+/* Scrollbar Styling (Optional) */
+.dynamic-view-container::-webkit-scrollbar {
+  width: 8px; 
+}
+
+.dynamic-view-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.dynamic-view-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.dynamic-view-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
