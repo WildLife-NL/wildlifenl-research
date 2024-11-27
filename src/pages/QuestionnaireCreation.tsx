@@ -91,7 +91,7 @@ const QuestionnaireCreation: React.FC = () => {
         >
           {/* Name */}
           <label className="questionnaire-creation-section-label">
-            Name
+            Name*
           </label>
           <input
             type="text"
@@ -104,19 +104,19 @@ const QuestionnaireCreation: React.FC = () => {
 
           {/* Identifier */}
           <label className="questionnaire-creation-section-label">
-            Identifier
+            Internal Name
           </label>
           <input
             type="text"
             className="questionnaire-creation-text-input"
-            placeholder="Enter questionnaire identifier..."
+            placeholder="Enter internal questionnaire name..."
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
           />
 
           {/* Interaction Type */}
           <label className="questionnaire-creation-section-label">
-            Interaction Type
+            Interaction Type*
           </label>
           <div
             className={`questionnaire-creation-dropdown ${

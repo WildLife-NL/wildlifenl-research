@@ -159,7 +159,7 @@ const QuestionnaireDashboard: React.FC = () => {
       <div className="questionnaire-filters-container" data-testid="filters-container">
         {/* Interaction Type Filter */}
         <div className="questionnaire-filter interactiontype-filter" data-testid="interactiontype-filter">
-          <label className="filter-label">Filter by Interaction Type:</label>
+          <label className="questionnaire-filter-label">Filter by Interaction Type:</label>
           <div className={`dropdown ${isDropdownOpen ? 'open' : ''}`}>
             <button
               className="dropdown-button"

@@ -36,7 +36,7 @@
 }
 
 /* Filter Labels */
-.filter-label {
+.questionnaire-filter-label {
   color: #000;
   font-size: 20px;
   font-weight: 500;
@@ -188,6 +188,7 @@
   font-size: 15px;
   font-weight: 400;
   letter-spacing: 0.45px;
+  cursor: pointer;
 }
 
 .questionnaires-table th,
