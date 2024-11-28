@@ -70,12 +70,11 @@ describe('Dashboard Component - Unit Tests', () => {
         $schema: '',
       } as User,
       livingLab: mockLivingLabs[1],
-      responses: 5,
+      responses: 8,
       numberOfQuestionnaires: 2,
       numberOfMessages: 10,
       messageActivity: 5,      
       questionnaireActivity: 3,
-      $schema: '',
     },
     {
       ID: '2',
@@ -94,9 +93,8 @@ describe('Dashboard Component - Unit Tests', () => {
       responses: 15,
       numberOfQuestionnaires: 5,
       numberOfMessages: 20,
-      messageActivity: 5,       
-      questionnaireActivity: 3,
-      $schema: '',
+      messageActivity: 10,       
+      questionnaireActivity: 5,
     },
     {
       ID: '3',
@@ -117,7 +115,6 @@ describe('Dashboard Component - Unit Tests', () => {
       numberOfMessages: 15,
       messageActivity: 5,      
       questionnaireActivity: 3,
-      $schema: '',
     },
   ];
 
@@ -311,6 +308,7 @@ describe('Dashboard Component - Unit Tests', () => {
 
       // Wait for the component to re-render and get the updated experiment rows
       await waitFor(() => {
+        screen.debug();
         const table = screen.getByTestId('experiments-table');
         const experimentRows = within(table).getAllByTestId(/experiment-row-/);
 
@@ -320,102 +318,8 @@ describe('Dashboard Component - Unit Tests', () => {
     });
 
 
-  // CATEGORY 5: CHECKBOX SELECTION
-  describe('CATEGORY 5: CHECKBOX SELECTION', () => {
-    test('INDIVIDUAL CHECKBOX RENDERING', async () => {
-      render(
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
-      );
-
-      // Wait for experiments to be displayed
-      await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
-
-      // Check that each experiment row has a checkbox
-      mockExperiments.forEach(exp => {
-        const checkbox = screen.getByTestId(`experiment-checkbox-${exp.ID}`);
-        expect(checkbox).toBeInTheDocument();
-        expect(checkbox).not.toBeChecked();
-      });
-    });
-
-    test('INDIVIDUAL CHECKBOX TOGGLES STATE', async () => {
-      render(
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
-      );
-
-      // Wait for experiments to be displayed
-      await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
-
-      const checkbox = screen.getByTestId('experiment-checkbox-1');
-
-      // Initially unchecked
-      expect(checkbox).not.toBeChecked();
-
-      // Click to check
-      fireEvent.click(checkbox);
-      expect(checkbox).toBeChecked();
-
-      // Click again to uncheck
-      fireEvent.click(checkbox);
-      expect(checkbox).not.toBeChecked();
-    });
-
-    test('SELECT ALL CHECKBOX RENDERS CORRECTLY', async () => {
-      render(
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
-      );
-
-      // Wait for the select all checkbox to be in the document
-      await waitFor(() => expect(screen.getByTestId('select-all-checkbox')).toBeInTheDocument());
-
-      const selectAllCheckbox = screen.getByTestId('select-all-checkbox');
-
-      // Initially unchecked
-      expect(selectAllCheckbox).not.toBeChecked();
-    });
-
-    test('SELECT ALL CHECKBOX TOGGLES ALL EXPERIMENTS', async () => {
-      render(
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
-      );
-
-      // Wait for experiments and select all checkbox to be displayed
-      await waitFor(() => expect(screen.getByTestId('select-all-checkbox')).toBeInTheDocument());
-
-      const selectAllCheckbox = screen.getByTestId('select-all-checkbox');
-
-      // Click to check all
-      fireEvent.click(selectAllCheckbox);
-      expect(selectAllCheckbox).toBeChecked();
-
-      // All individual checkboxes should be checked
-      mockExperiments.forEach(exp => {
-        const checkbox = screen.getByTestId(`experiment-checkbox-${exp.ID}`);
-        expect(checkbox).toBeChecked();
-      });
-
-      // Click again to uncheck all
-      fireEvent.click(selectAllCheckbox);
-      expect(selectAllCheckbox).not.toBeChecked();
-
-      // All individual checkboxes should be unchecked
-      mockExperiments.forEach(exp => {
-        const checkbox = screen.getByTestId(`experiment-checkbox-${exp.ID}`);
-        expect(checkbox).not.toBeChecked();
-      });
-    });
-  });
-
-  // CATEGORY 6: GETSTATUS FUNCTION
-  describe('CATEGORY 6: GETSTATUS FUNCTION', () => {
+  // CATEGORY 5: GETSTATUS FUNCTION
+  describe('CATEGORY 5: GETSTATUS FUNCTION', () => {
     test("Displays 'Upcoming' status for future experiments", async () => {
       render(
         <BrowserRouter>

@@ -1,12 +1,17 @@
+import { Experiment } from "./experiment";
+import { Answer } from "./answer";
+import { Species } from "./species";
+
 export interface Message{
-  $schema: string;
-  answerID: string;
+  ID: string;
+  answer: Answer;
   encounterMeters: number;
   encounterMinutes: number;
-  experimentID: string;
+  experiment: Experiment;
   name: string;
   severity: number;
-  speciesID: number;
+  species: Species;
   text: string;
   trigger: string;
+  activity: number;
 }

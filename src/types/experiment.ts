@@ -2,7 +2,6 @@ import { LivingLab } from './livinglab';
 import { User } from './user';
 
 export interface Experiment {
-  $schema: string;
   ID: string;
   name: string;
   description: string;

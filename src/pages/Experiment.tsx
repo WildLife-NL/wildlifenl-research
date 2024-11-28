@@ -1,9 +1,10 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
 import { Experiment as ExperimentType } from '../types/experiment';
-import { updateExperiment } from '../services/experimentService'; // Import the update function
+import { updateExperiment } from '../services/experimentService';
 
 const Experiment: React.FC = () => {
   const location = useLocation();
@@ -20,7 +21,20 @@ const Experiment: React.FC = () => {
       </>
     );
   }
-
+  const fields = [
+    { name: 'Experiment Title', value: experiment.name },
+    { name: 'Description', value: experiment.description },
+    {
+      name: 'Duration',
+      value: `${new Date(experiment.start).toLocaleDateString()} - ${new Date(experiment.end).toLocaleDateString()}`,
+    },
+    { name: 'Specified LivingLab', value: experiment.livingLab?.name || 'N/A' },
+    { name: 'Number of Questionnaires', value: experiment.numberOfQuestionnaires?.toString() || '0' },
+    { name: 'Responses on Questionnaires', value: experiment.questionnaireActivity?.toString() || '0' },
+    { name: 'Number of Messages', value: experiment.numberOfMessages?.toString() || '0' },
+    { name: 'Messages Sent', value: experiment.messageActivity?.toString() || '0' },
+  ];
+  
   // Navigation handlers
   const handleQuestionnaireOverviewClick = () => {
     navigate(`/questionnairedashboard/${experiment.ID}`);
@@ -32,7 +46,6 @@ const Experiment: React.FC = () => {
       navigate(`/messagedashboard/${experiment.ID}`);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      // Optionally display an error message to the user
     }
   };
 
@@ -69,95 +82,48 @@ const Experiment: React.FC = () => {
 
         {/* Experiment Details Component */}
         <div className="experiment-details-component">
-          {/* Experiment Title Component */}
-          <div className="experiment-title-comp">
-            <span className="experiment-title-text">Experiment title</span>
-            <div className="experiment-textbar">
-              <p className="experiment-textbar-content">{experiment.name}</p>
-            </div>
-          </div>
-
-          {/* Description Component */}
-          <div className="description-comp">
-            <span className="description-text">Description</span>
-            <div className="description-textbar">
-              <p className="description-textbar-content">{experiment.description}</p>
-            </div>
-          </div>
-
-          {/* Duration Set Component */}
-          <div className="duration-set-comp">
-            <span className="duration-text">Duration of experiment</span>
-            <div className="time-set">
-              <div className="time-set-box">
-                {new Date(experiment.start).toLocaleDateString()}
-              </div>
-              <span className="date-separator">-</span>
-              <div className="time-set-box">
-                {new Date(experiment.end).toLocaleDateString()}
-              </div>
-            </div>
-          </div>
-
-          {/* Location Set Component */}
-          <div className="location-set-comp">
-            <span className="location-text">Specified LivingLab</span>
-            <div className="location-box">
-              <p className="location-box-text">
-                {experiment.livingLab?.name || 'N/A'}
-              </p>
-            </div>
-          </div>
-
-          {/* Stop Experiment Button */}
-          <button className="stop-experiment-button" onClick={handleStopExperiment}>
-            Stop Experiment
-          </button>
+          <DynamicView fields={fields} />
         </div>
 
-        {/* Buttons */}
+        {/* Buttons Container */}
         <div className="buttons-container">
           {/* Questionnaire Overview Button */}
           <button
-            className="overview-button questionnaire-overview-button"
+            className="view-questionnaires-button"
             onClick={handleQuestionnaireOverviewClick}
           >
-            <div className="button-top">
-              <span className="button-text">Questionnaires</span>
-              <img
-                src="/assets/questionnaireSVG.svg"
-                alt="Questionnaire Icon"
-                className="button-icon"
-              />
-            </div>
-            <div className="button-content">
-              <p>Number of Questionnaires: {experiment.numberOfQuestionnaires || 0}</p>
-              <p>Responses: {experiment.questionnaireActivity || 0}</p>
-            </div>
+            <span className="view-questionnaires-button-text">View Questionnaires</span>
+            <img
+              src="/assets/questionnaireSVG.svg"
+              alt="Questionnaire Icon"
+              className="view-questionnaires-button-icon"
+            />
           </button>
 
-          {/* Message Overview Button */}
+          {/* View Messages Button */}
           <button
-            className="overview-button message-overview-button"
+            className="view-messages-button"
             onClick={handleMessageOverviewClick}
           >
-            <div className="button-top">
-              <span className="button-text">Messages</span>
-              <img
-                src="/assets/messageSVG.svg"
-                alt="Message Icon"
-                className="button-icon"
-              />
-            </div>
-            <div className="button-content">
-              <p>Number of Messages: {experiment.numberOfMessages || 0}</p>
-              <p>Sent: {experiment.messageActivity || 0}</p>
-            </div>
+            <span className="view-messages-button-text">View Messages</span>
+            <img
+              src="/assets/messageSVG.svg"
+              alt="Message Icon"
+              className="view-messages-button-icon"
+            />
+          </button>
+
+          {/* Stop Experiment Button */}
+          <button
+            className="stop-experiment-button"
+            onClick={handleStopExperiment}
+          >
+            <span className="stop-button-text">Stop Experiment</span>
           </button>
         </div>
       </div>
     </>
   );
-};
+}
 
 export default Experiment;

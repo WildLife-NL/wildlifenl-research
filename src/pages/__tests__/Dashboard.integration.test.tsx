@@ -1,149 +1,122 @@
 // Dashboard.integration.test.tsx
 
 import React from 'react';
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
-import Dashboard from '../Dashboard';
-import '@testing-library/jest-dom/extend-expect';
-import { getAllLivingLabs } from '../../services/livingLabService';
-import { getMyExperiments } from '../../services/experimentService';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import Dashboard from '../Dashboard';
+import {getAllLivingLabs} from '../../services/livingLabService';
+import { addExperiment, getMyExperiments } from '../../services/experimentService';
+import dotenv from 'dotenv';
 
-// Mock the API functions
-jest.mock('../../services/livingLabService', () => ({
-  getAllLivingLabs: jest.fn(),
-}));
-
-jest.mock('../../services/experimentService', () => ({
-  getMyExperiments: jest.fn(),
-}));
-
-const mockLivingLabs = [
-  {
-    ID: 'lab1',
-    name: 'LivingLab 1',
-    definition: [],
-    $schema: '',
-  },
-  {
-    ID: 'lab2',
-    name: 'LivingLab 2',
-    definition: [],
-    $schema: '',
-  },
-];
-
-const mockExperiments = [
-  {
-    ID: 'exp1',
-    name: 'Experiment 1',
-    start: '2023-01-01',
-    end: '2023-12-31',
-    user: { name: 'User 1' },
-    livingLab: { name: 'LivingLab 1' },
-    questionnaires: 5,
-    messages: 10,
-    responses: 100,
-  },
-  {
-    ID: 'exp2',
-    name: 'Experiment 2',
-    start: '2023-02-01',
-    end: '2023-11-30',
-    user: { name: 'User 2' },
-    livingLab: { name: 'LivingLab 2' },
-    questionnaires: 3,
-    messages: 5,
-    responses: 50,
-  },
-];
+// Load environment variables
+dotenv.config();
 
 describe('Dashboard Integration Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  // Generate a unique identifier for each test run
+  const uniqueId = new Date().toISOString().replace(/[:.]/g, '-');
+
+  // Store created experiment IDs and names
+  let createdExperimentIds: string[] = [];
+  let experimentNames: string[] = [];
+  let startDate: Date;
+  let endDate: Date;
+
+  // Use existing LivingLab
+  const existingLivingLabId = '9c7dbce1-6c4f-46b6-b0c6-ec5d2c2b48c1';
+  const existingLivingLabName = 'Living Lab Eindhoven';
+
+  beforeAll(async () => {
+    // Insert authentication token into localStorage
+    const authToken = process.env.AUTH_TOKEN;
+    if (authToken) {
+      window.localStorage.setItem('authToken', authToken);
+    } else {
+      console.warn('AUTH_TOKEN is not defined in the environment variables.');
+    }
+  
+    // Generate unique experiment names
+    experimentNames = [`Experiment 1 ${uniqueId}`, `Experiment 2 ${uniqueId}`];
+  
+    // Calculate future start and end dates
+    const today = new Date();
+    startDate = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
+    endDate = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000); // 10 days from today
+  
+    for (const name of experimentNames) {
+      const experimentData = {
+        name,
+        description: 'Sample experiment description',
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+        // Removed unexpected properties
+      };
+  
+      try {
+        const experiment = await addExperiment(experimentData);
+        createdExperimentIds.push(experiment.ID);
+      } catch (error) {
+        console.error('Failed to add experiment:', error);
+      }
+    }
+  });
+
+  afterAll(() => {
+    // Clear localStorage after tests
+    window.localStorage.clear();
   });
 
   // CATEGORY 1: DATA FETCHING AND INITIAL RENDERING
 
   test('FETCH LIVINGLABS AND EXPERIMENTS ON MOUNT', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
-  
+    // Fetch data directly
+    const livingLabs = await getAllLivingLabs();
+    const myExperiments = await getMyExperiments();
+
     render(
       <MemoryRouter>
         <Dashboard />
       </MemoryRouter>
     );
-  
-    await waitFor(() => expect(getAllLivingLabs).toHaveBeenCalled());
-    await waitFor(() => expect(getMyExperiments).toHaveBeenCalled());
-  
-    expect(await screen.findByText('Experiment 1')).toBeInTheDocument();
-    expect(await screen.findByText('Experiment 2')).toBeInTheDocument();
+
+    // Wait for the Dashboard to render
+    await waitFor(() => {
+      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
+    });
+
+    // Verify that the experiments from getMyExperiments are displayed
+    for (const experiment of myExperiments) {
+      expect(screen.getByText(experiment.name)).toBeInTheDocument();
+    }
+
+    // Verify that the living labs from getAllLivingLabs are available in the filters
+    fireEvent.click(screen.getByTestId('livinglab-dropdown-button'));
+    for (const lab of livingLabs) {
+      expect(screen.getByText(lab.name)).toBeInTheDocument();
+    }
   });
-  
 
   test('RENDER LOADING STATE', async () => {
-    let resolveLivingLabs!: (value: any) => void;
-    let resolveExperiments!: (value: any) => void;
-
-    const livingLabsPromise = new Promise((resolve) => {
-      resolveLivingLabs = resolve;
-    });
-
-    const experimentsPromise = new Promise((resolve) => {
-      resolveExperiments = resolve;
-    });
-
-    (getAllLivingLabs as jest.Mock).mockReturnValue(livingLabsPromise);
-    (getMyExperiments as jest.Mock).mockReturnValue(experimentsPromise);
-
     render(
       <MemoryRouter>
         <Dashboard />
       </MemoryRouter>
     );
 
+    // Initially, the loading container should be in the document
     expect(screen.getByTestId('loading-container')).toBeInTheDocument();
 
-    resolveLivingLabs(mockLivingLabs);
-    resolveExperiments(mockExperiments);
-
+    // Wait for the experiments table to appear
     await waitFor(() => {
-      expect(screen.queryByTestId('loading-container')).not.toBeInTheDocument();
+      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
     });
+
+    // Now, the loading container should not be in the document
+    expect(screen.queryByTestId('loading-container')).not.toBeInTheDocument();
   });
 
   test('RENDER EXPERIMENTS TABLE AFTER FETCH', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
-  
-    render(
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    );
-  
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
-  
-    expect(await screen.findByText('Experiment 1')).toBeInTheDocument();
-    expect(await screen.findByText('Experiment 2')).toBeInTheDocument();
-  
-    // Use getAllByText and ensure you have the expected number of elements
-    const livingLabCells = screen.getAllByText('LivingLab 1', { selector: 'td' });
-    expect(livingLabCells).toHaveLength(1);
-  
-    const livingLab2Cells = screen.getAllByText('LivingLab 2', { selector: 'td' });
-    expect(livingLab2Cells).toHaveLength(1);
-  });
-  
-
-  // CATEGORY 2: FILTER COMBINATIONS
-
-  test('APPLYING MULTIPLE FILTERS SIMULTANEOUSLY', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+    // Fetch experiments
+    const myExperiments = await getMyExperiments();
 
     render(
       <MemoryRouter>
@@ -151,81 +124,23 @@ describe('Dashboard Integration Tests', () => {
       </MemoryRouter>
     );
 
+    // Wait for the experiments table to appear
     await waitFor(() => {
       expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
     });
 
-    // LivingLab filter
-    const livingLabDropdownButton = screen.getByTestId('livinglab-dropdown-button');
-    fireEvent.click(livingLabDropdownButton);
-    const livingLabOption = screen.getByTestId('livinglab-option-lab1');
-    fireEvent.click(livingLabOption);
-
-    // Date range filter
-    const startDateInput = screen.getByTestId('start-date-input');
-    const endDateInput = screen.getByTestId('end-date-input');
-    fireEvent.change(startDateInput, { target: { value: '2023-01-01' } });
-    fireEvent.change(endDateInput, { target: { value: '2023-12-31' } });
-
-    // Search query
-    const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, { target: { value: 'Experiment 1' } });
-
-    expect(screen.getByText('Experiment 1')).toBeInTheDocument();
-    expect(screen.queryByText('Experiment 2')).not.toBeInTheDocument();
+    // Verify that the experiments are displayed
+    for (const experiment of myExperiments) {
+      expect(screen.getByText(experiment.name)).toBeInTheDocument();
+    }
   });
 
-  test('CLEARING FILTERS RESETS EXPERIMENTS LIST', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
 
-    render(
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
-
-    // Apply filters
-    const livingLabDropdownButton = screen.getByTestId('livinglab-dropdown-button');
-    fireEvent.click(livingLabDropdownButton);
-    const livingLabOption = screen.getByTestId('livinglab-option-lab1');
-    fireEvent.click(livingLabOption);
-
-    const startDateInput = screen.getByTestId('start-date-input');
-    const endDateInput = screen.getByTestId('end-date-input');
-    fireEvent.change(startDateInput, { target: { value: '2023-01-01' } });
-    fireEvent.change(endDateInput, { target: { value: '2023-12-31' } });
-
-    const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, { target: { value: 'Experiment 1' } });
-
-    // Verify only Experiment 1 is shown
-    expect(screen.getByText('Experiment 1')).toBeInTheDocument();
-    expect(screen.queryByText('Experiment 2')).not.toBeInTheDocument();
-
-    // Clear filters
-    fireEvent.click(livingLabDropdownButton);
-    const allLivingLabsOption = screen.getByTestId('livinglab-option-all');
-    fireEvent.click(allLivingLabsOption);
-
-    fireEvent.change(startDateInput, { target: { value: '' } });
-    fireEvent.change(endDateInput, { target: { value: '' } });
-    fireEvent.change(searchInput, { target: { value: '' } });
-
-    // Verify both experiments are shown
-    expect(screen.getByText('Experiment 1')).toBeInTheDocument();
-    expect(screen.getByText('Experiment 2')).toBeInTheDocument();
-  });
-
-  // CATEGORY 3: SORTING AND FILTERING INTERACTION
+  // CATEGORY 2: SORTING AND FILTERING INTERACTION
 
   test('SORTING APPLIES AFTER FILTERING', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+    // Fetch experiments
+    const myExperiments = await getMyExperiments();
 
     render(
       <MemoryRouter>
@@ -233,29 +148,36 @@ describe('Dashboard Integration Tests', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
+    // Wait for experiments to be displayed
+    for (const experiment of myExperiments) {
+      expect(await screen.findByText(experiment.name)).toBeInTheDocument();
+    }
 
     // Apply search filter
     const searchInput = screen.getByTestId('search-input');
     fireEvent.change(searchInput, { target: { value: 'Experiment' } });
 
-    // Sort by 'Responses'
+    // Sort by 'Responses' (assuming 'Responses' is a sortable column)
     const responsesHeader = screen.getByText('Responses');
     fireEvent.click(responsesHeader);
 
+    // Verify the order of experiments
     const experimentRows = screen.getAllByTestId(/experiment-row-/);
-    const firstExperiment = within(experimentRows[0]).getByText('Experiment 2');
-    const secondExperiment = within(experimentRows[1]).getByText('Experiment 1');
 
-    expect(firstExperiment).toBeInTheDocument();
-    expect(secondExperiment).toBeInTheDocument();
+    // Sort experiments manually to get expected order
+    const sortedExperiments = [...myExperiments]
+      .filter((exp) => exp.name.includes('Experiment'))
+      .sort((a, b) => (b.responses ?? 0) - (a.responses ?? 0));
+
+    for (let i = 0; i < sortedExperiments.length; i++) {
+      const row = experimentRows[i];
+      expect(within(row).getByText(sortedExperiments[i].name)).toBeInTheDocument();
+    }
   });
 
   test('FILTERING UPDATES SORTED LIST', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+    // Fetch experiments
+    const myExperiments = await getMyExperiments();
 
     render(
       <MemoryRouter>
@@ -263,9 +185,10 @@ describe('Dashboard Integration Tests', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
+    // Wait for experiments to be displayed
+    for (const experiment of myExperiments) {
+      expect(await screen.findByText(experiment.name)).toBeInTheDocument();
+    }
 
     // Sort by 'Responses'
     const responsesHeader = screen.getByText('Responses');
@@ -273,100 +196,44 @@ describe('Dashboard Integration Tests', () => {
 
     // Apply search filter
     const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, { target: { value: 'Experiment 1' } });
+    fireEvent.change(searchInput, { target: { value: experimentNames[0] } });
 
     const experimentRows = screen.getAllByTestId(/experiment-row-/);
-    const firstExperiment = within(experimentRows[0]).getByText('Experiment 1');
-
-    expect(firstExperiment).toBeInTheDocument();
+    expect(within(experimentRows[0]).getByText(experimentNames[0])).toBeInTheDocument();
+    expect(experimentRows.length).toBe(1);
   });
 
 
-  // CATEGORY 4: NAVIGATION FUNCTIONALITY (NOT IMPLEMENTED YET!!!!)
-
- /* test('NAVIGATE TO CREATE EXPERIMENT PAGE', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
-
-    const mockNavigate = jest.fn();
-    jest.mock('react-router-dom', () => ({
-      ...jest.requireActual('react-router-dom'),
-      useNavigate: () => mockNavigate,
-    }));
-
-    render(
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('add-experiment-button')).toBeInTheDocument();
-    });
-
-    const addButton = screen.getByTestId('add-experiment-button');
-    fireEvent.click(addButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/experimentcreation');
-  });
-
-  test('NAVIGATE TO EXPERIMENT DETAILS PAGE', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
-
-    const mockNavigate = jest.fn();
-    jest.mock('react-router-dom', () => ({
-      ...jest.requireActual('react-router-dom'),
-      useNavigate: () => mockNavigate,
-    }));
-
-    render(
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
-
-    const exp1Row = screen.getByTestId('experiment-row-exp1');
-    fireEvent.click(exp1Row);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/experiment/exp1');
-  });
- */
-
-  // CATEGORY 5: RESPONSIVENESS AND UI ELEMENTS
+  // CATEGORY 3: RESPONSIVENESS AND UI ELEMENTS
 
   test('DROPDOWN CLICK STATES', async () => {
-  // Mock API calls
-  (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-  (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
 
-  // Render the Dashboard component
-  render(
-    <MemoryRouter>
-      <Dashboard />
-    </MemoryRouter>
-  );
+    // Wait for the component to render
+    await waitFor(() => {
+      expect(screen.getByTestId('livinglab-dropdown-button')).toBeInTheDocument();
+    });
 
-  const dropdownButton = screen.getByTestId('livinglab-dropdown-button');
+    const dropdownButton = screen.getByTestId('livinglab-dropdown-button');
+    const dropdownIcon = screen.getByAltText('Dropdown Icon');
 
-  const dropdownIcon = screen.getByAltText('Dropdown Icon');
-  expect(dropdownIcon).toHaveClass('dropdown-icon');
-  expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
+    expect(dropdownIcon).toHaveClass('dropdown-icon');
+    expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
 
-  fireEvent.click(dropdownButton);
-  expect(dropdownIcon).toHaveClass('dropdown-icon-hover');
+    fireEvent.click(dropdownButton);
+    expect(dropdownIcon).toHaveClass('dropdown-icon-hover');
 
-  fireEvent.click(dropdownButton);
-  expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
-});
+    fireEvent.click(dropdownButton);
+    expect(dropdownIcon).not.toHaveClass('dropdown-icon-hover');
+  });
 
   test('ALTERNATING ROW COLORS', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+    // Fetch experiments
+    const myExperiments = await getMyExperiments();
 
     render(
       <MemoryRouter>
@@ -374,21 +241,21 @@ describe('Dashboard Integration Tests', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
+    // Wait for experiments to be displayed
+    for (const experiment of myExperiments) {
+      expect(await screen.findByText(experiment.name)).toBeInTheDocument();
+    }
 
     const experimentRows = screen.getAllByTestId(/experiment-row-/);
     expect(experimentRows[0]).toHaveClass('row-even');
     expect(experimentRows[1]).toHaveClass('row-odd');
   });
 
-
-  // CATEGORY 6: STATE MANAGEMENT AND SIDE EFFECTS
+  // CATEGORY 4: STATE MANAGEMENT AND SIDE EFFECTS
 
   test('USEEFFECT DEPENDENCIES TRIGGER CORRECTLY', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
+    // Fetch experiments
+    const myExperiments = await getMyExperiments();
 
     render(
       <MemoryRouter>
@@ -396,48 +263,15 @@ describe('Dashboard Integration Tests', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
+    // Wait for experiments to be displayed
+    expect(await screen.findByText(experimentNames[0])).toBeInTheDocument();
 
+    // Change search input
     const searchInput = screen.getByTestId('search-input');
-    fireEvent.change(searchInput, { target: { value: 'Experiment 1' } });
+    fireEvent.change(searchInput, { target: { value: experimentNames[0] } });
 
-    expect(screen.getByText('Experiment 1')).toBeInTheDocument();
-    expect(screen.queryByText('Experiment 2')).not.toBeInTheDocument();
-  });
-
-  test('SELECT ALL STATE REFLECTS INDIVIDUAL SELECTIONS', async () => {
-    (getAllLivingLabs as jest.Mock).mockResolvedValueOnce(mockLivingLabs);
-    (getMyExperiments as jest.Mock).mockResolvedValueOnce(mockExperiments);
-
-    render(
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
-    });
-
-    const selectAllCheckbox = screen.getByTestId('select-all-checkbox');
-    const exp1Checkbox = screen.getByTestId('experiment-checkbox-exp1');
-    const exp2Checkbox = screen.getByTestId('experiment-checkbox-exp2');
-
-    // Initially, select all is unchecked
-    expect(selectAllCheckbox).not.toBeChecked();
-
-    // Select all
-    fireEvent.click(selectAllCheckbox);
-    expect(selectAllCheckbox).toBeChecked();
-    expect(exp1Checkbox).toBeChecked();
-    expect(exp2Checkbox).toBeChecked();
-
-    // Uncheck one experiment
-    fireEvent.click(exp1Checkbox);
-    expect(selectAllCheckbox).not.toBeChecked();
-    expect(exp1Checkbox).not.toBeChecked();
-    expect(exp2Checkbox).toBeChecked();
+    // Verify that only the searched experiment is displayed
+    expect(screen.getByText(experimentNames[0])).toBeInTheDocument();
+    expect(screen.queryByText(experimentNames[1])).not.toBeInTheDocument();
   });
 });

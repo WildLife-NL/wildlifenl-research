@@ -13,9 +13,8 @@ const ExperimentCreation: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedLivingLabID, setSelectedLivingLabID] = useState('');
-  const [selectedLivingLabName, setSelectedLivingLabName] = useState('All');
+  const [selectedLivingLabName, setSelectedLivingLabName] = useState('None');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [dateError, setDateError] = useState('');
   // State variable for living labs
   const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
   const [loadingLabs, setLoadingLabs] = useState(true);
@@ -223,12 +222,12 @@ const ExperimentCreation: React.FC = () => {
                           <div
                             className="experiment-creation-dropdown-item"
                             onClick={() => {
-                              setSelectedLivingLabID(''); // Empty string represents 'All'
-                              setSelectedLivingLabName('All');
+                              setSelectedLivingLabID(''); // Empty string represents 'None'
+                              setSelectedLivingLabName('None');
                               setIsDropdownOpen(false);
                             }}
                           >
-                            All
+                            None
                           </div>
                           {/* LivingLab Options */}
                           {livingLabs.map((lab) => (

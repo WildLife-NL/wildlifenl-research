@@ -3,8 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageDashboard.css';
 import { getMessagesByExperimentID } from '../services/messageService';
-
-// Import types
 import { Message } from '../types/message';
 import { Experiment } from '../types/experiment';
 
@@ -17,22 +15,30 @@ const MessageDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
+  const severityLabels: { [key: number]: string } = {
+    1: 'debug',
+    2: 'info',
+    3: 'warning',
+    4: 'urgent',
+    5: 'critical',
+  };
 
   const [interactionTypes, setInteractionTypes] = useState<TriggerType[]>([]);
+  const [speciesList, setSpeciesList] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [experiment] = useState<Experiment | null>(null);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [selectedTriggerType, setSelectedInteractionType] = useState<string>('All');
+  const [selectedSpecies, setSelectedSpecies] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Message; direction: string } | null>(null);
-
-  // State for loading
+  const [showEncounterMeters, setShowEncounterMeters] = useState<boolean>(false);
+  const [showEncounterMinutes, setShowEncounterMinutes] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // State for dropdown open/close
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSpeciesDropdownOpen, setIsSpeciesDropdownOpen] = useState(false);
 
-  // Fetch messages on component mount
+  // Fetch messages and extract unique species and triggers
   useEffect(() => {
     const fetchMessages = async () => {
       if (!id) return;
@@ -40,6 +46,33 @@ const MessageDashboard: React.FC = () => {
         setIsLoading(true);
         const fetchedMessages = await getMessagesByExperimentID(id);
         setMessages(fetchedMessages);
+
+        // Extract unique species' common names
+        const speciesSet = new Set<string>();
+        const interactionTypesSet = new Set<string>();
+
+        fetchedMessages.forEach((msg: Message) => {
+          if (msg.species && msg.species.commonName) {
+            const speciesName = `${msg.species.commonName} (${msg.species.name})`;
+          speciesSet.add(speciesName);
+          }
+          if (msg.trigger) {
+            interactionTypesSet.add(msg.trigger);
+          }
+        });
+
+        setSpeciesList(['All', ...Array.from(speciesSet)]);
+
+        const allTriggerTypesOption: TriggerType = {
+          ID: 'all',
+          name: 'All',
+        };
+        const interactionTypesData = Array.from(interactionTypesSet).map((type) => ({
+          ID: type,
+          name: type,
+        }));
+        setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
+
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -50,49 +83,33 @@ const MessageDashboard: React.FC = () => {
     fetchMessages();
   }, [id]);
 
-  // Fetch interaction types on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
+    setShowEncounterMeters(
+      filteredMessages.some(
+        (msg) => msg.encounterMeters != null && msg.encounterMeters > 0
+      )
+    );
 
-        // Extract unique interaction types from messages
-        const interactionTypesSet = new Set<string>();
-        messages.forEach((msg: Message) => {
-          if (msg.trigger) {
-            interactionTypesSet.add(msg.trigger);
-          }
-        });
-
-        const interactionTypesData = Array.from(interactionTypesSet).map((type) => ({
-          ID: type,
-          name: type,
-        }));
-
-        // Include 'All TriggernTypes' as default option
-        const allTriggerTypesOption: TriggerType = {
-          ID: 'all',
-          name: 'All',
-        };
-
-        setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
-
-        setFilteredMessages(messages);
-
-        setIsLoading(false);
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [messages]);
+    setShowEncounterMinutes(
+      filteredMessages.some(
+        (msg) => msg.encounterMinutes != null && msg.encounterMinutes > 0
+      )
+    );
+  }, [filteredMessages]);
 
   // Apply filters whenever filter state changes
   useEffect(() => {
     let filtered = [...messages];
+
+    // Filter by Species
+    if (selectedSpecies !== 'All') {
+      filtered = filtered.filter((msg: Message) => {
+        const speciesName = msg.species
+          ? `${msg.species.commonName} (${msg.species.name})`
+          : '';
+        return speciesName === selectedSpecies;
+      });
+    }
 
     // Filter by TriggerType
     if (selectedTriggerType !== 'All') {
@@ -112,6 +129,14 @@ const MessageDashboard: React.FC = () => {
         let aValue: any = a[sortConfig.key] || '';
         let bValue: any = b[sortConfig.key] || '';
 
+        if (sortConfig.key === 'species') {
+          aValue = a.species?.commonName.toLowerCase() || '';
+          bValue = b.species?.commonName.toLowerCase() || '';
+        } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
         if (aValue < bValue) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -123,7 +148,7 @@ const MessageDashboard: React.FC = () => {
     }
 
     setFilteredMessages(filtered);
-  }, [selectedTriggerType, searchQuery, sortConfig, messages]);
+  }, [selectedSpecies, selectedTriggerType, searchQuery, sortConfig, messages]);
 
   // Handle sorting
   const requestSort = (key: keyof Message) => {
@@ -149,7 +174,7 @@ const MessageDashboard: React.FC = () => {
 
   // Handle navigation to message details page
   const handleMessageClick = (message: Message) => {
-    navigate(`/message/${message.answerID}`, { state: { message } });
+    navigate(`/message/${id}`, { state: { message } });
   };
 
   // Function to truncate text to a specified length
@@ -165,17 +190,51 @@ const MessageDashboard: React.FC = () => {
 
       {/* Messages Title */}
       <h1 className="messages-title" data-testid="messages-title">
-      Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
+        Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
       </h1>
 
       {/* Filters Container */}
       <div className="message-filters-container" data-testid="filters-container">
+        {/* Species Filter */}
+        <div className="message-filter species-filter" data-testid="species-filter">
+          <label className="filter-label">Filter by species:</label>
+          <div className={`dropdown ${isSpeciesDropdownOpen ? 'open' : ''}`}>
+            <button
+              className="dropdown-button"
+              data-testid="species-dropdown-button"
+              onClick={() => setIsSpeciesDropdownOpen(!isSpeciesDropdownOpen)}
+            >
+              {selectedSpecies}
+              <img
+                src="/assets/vsvg.svg"
+                alt="Dropdown Icon"
+                className={`dropdown-icon ${isSpeciesDropdownOpen ? 'dropdown-icon-hover' : ''}`}
+              />
+            </button>
+            {isSpeciesDropdownOpen && (
+              <div className="dropdown-content" data-testid="species-dropdown-content">
+                {speciesList.map((speciesName) => (
+                  <div
+                    key={speciesName}
+                    data-testid={`species-option-${speciesName}`}
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSelectedSpecies(speciesName);
+                      setIsSpeciesDropdownOpen(false);
+                    }}
+                  >
+                    {speciesName}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* TriggerType Filter */}
         <div className="message-filter interactiontype-filter" data-testid="interactiontype-filter">
           <label className="filter-label">Filter by trigger:</label>
-          <div
-            className={`dropdown ${isDropdownOpen ? 'open' : ''}`}
-          >
+          <div className={`dropdown ${isDropdownOpen ? 'open' : ''}`}>
             <button
               className="dropdown-button"
               data-testid="interactiontype-dropdown-button"
@@ -188,21 +247,23 @@ const MessageDashboard: React.FC = () => {
                 className={`dropdown-icon ${isDropdownOpen ? 'dropdown-icon-hover' : ''}`}
               />
             </button>
-            <div className="dropdown-content" data-testid="interactiontype-dropdown-content">
-              {interactionTypes.map((type) => (
-                <div
-                  key={type.ID}
-                  data-testid={`interactiontype-option-${type.ID}`}
-                  className="dropdown-item"
-                  onClick={() => {
-                    setSelectedInteractionType(type.name);
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  {type.name}
-                </div>
-              ))}
-            </div>
+            {isDropdownOpen && (
+              <div className="dropdown-content" data-testid="interactiontype-dropdown-content">
+                {interactionTypes.map((type) => (
+                  <div
+                    key={type.ID}
+                    data-testid={`interactiontype-option-${type.ID}`}
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSelectedInteractionType(type.name);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    {type.name}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -244,6 +305,14 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('name')}`}
                     />
                   </th>
+                  <th onClick={() => requestSort('species')}>
+                    Species
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('species')}`}
+                    />
+                  </th>
                   <th onClick={() => requestSort('trigger')}>
                     Trigger
                     <img
@@ -268,30 +337,42 @@ const MessageDashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('severity')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('encounterMeters')}>
-                    Encounter Meters
+                  <th onClick={() => requestSort('activity')}>
+                    Activity
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('encounterMeters')}`}
+                      className={`sort-icon ${getSortIconClass('activity')}`}
                     />
                   </th>
-                  <th onClick={() => requestSort('encounterMinutes')}>
-                    Encounter Minutes
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('encounterMinutes')}`}
-                    />
-                  </th>
+                  {showEncounterMeters && (
+                    <th onClick={() => requestSort('encounterMeters')}>
+                      Encounter Meters
+                      <img
+                        src="/assets/vblacksvg.svg"
+                        alt="Sort Icon"
+                        className={`sort-icon ${getSortIconClass('encounterMeters')}`}
+                      />
+                    </th>
+                  )}
+                  {showEncounterMinutes && (
+                    <th onClick={() => requestSort('encounterMinutes')}>
+                      Encounter Minutes
+                      <img
+                        src="/assets/vblacksvg.svg"
+                        alt="Sort Icon"
+                        className={`sort-icon ${getSortIconClass('encounterMinutes')}`}
+                      />
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {filteredMessages.map((msg: Message, index: number) => {
                   return (
                     <tr
-                      key={msg.answerID}
-                      data-testid={`message-row-${msg.answerID}`}
+                      key={msg.ID}
+                      data-testid={`message-row-${msg.ID}`}
                       className={index % 2 === 0 ? 'row-even' : 'row-odd'}
                       style={{ cursor: 'pointer' }}
                     >
@@ -302,6 +383,11 @@ const MessageDashboard: React.FC = () => {
                         {truncateText(msg.name, 20)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
+                        {msg.species
+                          ? `${msg.species.commonName} (${msg.species.name})`
+                          : 'Unknown Species'}
+                      </td>
+                      <td onClick={() => handleMessageClick(msg)}>
                         {msg.trigger}
                       </td>
                       
@@ -309,15 +395,22 @@ const MessageDashboard: React.FC = () => {
                         {truncateText(msg.text, 12)}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
-                        {msg.severity}
+                        {severityLabels[msg.severity] || 'Unknown'}
                       </td>
+                      <td onClick={() => handleMessageClick(msg)}>
+                        {msg.activity.toString()}
+                      </td>
+                      {showEncounterMeters && (
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.encounterMeters}
                       </td>
+                    )}
+                    {showEncounterMinutes && (
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.encounterMinutes}
                       </td>
-                    </tr>
+                    )}
+                  </tr>
                   );
                 })}
               </tbody>

@@ -28,24 +28,48 @@ const Profile: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken'); // Remove the token from local storage
-    navigate('/login'); // Redirect to the login page
+    localStorage.removeItem('authToken');
+    navigate('/login');
   };
+
+  if (isLoading) {
+    return (
+      <div className="profile-page">
+        <Navbar />
+        <div className="profile-content">
+          <div>Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="profile-page">
+        <Navbar />
+        <div className="profile-content">
+          <div>{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page">
-      {/* Navbar */}
       <Navbar />
-
-      {/* Profile Content */}
       <div className="profile-content">
         {user && (
           <div className="profile-info">
             <h2>Profile</h2>
-            <p><strong>Name:</strong> {user.name}</p>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Role:</strong> {user.roles[0]?.name || 'N/A'}</p>
-
+            <p>
+              <strong>Name:</strong> {user.name}
+            </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Role:</strong> {user.roles[0]?.name || 'N/A'}
+            </p>
             <button className="logout-button" onClick={handleLogout}>
               Logout
             </button>

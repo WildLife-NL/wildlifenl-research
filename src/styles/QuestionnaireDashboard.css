@@ -1,51 +1,50 @@
-/* Dashboard Container */
-.dashboard-container {
+/* Questionnaire Dashboard Container */
+.questionnaire-dashboard-container {
   font-family: 'Roboto', sans-serif;
   position: relative;
   display: flex;
   flex-direction: column;
-  /* Removed overflow-x to enable scrollbar */
 }
 
-/* Experiments Title */
-.experiments-title {
+/* Questionnaires Title */
+.questionnaires-title {
   color: #000;
   font-size: 50px;
   font-weight: 700;
-  margin-top: 100px; /* Adjust for navbar height */
+  margin-top: 100px;
   margin-left: 24px;
   user-select: none;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
 }
 
 /* Filters Container */
-.filters-container {
+.questionnaire-filters-container {
   display: flex;
-  justify-content: space-between; /* Spread filters evenly */
+  justify-content: space-between;
   align-items: center;
   margin-top: 20px;
   margin-left: 5%;
-  margin-right: 5%; /* Align with left margin */
-  flex-shrink: 0; /* Prevent shrinking */
+  margin-right: 5%;
+  flex-shrink: 0;
 }
 
 /* Filter Styles */
-.filter {
+.questionnaire-filter {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
 /* Filter Labels */
-.filter-label {
+.questionnaire-filter-label {
   color: #000;
   font-size: 20px;
   font-weight: 500;
-  margin-right: 10px; /* Space between label and input */
+  margin-right: 10px;
   user-select: none;
 }
 
-/* LivingLab Filter */
+/* Dropdown */
 .dropdown {
   position: relative;
   width: 225px;
@@ -66,7 +65,7 @@
   justify-content: center;
   position: relative;
   user-select: none;
-  cursor: pointer; /* Allow clicking */
+  cursor: pointer;
 }
 
 .dropdown-icon {
@@ -75,11 +74,11 @@
   width: 17px;
   height: 11px;
   transition: transform 0.2s;
-  transform: rotate(180deg); /* Point up when closed */
+  transform: rotate(180deg);
 }
 
 .dropdown-icon-hover {
-  transform: rotate(0deg); /* Point down when open */
+  transform: rotate(0deg);
 }
 
 .dropdown-content {
@@ -109,40 +108,6 @@
   background-color: #f1f1f1;
 }
 
-/* Date Range Filter */
-.date-inputs {
-  display: flex;
-  align-items: center;
-}
-
-.date-input {
-  position: relative;
-}
-
-.date-input input[type="date"] {
-  width: 200px;
-  height: 50px;
-  padding: 0 10px;
-  font-size: 25px;
-  font-weight: 300;
-  color: rgba(0, 0, 0, 0.55);
-  border: 3px solid rgba(0, 0, 0, 0.25);
-  border-radius: 12px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.date-input input[type="date"]:hover:not(:focus) {
-  border-color: #27A966;
-  box-shadow: 0 0 5px #27A966;
-}
-
-/* Date Separator */
-.date-separator {
-  margin: 0 10px;
-  font-size: 20px;
-}
-
 /* Search Filter */
 .search-filter {
   position: relative;
@@ -156,10 +121,10 @@
   width: 350px;
   height: 50px;
   padding: 0 10px;
-  padding-right: 40px; /* Prevent text overlap with icon */
+  padding-right: 40px;
   font-size: 25px;
   font-weight: 300;
-  color: rgba(0, 0, 0, 0); /* Hidden text */
+  color: rgba(0, 0, 0, 0);
   border: 3px solid rgba(0, 0, 0, 0.25);
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
@@ -172,7 +137,7 @@
 }
 
 .search-input input[type="text"]:focus {
-  color: #000; /* Reveal text on focus */
+  color: #000;
 }
 
 .search-icon {
@@ -186,31 +151,31 @@
 }
 
 /* Table Container */
-.table-container {
+.questionnaire-table-container {
   margin-top: 20px;
-  margin-left: 5%; /* Margins to prevent touching edges */
-  margin-right: 5%;
+  margin-left: 2%;
+  margin-right: 2%;
   overflow-x: auto;
-  overflow-y: auto; /* Enables vertical scrolling */
-  height: calc(100vh - 270px); /* Adjusted total offset */
+  overflow-y: auto;
+  height: calc(100vh - 270px);
   user-select: none;
 }
 
-/* Experiments Table */
-.experiments-table {
+/* Questionnaires Table */
+.questionnaires-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.experiments-table th,
-.experiments-table td {
+.questionnaires-table th,
+.questionnaires-table td {
   padding: 12px;
   text-align: center;
 }
 
-.experiments-table th {
-  background: #D9D9D9; /* Updated color */
-  border: 1px solid #000; /* Added border */
+.questionnaires-table th {
+  background: #D9D9D9;
+  border: 1px solid #000;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.6px;
@@ -219,15 +184,16 @@
   cursor: pointer;
 }
 
-.experiments-table td {
+.questionnaires-table td {
   font-size: 15px;
   font-weight: 400;
   letter-spacing: 0.45px;
+  cursor: pointer;
 }
 
-.experiments-table th,
-.experiments-table td {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.30); /* Optional horizontal lines */
+.questionnaires-table th,
+.questionnaires-table td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.30);
 }
 
 .sort-icon {
@@ -246,8 +212,8 @@
   transform: rotate(0deg);
 }
 
-/* Hover Effect for Experiment Rows */
-.experiments-table tbody tr:hover {
+/* Hover Effect for Questionnaire Rows */
+.questionnaires-table tbody tr:hover {
   background-color: rgba(217, 217, 217, 0.8);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
@@ -261,21 +227,21 @@
   background-color: rgba(217, 217, 217, 0.40);
 }
 
-/* Add Experiment Button */
-.add-experiment-button {
+/* Add Questionnaire Button */
+.add-questionnaire-button {
   position: fixed;
-  bottom: 12px; /* 12px from bottom */
-  right: 6px;   /* 6px from right */
+  bottom: 12px;
+  right: 6px;
   width: 106px;
   height: 102px;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  z-index: 1000; /* Ensure it appears above other elements */
+  z-index: 1000;
 }
 
-.add-experiment-button img {
+.add-questionnaire-button img {
   width: 100%;
   height: auto;
 }
@@ -285,12 +251,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px; /* Adjust as needed */
+  height: 300px;
 }
 
 .spinner {
-  border: 16px solid #f3f3f3; /* Light grey */
-  border-top: 16px solid #27A966; /* Green */
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #27A966;
   border-radius: 50%;
   width: 120px;
   height: 120px;
@@ -302,28 +268,28 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Scrollbar Styling (Optional) */
-.table-container::-webkit-scrollbar {
-  width: 8px; /* Increased width for better visibility */
+/* Scrollbar Styling */
+.questionnaire-table-container::-webkit-scrollbar {
+  width: 8px;
 }
 
-.table-container::-webkit-scrollbar-track {
+.questionnaire-table-container::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
 
-.table-container::-webkit-scrollbar-thumb {
+.questionnaire-table-container::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
 }
 
-.table-container::-webkit-scrollbar-thumb:hover {
+.questionnaire-table-container::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
 
-/* Responsive Adjustments (Optional) */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
-  .experiments-title {
+  .questionnaires-title {
     font-size: 36px;
     margin-top: 70px;
     margin-left: 16px;
@@ -349,13 +315,13 @@
     height: 25px;
   }
 
-  .experiments-table th,
-  .experiments-table td {
+  .questionnaires-table th,
+  .questionnaires-table td {
     padding: 8px;
     font-size: 14px;
   }
 
-  .add-experiment-button {
+  .add-questionnaire-button {
     width: 90px;
     height: 90px;
   }

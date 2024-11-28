@@ -1,0 +1,62 @@
+/* Questionnaire.css */
+
+/* Container for the Questionnaire View */
+.questionnaire-view-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Title Styling */
+.questionnaire-view-title {
+  position: absolute;
+  top: 90px;
+  left: 25px;
+  width: 600px;
+  height: 60px;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Details Component */
+.questionnaire-view-details {
+  width: 100%;
+  margin-top: 160px;
+}
+
+/* Not Found Styling */
+.questionnaire-view-not-found {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  font-size: 24px;
+  color: #555;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Additional Responsive Styles (Optional) */
+@media (max-width: 768px) {
+  .questionnaire-view-title {
+    font-size: 36px;
+    width: auto;
+    left: 10px;
+  }
+
+  .questionnaire-view-details {
+    margin-top: 140px;
+  }
+
+  .questionnaire-view-container .dynamic-view {
+    padding: 15px;
+  }
+
+  .questionnaire-view-container .field-name {
+    display: block;
+    margin-bottom: 5px;
+  }
+}

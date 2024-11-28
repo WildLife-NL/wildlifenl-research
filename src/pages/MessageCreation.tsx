@@ -1,14 +1,11 @@
-import React, { useState, useRef} from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageCreation.css';
 import { addMessage } from '../services/messageService';
-
-interface Species {
-  ID: string;
-  name: string;
-  commonName: string;
-}
+import { getAllSpecies } from '../services/speciesService';
+import { getAllTriggerTypes } from '../services/triggerTypeService';
+import { Species } from '../types/species';
 
 const MessageCreation: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,10 +16,12 @@ const MessageCreation: React.FC = () => {
   const [messageText, setMessageText] = useState('');
   const [severity, setSeverity] = useState(1);
 
-  const [selectedTriggerID, setSelectedTriggerID] = useState('encounter');
-  const [selectedTriggerName, setSelectedTriggerName] = useState('Encounter');
-  const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState(false);
+  const [triggerTypes, setTriggerTypes] = useState<string[]>([]);
+  const [selectedTriggerID, setSelectedTriggerID] = useState<string>('encounter'); // Default trigger ID
+  const [selectedTriggerName, setSelectedTriggerName] = useState<string>('Encounter'); // Default trigger name
+  const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState<boolean>(false);
 
+  const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesID, setSelectedSpeciesID] = useState('');
   const [selectedSpeciesName, setSelectedSpeciesName] = useState('Select Species');
   const [isSpeciesDropdownOpen, setIsSpeciesDropdownOpen] = useState(false);
@@ -36,35 +35,37 @@ const MessageCreation: React.FC = () => {
   const encounterMinutesRef = useRef<HTMLInputElement>(null);
   const speciesDropdownRef = useRef<HTMLButtonElement>(null);
 
-  // Triggers list
-  const triggers = [
-    { id: 'encounter', name: 'Encounter' },
-    { id: 'alarm', name: 'Alarm' },
-  ];
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  // Fetch trigger types when component mounts
+  useEffect(() => {
+    const fetchTriggerTypes = async () => {
+      try {
+        const triggers = await getAllTriggerTypes();
+        const filteredTriggers = triggers.filter((trigger) => trigger.toLowerCase() !== 'answer'); //Temporary Solution
+        setTriggerTypes(filteredTriggers);
+      } catch (error) {
+        console.error('Error fetching trigger types:', error);
+        // Optionally, handle the error (e.g., show a notification)
+      }
+    };
+    fetchTriggerTypes();
+  }, []);
+
 
   // Species list
-  const speciesList: Species[] = [
-    {
-      ID: '2e6e75fb-4888-4c8d-81c6-ab31c63a7ecb',
-      name: 'Bison bonasus',
-      commonName: 'Wisent',
-    },
-    {
-      ID: '79952c1b-3f43-4d6e-9ff0-b6057fda6fc1',
-      name: 'Bos taurus',
-      commonName: 'Schotse hooglander',
-    },
-    {
-      ID: 'cf83db9d-dab7-4542-bc00-08c87d1da68d',
-      name: 'Canis lupus',
-      commonName: 'Wolf',
-    },
-    {
-      ID: '28775ecb-1af6-4b22-a87a-e15b1999d55c',
-      name: 'Sus scrofa',
-      commonName: 'Wild Zwijn',
-    },
-  ];
+    // Fetch species list when component mounts
+    useEffect(() => {
+      const fetchSpecies = async () => {
+        try {
+          const species = await getAllSpecies();
+          setSpeciesList(species);
+        } catch (error) {
+          console.error('Error fetching species:', error);
+        }
+      };
+      fetchSpecies();
+    }, []);
 
   const validateForm = (): boolean => {
     let isValid = true;
@@ -166,7 +167,6 @@ const MessageCreation: React.FC = () => {
       <div className="message-creation-main-container">
         {/* Title */}
         <h1 className="message-creation-page-title">New Message</h1>
-  
         {/* Content Box */}
         <form
           className="message-creation-content-box"
@@ -247,20 +247,20 @@ const MessageCreation: React.FC = () => {
                   </button>
                   {isTriggerDropdownOpen && (
                     <div className="message-creation-dropdown-content">
-                      {triggers.map((trigger) => (
+                      {triggerTypes.map((trigger) => (
                         <div
-                          key={trigger.id}
+                          key={trigger}
                           className="message-creation-dropdown-item"
                           onClick={() => {
-                            setSelectedTriggerID(trigger.id);
-                            setSelectedTriggerName(trigger.name);
+                            setSelectedTriggerID(trigger);
+                            setSelectedTriggerName(capitalize(trigger));
                             setIsTriggerDropdownOpen(false);
                             // Reset conditional fields
                             setEncounterMeters('');
                             setEncounterMinutes('');
                           }}
                         >
-                          {trigger.name}
+                          {capitalize(trigger)}
                         </div>
                       ))}
                     </div>
@@ -298,7 +298,7 @@ const MessageCreation: React.FC = () => {
                           className="message-creation-dropdown-item"
                           onClick={() => {
                             setSelectedSpeciesID(species.ID);
-                            setSelectedSpeciesName(species.commonName);
+                            setSelectedSpeciesName(`${species.commonName} (${species.name})`);
                             setIsSpeciesDropdownOpen(false);
                             speciesDropdownRef.current?.setCustomValidity('');
                           }}
@@ -361,8 +361,8 @@ const MessageCreation: React.FC = () => {
               <img src="/assets/saveSVG.svg" alt="Submit Message" />
           </button>
         </form>
+       </div>
       </div>
-    </div>
   );
 }
 
