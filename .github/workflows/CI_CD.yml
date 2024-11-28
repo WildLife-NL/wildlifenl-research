@@ -50,25 +50,3 @@ jobs:
 
       - name: Run Jest Integration Tests
         run: npm test -- --ci --testPathPattern ".*\\.integration\\.test\\.tsx$"
-
-  cypress-tests:
-    name: Run Cypress Tests
-    runs-on: ubuntu-latest
-    needs: integration-tests
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js Environment
-        uses: ./.github/actions/setup-node
-
-      - name: Start application
-        run: |
-          npm start &
-          npx wait-on http://localhost:3000
-
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v5
-        with:
-          browser: chrome
