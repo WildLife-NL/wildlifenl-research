@@ -37,13 +37,13 @@ const Experiment: React.FC = () => {
   
   // Navigation handlers
   const handleQuestionnaireOverviewClick = () => {
-    navigate(`/questionnairedashboard/${experiment.ID}`);
+    navigate(`/questionnairedashboard/${experiment.ID}`, { state: { experiment } });
   };
 
   const handleMessageOverviewClick = async () => {
     if (!experiment) return;
     try {
-      navigate(`/messagedashboard/${experiment.ID}`);
+      navigate(`/messagedashboard/${experiment.ID}`, { state: { experiment } });
     } catch (error) {
       console.error('Error fetching messages:', error);
     }

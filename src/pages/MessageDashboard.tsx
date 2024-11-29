@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageDashboard.css';
 import { getMessagesByExperimentID } from '../services/messageService';
@@ -14,6 +14,7 @@ interface TriggerType {
 const MessageDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  
 
   const severityLabels: { [key: number]: string } = {
     1: 'debug',
@@ -26,7 +27,8 @@ const MessageDashboard: React.FC = () => {
   const [interactionTypes, setInteractionTypes] = useState<TriggerType[]>([]);
   const [speciesList, setSpeciesList] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [experiment] = useState<Experiment | null>(null);
+  const location = useLocation();
+  const experiment = location.state?.experiment as Experiment | null;
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [selectedTriggerType, setSelectedInteractionType] = useState<string>('All');
   const [selectedSpecies, setSelectedSpecies] = useState<string>('All');
