@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import OTPPopup from '../popups/OTPPopup';
 import { requestOTP } from '../services/authService';
 import '../styles/Login.css';
