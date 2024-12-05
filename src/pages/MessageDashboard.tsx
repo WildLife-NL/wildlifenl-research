@@ -192,7 +192,7 @@ const MessageDashboard: React.FC = () => {
 
       {/* Messages Title */}
       <h1 className="messages-title" data-testid="messages-title">
-        Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
+        Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 23)}
       </h1>
 
       {/* Filters Container */}

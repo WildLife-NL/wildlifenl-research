@@ -72,12 +72,19 @@ const Experiment: React.FC = () => {
     }
   };
 
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <>
       <Navbar />
       <div className="experiment-container">
         {/* Title */}
-        <h1 className="experiment-view-title">Experiment View</h1>
+        <h1 className="experiment-view-title">
+          View for Experiment: {truncateText(experiment?.name || `Experiment ${experiment.ID}`, 23)}
+        </h1>
 
         {/* Experiment Details Component */}
         <div className="experiment-details-component">
