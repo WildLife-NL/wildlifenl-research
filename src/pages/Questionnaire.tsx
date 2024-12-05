@@ -1,12 +1,14 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
+import QuestionView from '../components/QuestionView';
 import '../styles/Questionnaire.css';
 import { Questionnaire as QuestionnaireType } from '../types/questionnaire';
 
+
 const Questionnaire: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const questionnaire = location.state?.questionnaire as QuestionnaireType | null;
 
   if (!questionnaire) {
@@ -19,6 +21,11 @@ const Questionnaire: React.FC = () => {
       </>
     );
   }
+
+  const navigateToCreateQuestions = () => {
+    navigate('/questioncreation');
+  };
+
 
   // Prepare fields to display
   const fields = [
@@ -33,25 +40,45 @@ const Questionnaire: React.FC = () => {
       value: questionnaire.experiment?.name || 'N/A',
     },
     {
-      name: 'Amount of Questions',
+      name: 'Number of Questions',
       value: questionnaire.questions
         ? questionnaire.questions.length.toString()
         : 'N/A',
     },
   ];
 
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <>
+    <div className="scrollable-body">
       <Navbar />
-      <div className="questionnaire-view-container">
-        {/* Title */}
-        <h1 className="questionnaire-view-title">Questionnaire View</h1>
+      <h1 className="questionnaire-view-title">
+        View for Questionnaire: {truncateText(questionnaire?.name || `Questionnaire ${questionnaire.ID}`, 23)}
+      </h1>
+  <div className="questionnaire-view-container">
+    {/* Questionnaire Details Component */}
+    <div className="questionnaire-view-details">
+      <DynamicView fields={fields} />
+    </div>
 
-        {/* Questionnaire Details Component */}
-        <div className="questionnaire-view-details">
-          <DynamicView fields={fields} />
-        </div>
-      </div>
+    {/* QuestionView Component */}
+    <div className="questionnaire-view-questions">
+      <QuestionView fields={questionnaire.questions || []} />
+    </div>
+  </div>
+  {/* Add Questions Button */}
+  <button
+            className="add-experiment-button"
+            onClick={navigateToCreateQuestions}
+            data-testid="add-experiment-button"
+          >
+            <img src="/assets/AddButtonSVG.svg" alt="Add Experiment" />
+          </button>
+  </div>
     </>
   );
 };

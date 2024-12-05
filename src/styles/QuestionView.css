@@ -1,0 +1,114 @@
+.questionnaire {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+}
+
+.question-container {
+  position: relative;
+  margin-bottom: 50px;
+
+  display: flex;
+  justify-content: center; /* Center horizontally */
+}
+
+.question-box {
+  width: 90vw;  /* Changed to 85% of viewport width */
+  margin: 0 auto;
+  background: rgba(217, 217, 217, 0);
+  border: 1px black solid;
+  position: relative;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Update question title group to stack vertically */
+.question-title-group {
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  padding-right: 85px; /* Space for view button */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.question-index {
+  margin-bottom: 10px; /* Space between index and title */
+}
+
+.question-title {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* View Question Button */
+.view-question-button {
+  width: 65px;
+  height: 65px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.view-question-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+
+.question-index {
+  margin-right: 20px;
+}
+
+.multiple-choice-group {
+  margin-top: 30px;
+}
+
+.answer-option {
+  display: flex;
+  align-items: flex-start; /* Change from center to flex-start for proper text wrapping */
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.answer-text {
+  flex: 1;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-width: calc(85vw - 120px); /* Account for letter width and padding */
+}
+
+.answer-letter {
+  width: 50px;
+  flex-shrink: 0; /* Prevent letter from shrinking */
+}
+
+.regex-group {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.regex-label {
+  margin-right: 10px;
+}
+
+.answering-methodology {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  text-align: center;
+}
+
+/* Text Styles */
+.text-style {
+  color: black;
+  font-size: 35px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  letter-spacing: 1.05px;
+  word-wrap: break-word;
+}

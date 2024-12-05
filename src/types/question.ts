@@ -4,7 +4,6 @@ export interface Question {
   ID: string;
   allowMultipleResponse: boolean;
   allowOpenResponse: boolean;
-  options: string[];
   answers: Array<Answer>;
   description: string;
   index: number;
