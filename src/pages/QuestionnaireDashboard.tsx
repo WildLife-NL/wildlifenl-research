@@ -153,7 +153,7 @@ const QuestionnaireDashboard: React.FC = () => {
 
       {/* Questionnaires Title */}
       <h1 className="questionnaires-title" data-testid="questionnaires-title">
-        Questionnaires for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
+        Questionnaires for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 21)}
       </h1>
 
       {/* Filters Container */}

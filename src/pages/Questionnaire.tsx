@@ -23,7 +23,7 @@ const Questionnaire: React.FC = () => {
   }
 
   const navigateToCreateQuestions = () => {
-    navigate('/questioncreation');
+    navigate('/questioncreation', { state: { questionnaire } });
   };
 
 

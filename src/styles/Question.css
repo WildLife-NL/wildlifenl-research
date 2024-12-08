@@ -1,0 +1,156 @@
+.qst-question-container {
+  width: 85vw;
+  background: white;
+  margin-top: 2vh;
+  padding: 20px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
+  border: 3px solid rgba(0,0,0,0.25);
+  margin-bottom: 20px;
+  font-family: Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 20px;
+}
+
+.qst-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qst-question-index {
+  color: black;
+  font-size: 35px;
+  font-weight: 300;
+  letter-spacing: 1.05px;
+}
+
+.qst-remove-question-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.qst-input-container {
+  background: rgba(196,196,196,0);
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
+  border-radius: 12px;
+  border: 3px solid rgba(0,0,0,0.25);
+  height: 82px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.qst-text-input {
+  border: none;
+  font-size: 32px;
+  font-weight: 300;
+  color: rgba(0,0,0,0.55);
+  width: 100%;
+  background: none;
+  outline: none;
+}
+
+.qst-question-text::placeholder,
+.qst-description-text::placeholder,
+.qst-answer-text::placeholder,
+.qst-regex-text::placeholder {
+  color: rgba(0,0,0,0.55);
+}
+
+.qst-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.qst-answer-label {
+  font-size: 35px;
+  font-weight: 400;
+  letter-spacing: 1.05px;
+  color: black;
+  text-align: center;
+}
+
+.qst-answer-input-container {
+  flex: 1;
+}
+
+.qst-remove-answer-btn {
+  width: 50px;
+  height: 50px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.qst-create-new-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.qst-create-new-answer-btn {
+  width: 284px;
+  height: 56px;
+  background: #27A966;
+  box-shadow: 0px 4px 10px rgba(233,68,75,0.25);
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Toggles placed on the same line as create-new-answer-row */
+.qst-toggle-row {
+  display: flex;
+  align-items: center;
+}
+
+.qst-toggle-btn {
+  width: 35px;
+  height: 35px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 70px;
+}
+
+.qst-toggle-label {
+  color: black;
+  font-size: 20px;
+  font-weight: 200;
+  letter-spacing: 0.6px;
+  text-align: center;
+  margin-left: 10px;
+}
+
+.qst-regex-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.qst-regex-label {
+  font-size: 35px;
+  font-weight: 400;
+  letter-spacing: 1.05px;
+  color: black;
+  text-align: center;
+}
+
+.qst-regex-input-container {
+  flex: 1;
+}
+
+button:focus {
+  outline: none;
+}
