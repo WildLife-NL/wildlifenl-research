@@ -10,3 +10,12 @@ export interface Question {
   openResponseFormat: string;
   text: string;
 }
+
+export interface AddQuestion {
+  allowMultipleResponse: boolean;
+  allowOpenResponse: boolean;
+  description: string;
+  index: number;
+  openResponseFormat: string;
+  text: string;
+}

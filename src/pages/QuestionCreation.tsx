@@ -10,6 +10,7 @@ import Question from '../components/Question';
 interface CreatedQuestion {
   id: number; // Unique identifier
   type: 'single' | 'multiple';
+  indexValue: number; // User-adjustable index
 }
 
 const QuestionCreation: React.FC = () => {
@@ -34,14 +35,30 @@ const QuestionCreation: React.FC = () => {
   };
 
   const handleSelectType = (type: 'single' | 'multiple') => {
-    const newId = Date.now(); // Generate a unique ID
+    const newId = Date.now();
+    const nextIndexValue = questions.length + 1;
     setQuestions((prev) => [
       ...prev,
-      { id: newId, type },
+      { id: newId, type, indexValue: nextIndexValue },
     ]);
     setShowPopup(false);
   };
-
+  const handleQuestionIndexValueChange = (questionId: number, newIndexValue: number) => {
+    setQuestions((prevQuestions) => {
+      const questionToMove = prevQuestions.find((q) => q.id === questionId);
+      if (!questionToMove) return prevQuestions;
+  
+      // Update the indexValue of the specified question
+      const updatedQuestion = { ...questionToMove, indexValue: newIndexValue };
+  
+      // Replace the question in the array with the updated one
+      const updatedQuestions = prevQuestions.map((q) =>
+        q.id === questionId ? updatedQuestion : q
+      );
+  
+      return updatedQuestions;
+    });
+  };
   const handleRemoveQuestion = (questionId: number) => {
     setQuestions((prev) => prev.filter((q) => q.id !== questionId));
   };
@@ -57,13 +74,16 @@ const QuestionCreation: React.FC = () => {
         )}
       </h1>
         <div>
-          {questions.map((q, index) => (
+        {questions
+          .sort((a, b) => a.indexValue - b.indexValue)
+          .map((q) => (
             <Question
               key={q.id}
-              id={q.id} // Pass the unique ID
-              questionIndex={index + 1} // Display index
+              id={q.id}
+              indexValue={q.indexValue}
               isMultipleChoice={q.type === 'multiple'}
               onRemoveQuestion={handleRemoveQuestion}
+              onIndexValueChange={handleQuestionIndexValueChange}
             />
           ))}
         </div>

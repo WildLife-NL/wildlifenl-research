@@ -3,21 +3,24 @@ import '../styles/Question.css'; // Ensure the path is correct
 
 interface AnswerOption {
   id: string;
+  answerIndexValue: number;
   text: string;
 }
 
 interface QuestionProps {
-  id: number; // Unique identifier
-  questionIndex: number; // For display purposes
+  id: number;
+  indexValue: number;
   isMultipleChoice: boolean;
   onRemoveQuestion: (id: number) => void;
+  onIndexValueChange: (id: number, newIndex: number) => void;
 }
 
 const Question: React.FC<QuestionProps> = ({
   id,
-  questionIndex,
+  indexValue,
   isMultipleChoice,
   onRemoveQuestion,
+  onIndexValueChange,
 }) => {
   // State for question text and description
   const [questionText, setQuestionText] = useState('');
@@ -25,9 +28,9 @@ const Question: React.FC<QuestionProps> = ({
 
   // State for answer options (used only if multiple choice)
   const [answers, setAnswers] = useState<AnswerOption[]>([
-    { id: 'A', text: '' },
-    { id: 'B', text: '' },
-    { id: 'C', text: '' },
+    { id: 'A', answerIndexValue: 1, text: '' },
+    { id: 'B', answerIndexValue: 2, text: '' },
+    { id: 'C', answerIndexValue: 3, text: '' },
   ]);
 
   // State for toggles (only meaningful for multiple choice)
@@ -42,6 +45,10 @@ const Question: React.FC<QuestionProps> = ({
     onRemoveQuestion(id);
   };
 
+  const handleIndexValueChange = (newIndex: number) => {
+    onIndexValueChange(id, newIndex);
+  };
+
   // Handle changing an answer text (multiple choice only)
   const handleAnswerChange = (index: number, newText: string) => {
     const newAnswers = [...answers];
@@ -53,10 +60,14 @@ const Question: React.FC<QuestionProps> = ({
   const handleRemoveAnswer = (index: number) => {
     const newAnswers = [...answers];
     newAnswers.splice(index, 1);
-
-    // Re-label answers from A, B, C... based on new order
+  
+    // Re-label answers and reassign indexValues
     const updatedAnswers = newAnswers.map((ans, i) => {
-      return { ...ans, id: String.fromCharCode(65 + i) }; // 65 = 'A'
+      return {
+        ...ans,
+        id: String.fromCharCode(65 + i),
+        answerIndexValue: i + 1,
+      };
     });
     setAnswers(updatedAnswers);
   };
@@ -64,7 +75,14 @@ const Question: React.FC<QuestionProps> = ({
   // Handle adding a new answer (multiple choice only)
   const handleAddAnswer = () => {
     const nextLetter = String.fromCharCode(65 + answers.length);
-    setAnswers([...answers, { id: nextLetter, text: '' }]);
+    const nextIndexValue = answers.length + 1;
+    setAnswers([...answers, { id: nextLetter, answerIndexValue: nextIndexValue, text: '' }]);
+  };
+
+  const handleAnswerIndexValueChange = (index: number, newValue: number) => {
+    const newAnswers = [...answers];
+    newAnswers[index].answerIndexValue = newValue >= 1 ? newValue : 1; // Ensure indexValue is at least 1
+    setAnswers(newAnswers);
   };
 
   const containerClass = `qst-question-container ${isMultipleChoice ? 'multiple-choice' : ''} ${allowOpenAnswers ? 'open-answer-enabled' : ''}`;
@@ -72,7 +90,17 @@ const Question: React.FC<QuestionProps> = ({
   return (
     <div className={containerClass}>
       <div className="qst-header">
-        <div className="qst-question-index">Question {questionIndex}.</div>
+      <div className="qst-question-index">
+    Question
+    <input
+      className="qst-question-index-input"
+      type="number"
+      min="1"
+      value={indexValue}
+      onChange={(e) => handleIndexValueChange(parseInt(e.target.value) || 1)}
+    />
+    .
+  </div>
         <button className="qst-remove-question-btn" onClick={handleRemoveQuestion}>
           <img src={'../assets/XCloseSVG.svg'} alt="Remove Question" />
         </button>
@@ -100,24 +128,34 @@ const Question: React.FC<QuestionProps> = ({
 
       {isMultipleChoice && (
         <>
-          {/* Answer Options */}
-          {answers.map((answer, index) => (
-            <div className="qst-answer-row" key={answer.id}>
-              <div className="qst-answer-label">{answer.id}.</div>
-              <div className="qst-input-container qst-answer-input-container">
-                <input
-                  className="qst-text-input qst-answer-text"
-                  type="text"
-                  placeholder="Enter answer..."
-                  value={answer.text}
-                  onChange={(e) => handleAnswerChange(index, e.target.value)}
-                />
-              </div>
-              <button className="qst-remove-answer-btn" onClick={() => handleRemoveAnswer(index)}>
-                <img src={'../assets/XCloseSVG.svg'} alt="Remove Answer" />
-              </button>
-            </div>
-          ))}
+                        {/* Answer Options */}
+                        {answers.map((answer, index) => (
+                <div className="qst-answer-row" key={answer.id}>
+                  <div className="qst-answer-label">{answer.id}.</div>
+                  <div className="qst-input-container qst-answer-input-container">
+                    <input
+                      className="qst-text-input qst-answer-text"
+                      type="text"
+                      placeholder="Enter answer..."
+                      value={answer.text}
+                      onChange={(e) => handleAnswerChange(index, e.target.value)}
+                    />
+                  </div>
+                  {/* Index Input Field */}
+                  <div className="qst-index-input-container">
+                    <input
+                      className="qst-index-input"
+                      type="number"
+                      min="1"
+                      value={answer.answerIndexValue}
+                      onChange={(e) => handleAnswerIndexValueChange(index, parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+                  <button className="qst-remove-answer-btn" onClick={() => handleRemoveAnswer(index)}>
+                    <img src={'../assets/XCloseSVG.svg'} alt="Remove Answer" />
+                  </button>
+                </div>
+              ))}
 
           {/* Create new answer button and toggles */}
           <div className="qst-create-new-answer-row">

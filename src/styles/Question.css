@@ -154,3 +154,32 @@
 button:focus {
   outline: none;
 }
+
+.qst-index-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.qst-index-input {
+  width: 60px;
+  height: 50px;
+  font-size: 24px;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.qst-index-input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.55);
+}
+
+/* Add this to your CSS file */
+.qst-question-index-input {
+  width: 40px;
+  font-size: 26px;
+  text-align: center;
+  margin: 0 5px;
+}
