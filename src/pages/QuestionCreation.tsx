@@ -8,9 +8,10 @@ import QuestionSelectionPopup from '../components/QuestionSelectionPopup';
 import Question from '../components/Question';
 
 interface CreatedQuestion {
-  id: number; // Unique identifier
+  localId: string; // Unique local identifier for the question
   type: 'single' | 'multiple';
   indexValue: number; // User-adjustable index
+  questionText: string; // Store the question text here
 }
 
 const QuestionCreation: React.FC = () => {
@@ -35,33 +36,47 @@ const QuestionCreation: React.FC = () => {
   };
 
   const handleSelectType = (type: 'single' | 'multiple') => {
-    const newId = Date.now();
-    const nextIndexValue = questions.length + 1;
+    const newId = crypto.randomUUID(); // Generate a UUID for this question
+
+    // Determine the next index value by finding the max current index
+    const maxIndexValue = questions.reduce((max, q) => Math.max(max, q.indexValue), 0);
+    const nextIndexValue = maxIndexValue + 1;
+
     setQuestions((prev) => [
       ...prev,
-      { id: newId, type, indexValue: nextIndexValue },
+      { localId: newId, type, indexValue: nextIndexValue, questionText: '' },
     ]);
     setShowPopup(false);
   };
-  const handleQuestionIndexValueChange = (questionId: number, newIndexValue: number) => {
+
+  const handleQuestionIndexValueChange = (questionLocalId: string, newIndexValue: number) => {
     setQuestions((prevQuestions) => {
-      const questionToMove = prevQuestions.find((q) => q.id === questionId);
-      if (!questionToMove) return prevQuestions;
-  
-      // Update the indexValue of the specified question
-      const updatedQuestion = { ...questionToMove, indexValue: newIndexValue };
-  
-      // Replace the question in the array with the updated one
       const updatedQuestions = prevQuestions.map((q) =>
-        q.id === questionId ? updatedQuestion : q
+        q.localId === questionLocalId ? { ...q, indexValue: newIndexValue } : q
       );
-  
       return updatedQuestions;
     });
   };
-  const handleRemoveQuestion = (questionId: number) => {
-    setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+
+  const handleRemoveQuestion = (questionLocalId: string) => {
+    setQuestions((prev) => prev.filter((q) => q.localId !== questionLocalId));
   };
+
+  const handleQuestionTextChange = (questionLocalId: string, newText: string) => {
+    setQuestions((prevQuestions) => {
+      return prevQuestions.map((q) =>
+        q.localId === questionLocalId ? { ...q, questionText: newText } : q
+      );
+    });
+  };
+
+  // We'll pass down the full question data to each Question so it can determine follow-ups and display names
+  const questionData = questions.map(q => ({
+    localId: q.localId,
+    indexValue: q.indexValue,
+    type: q.type,
+    questionText: q.questionText
+  }));
 
   return (
     <div className="scrollable-body">
@@ -73,20 +88,27 @@ const QuestionCreation: React.FC = () => {
           23
         )}
       </h1>
-        <div>
+      <div>
         {questions
-          .sort((a, b) => a.indexValue - b.indexValue)
+          .sort((a, b) => {
+            // Sort primarily by indexValue ascending.
+            if (a.indexValue !== b.indexValue) return a.indexValue - b.indexValue;
+            return 0; 
+          })
           .map((q) => (
             <Question
-              key={q.id}
-              id={q.id}
+              key={q.localId}
+              localId={q.localId}
               indexValue={q.indexValue}
               isMultipleChoice={q.type === 'multiple'}
               onRemoveQuestion={handleRemoveQuestion}
               onIndexValueChange={handleQuestionIndexValueChange}
+              onQuestionTextChange={handleQuestionTextChange}
+              allQuestions={questionData}
+              currentQuestionText={q.questionText} // Pass the current question's text
             />
           ))}
-        </div>
+      </div>
       <div className="AddQuestion-Button">
         <AddQuestion onClick={handleOpenPopup} />
       </div>
@@ -98,6 +120,16 @@ const QuestionCreation: React.FC = () => {
         />
       )}
 
+      <button
+        className="save-questions-button"
+        onClick={() => {
+          // On save, you'll now have stable localIds and references.
+          // After the server assigns real IDs, map localIds to server IDs.
+        }}
+        data-testid="save-questions-button"
+      >
+        <img src="/assets/saveSVG.svg" alt="Save" />
+      </button>
     </div>
   );
 };

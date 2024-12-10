@@ -51,7 +51,7 @@
   border: none;
   font-size: 32px;
   font-weight: 300;
-  color: rgba(0,0,0,0.55);
+  color: rgb(0, 0, 0);
   width: 100%;
   background: none;
   outline: none;
@@ -68,6 +68,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  padding-top: 5px;
 }
 
 .qst-answer-label {
@@ -161,14 +162,14 @@ button:focus {
 }
 
 .qst-index-input {
-  width: 60px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   font-size: 24px;
   text-align: center;
   border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 8px;
   margin-left: 10px;
-  margin-right: 10px;
+
 }
 
 .qst-index-input:focus {
@@ -176,10 +177,83 @@ button:focus {
   border-color: rgba(0, 0, 0, 0.55);
 }
 
-/* Add this to your CSS file */
 .qst-question-index-input {
-  width: 40px;
+  width: 46px;
   font-size: 26px;
   text-align: center;
-  margin: 0 5px;
+}
+
+/* Style for the follow-up button */
+.qst-follow-up-btn {
+  
+  padding-top: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Ensure the image fits within the button */
+.qst-follow-up-btn img {
+  width: 103%;
+  height: 103%;
+}
+
+
+.save-questions-button {
+  position: fixed;
+  bottom: 3vh; /* 12px from bottom */
+  right: 1.5vw;   /* 6px from right */
+  width: 100px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.save-questions-button img {
+  width: 120%;
+  height: auto;
+}
+
+/* Ensure the follow-up container is positioned relatively */
+.qst-follow-up-container {
+  position: relative;
+}
+
+/* Style for the "No valid follow-ups" message */
+.qst-follow-up-info {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+  font-size: 12px;
+  color: gray;
+  white-space: nowrap;
+}
+
+/* Style for the dropdown container */
+.qst-follow-up-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+  z-index: 10; /* Ensure it appears above other elements */
+}
+
+/* Style for the dropdown itself */
+.qst-follow-up-select {
+  width: 200px; /* Adjust as needed */
+  padding: 5px;
+  font-size: 13.5px;
+}
+
+
+
+/* Optional: Add hover effect for follow-up button */
+.qst-follow-up-btn:hover {
+  opacity: 0.95;
 }
