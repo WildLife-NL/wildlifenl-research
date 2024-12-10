@@ -7,11 +7,30 @@ import { useLocation } from 'react-router-dom';
 import QuestionSelectionPopup from '../components/QuestionSelectionPopup';
 import Question from '../components/Question';
 
+import { addQuestion } from '../services/questionService';
+import { addAnswer } from '../services/answerService';
+
 interface CreatedQuestion {
   localId: string; // Unique local identifier for the question
   type: 'single' | 'multiple';
   indexValue: number; // User-adjustable index
   questionText: string; // Store the question text here
+}
+
+// This should match what we send from Question.tsx
+interface FullQuestionData {
+  localId: string;
+  indexValue: number;
+  text: string;
+  description: string;
+  allowMultipleResponse: boolean;
+  allowOpenResponse: boolean;
+  openResponseFormat: string;
+  answers: {
+    index: number;
+    text: string;
+    nextQuestionID: string | null; // localId here
+  }[];
 }
 
 const QuestionCreation: React.FC = () => {
@@ -20,6 +39,9 @@ const QuestionCreation: React.FC = () => {
 
   const [showPopup, setShowPopup] = useState(false);
   const [questions, setQuestions] = useState<CreatedQuestion[]>([]);
+
+  // NEW: A state to store full question details from Question components
+  const [fullQuestions, setFullQuestions] = useState<Record<string, FullQuestionData>>({}); // ADDED
 
   const truncateText = (text: string, maxLength: number): string => {
     if (!text) return '';
@@ -60,6 +82,11 @@ const QuestionCreation: React.FC = () => {
 
   const handleRemoveQuestion = (questionLocalId: string) => {
     setQuestions((prev) => prev.filter((q) => q.localId !== questionLocalId));
+    // Also remove from fullQuestions map if present
+    setFullQuestions(prev => {
+      const { [questionLocalId]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleQuestionTextChange = (questionLocalId: string, newText: string) => {
@@ -70,13 +97,69 @@ const QuestionCreation: React.FC = () => {
     });
   };
 
-  // We'll pass down the full question data to each Question so it can determine follow-ups and display names
+  // NEW: Handle full question data from the Question component
+  const handleQuestionDataChange = (localId: string, data: FullQuestionData) => {
+    setFullQuestions(prev => ({ ...prev, [localId]: data }));
+  }; // ADDED
+
   const questionData = questions.map(q => ({
     localId: q.localId,
     indexValue: q.indexValue,
     type: q.type,
     questionText: q.questionText
   }));
+
+  // NEW: Implementing saveQuestionsAndAnswers
+  const saveQuestionsAndAnswers = async () => {
+    try {
+      const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
+
+      // Gather full details for each question
+      const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
+
+      if (finalQuestions.length !== sortedQuestions.length) {
+        alert('Not all questions have been fully defined. Please ensure all data is complete.');
+        return;
+      }
+
+      const localIdToRealId: Record<string, string> = {};
+
+      // First add all questions
+      for (const fq of finalQuestions) {
+        const questionPayload = {
+          allowMultipleResponse: fq.allowMultipleResponse,
+          allowOpenResponse: fq.allowOpenResponse,
+          description: fq.description,
+          index: fq.indexValue,
+          openResponseFormat: fq.openResponseFormat,
+          text: fq.text,
+          questionnaireID: questionnaire?.ID // Make sure to use questionnaireID exactly as API specifies
+        };
+        
+
+        const createdQuestion = await addQuestion(questionPayload);
+        localIdToRealId[fq.localId] = createdQuestion.ID;
+      }
+
+      // Then add answers
+      for (const fq of finalQuestions) {
+        for (const ans of fq.answers) {
+          const answerPayload = {
+            index: ans.index,
+            questionID: localIdToRealId[fq.localId], // Use questionID instead of questionId
+            text: ans.text,
+            nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null
+          };
+          await addAnswer(answerPayload);
+        }
+      }
+
+      alert('Questions and answers saved successfully!');
+    } catch (error) {
+      console.error('Error saving questions and answers:', error);
+      alert('Failed to save. Please try again.');
+    }
+  }; // ADDED
 
   return (
     <div className="scrollable-body">
@@ -105,7 +188,10 @@ const QuestionCreation: React.FC = () => {
               onIndexValueChange={handleQuestionIndexValueChange}
               onQuestionTextChange={handleQuestionTextChange}
               allQuestions={questionData}
-              currentQuestionText={q.questionText} // Pass the current question's text
+              currentQuestionText={q.questionText}
+
+              // Pass the new callback for full data
+              onQuestionDataChange={handleQuestionDataChange} // ADDED
             />
           ))}
       </div>
@@ -122,10 +208,7 @@ const QuestionCreation: React.FC = () => {
 
       <button
         className="save-questions-button"
-        onClick={() => {
-          // On save, you'll now have stable localIds and references.
-          // After the server assigns real IDs, map localIds to server IDs.
-        }}
+        onClick={saveQuestionsAndAnswers} // call the new save function
         data-testid="save-questions-button"
       >
         <img src="/assets/saveSVG.svg" alt="Save" />

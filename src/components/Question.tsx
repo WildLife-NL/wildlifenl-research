@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import '../styles/Question.css'; // Ensure the path is correct
 
 interface AnswerOption {
@@ -16,6 +16,21 @@ interface QuestionData {
   questionText: string;
 }
 
+interface FullQuestionData {
+  localId: string;
+  indexValue: number;
+  text: string;
+  description: string;
+  allowMultipleResponse: boolean;
+  allowOpenResponse: boolean;
+  openResponseFormat: string;
+  answers: {
+    index: number;
+    text: string;
+    nextQuestionID: string | null;
+  }[];
+}
+
 interface QuestionProps {
   localId: string;
   indexValue: number;
@@ -25,6 +40,7 @@ interface QuestionProps {
   onQuestionTextChange: (localId: string, newText: string) => void;
   allQuestions: QuestionData[];
   currentQuestionText: string;
+  onQuestionDataChange?: (localId: string, data: FullQuestionData) => void;
 }
 
 const Question: React.FC<QuestionProps> = ({
@@ -35,7 +51,8 @@ const Question: React.FC<QuestionProps> = ({
   onIndexValueChange,
   onQuestionTextChange,
   allQuestions,
-  currentQuestionText
+  currentQuestionText,
+  onQuestionDataChange
 }) => {
   const [questionText, setQuestionText] = useState(currentQuestionText);
   const [questionDescription, setQuestionDescription] = useState('');
@@ -54,16 +71,10 @@ const Question: React.FC<QuestionProps> = ({
     onQuestionTextChange(localId, questionText);
   }, [questionText]);
 
-  // Sort all questions by indexValue ascending
   const sortedQuestions = [...allQuestions].sort((a, b) => a.indexValue - b.indexValue);
-
-  // Current question's position in the sorted list
   const currentQuestionIndexInSorted = sortedQuestions.findIndex(q => q.localId === localId);
-
-  // Only questions after the current question can be follow-ups
   const possibleFollowUps = sortedQuestions.slice(currentQuestionIndexInSorted + 1);
 
-  // Validate the selected follow-ups whenever questions or their indices change
   useEffect(() => {
     const updatedAnswers = answers.map((answer) => {
       if (answer.followUpQuestionId !== null) {
@@ -79,6 +90,45 @@ const Question: React.FC<QuestionProps> = ({
     });
     setAnswers(updatedAnswers);
   }, [allQuestions, indexValue]);
+
+  // Use a ref to store the last sent data to avoid infinite loops
+  const lastFullDataRef = useRef<FullQuestionData | null>(null);
+
+  useEffect(() => {
+    if (onQuestionDataChange) {
+      const fullData: FullQuestionData = {
+        localId,
+        indexValue,
+        text: questionText,
+        description: questionDescription,
+        allowMultipleResponse: allowMultipleAnswers,
+        allowOpenResponse: allowOpenAnswers,
+        openResponseFormat: regexValue,
+        answers: answers.map(a => ({
+          index: a.answerIndexValue,
+          text: a.text,
+          nextQuestionID: a.followUpQuestionId
+        }))
+      };
+
+      // Only call onQuestionDataChange if something changed
+      const dataChanged = JSON.stringify(fullData) !== JSON.stringify(lastFullDataRef.current);
+      if (dataChanged) {
+        onQuestionDataChange(localId, fullData);
+        lastFullDataRef.current = fullData;
+      }
+    }
+  }, [
+    localId,
+    indexValue,
+    questionText,
+    questionDescription,
+    allowMultipleAnswers,
+    allowOpenAnswers,
+    regexValue,
+    answers,
+    onQuestionDataChange
+  ]);
 
   const handleRemoveQuestion = () => {
     onRemoveQuestion(localId);
