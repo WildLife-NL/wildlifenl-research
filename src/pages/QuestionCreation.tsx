@@ -28,8 +28,8 @@ interface FullQuestionData {
   openResponseFormat: string;
   answers: {
     index: number;
-    text: string;
     nextQuestionID: string | null; // localId here
+    text: string;
   }[];
 }
 
@@ -146,8 +146,8 @@ const QuestionCreation: React.FC = () => {
           const answerPayload = {
             index: ans.index,
             questionID: localIdToRealId[fq.localId], // Use questionID instead of questionId
-            text: ans.text,
-            nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null
+            nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null,
+            text: ans.text
           };
           await addAnswer(answerPayload);
         }

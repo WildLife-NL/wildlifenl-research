@@ -79,15 +79,31 @@ const Question: React.FC<QuestionProps> = ({
 }) => {
   const [questionText, setQuestionText] = useState(currentQuestionText);
   const [questionDescription, setQuestionDescription] = useState(initialDescription);
-  const [answers, setAnswers] = useState<AnswerOption[]>(
-    isMultipleChoice ? initialAnswers : []
-  );
+  // Sort initialAnswers only once before placing them into state
+const sortedInitialAnswers = isMultipleChoice
+  ? [...initialAnswers].sort((a, b) => a.answerIndexValue - b.answerIndexValue)
+  : [];
+
+  const [answers, setAnswers] = useState<AnswerOption[]>(sortedInitialAnswers);
+
   const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(initialAllowMultiple);
   const [allowOpenAnswers, setAllowOpenAnswers] = useState(
     isMultipleChoice ? initialAllowOpen ?? false : true
   );
   const [regexValue, setRegexValue] = useState(initialOpenResponseFormat);
   
+  // Compute unique sorted indices without using Set
+  const uniqueIndices = answers
+  .map(a => a.answerIndexValue)
+  .filter((value, index, self) => self.indexOf(value) === index)
+  .sort((a, b) => a - b);
+
+  // Function to get letter based on answerIndexValue
+  const getLetter = (answerIndexValue: number): string => {
+  const letterIndex = uniqueIndices.indexOf(answerIndexValue);
+  return String.fromCharCode(65 + letterIndex); 
+  };
+
   useEffect(() => {
     if (!isMultipleChoice && !allowOpenAnswers) {
       setAllowOpenAnswers(true);
@@ -158,6 +174,8 @@ const Question: React.FC<QuestionProps> = ({
     onQuestionDataChange
   ]);
 
+  
+
   const handleRemoveQuestion = () => {
     onRemoveQuestion(localId);
   };
@@ -175,26 +193,35 @@ const Question: React.FC<QuestionProps> = ({
   const handleRemoveAnswer = (index: number) => {
     const newAnswers = [...answers];
     newAnswers.splice(index, 1);
-    const updatedAnswers = newAnswers.map((ans, i) => ({
-      ...ans,
-      id: String.fromCharCode(65 + i),
-      answerIndexValue: i + 1,
-      followUpOpen: ans.followUpOpen ?? false
-    }));
-    setAnswers(updatedAnswers);
+    setAnswers(newAnswers);
   };
 
   const handleAddAnswer = () => {
-    const nextLetter = String.fromCharCode(65 + answers.length);
-    const nextIndexValue = answers.length + 1;
-    setAnswers([...answers, { id: nextLetter, answerIndexValue: nextIndexValue, text: '', followUpQuestionId: null, followUpOpen: false }]);
+    // Determine the next available answerIndexValue
+    const nextIndexValue = answers.length > 0 ? Math.max(...answers.map(a => a.answerIndexValue)) + 1 : 1;
+  
+    // Assign a unique ID using timestamp
+    const newAnswer: AnswerOption = {
+      id: `ans-${Date.now()}`, // Unique ID
+      answerIndexValue: nextIndexValue,
+      text: '',
+      followUpQuestionId: null,
+      followUpOpen: false
+    };
+  
+    setAnswers([...answers, newAnswer]);
   };
 
   const handleAnswerIndexValueChange = (index: number, newValue: number) => {
     const newAnswers = [...answers];
     newAnswers[index].answerIndexValue = newValue >= 1 ? newValue : 1;
+  
+    // Re-sort answers based on answerIndexValue
+    newAnswers.sort((a, b) => a.answerIndexValue - b.answerIndexValue);
+  
     setAnswers(newAnswers);
   };
+  
 
   const toggleFollowUp = (answerIndex: number) => {
     const newAnswers = [...answers];
@@ -269,16 +296,18 @@ const Question: React.FC<QuestionProps> = ({
           onChange={(e) => setQuestionDescription(e.target.value)}
         />
       </div>
-
-      {isMultipleChoice && (
-        <>
-          {answers.map((answer, index) => {
+                {isMultipleChoice && (
+                  <>
+                    {answers.map((answer, index) => {
             const isFollowUpOpen = answer.followUpOpen;
             const followUpIcon = isFollowUpOpen ? 'FollowUpCloseSVG.svg' : 'FollowUpSVG.svg';
 
+            // Determine letter based on this answer's index value
+            const letter = getLetter(answer.answerIndexValue);
+
             return (
               <div className="qst-answer-row" key={answer.id}>
-                <div className="qst-answer-label">{answer.id}.</div>
+                <div className="qst-answer-label">{letter}.</div>
                 <div className="qst-input-container qst-answer-input-container">
                   <input
                     className="qst-text-input qst-answer-text"
@@ -294,7 +323,9 @@ const Question: React.FC<QuestionProps> = ({
                     type="number"
                     min="1"
                     value={answer.answerIndexValue}
-                    onChange={(e) => handleAnswerIndexValueChange(index, parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      handleAnswerIndexValueChange(index, parseInt(e.target.value) || 1)
+                    }
                   />
                 </div>
 
