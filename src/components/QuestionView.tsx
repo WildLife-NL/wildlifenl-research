@@ -1,11 +1,15 @@
 import { Question } from "../types/question";
+import { useNavigate } from 'react-router-dom';
 import '../styles/QuestionView.css';
 
 interface QuestionViewProps {
   fields: Question[];
+  experimentID: string; // New prop to receive the ID from Questionnaire.tsx
 }
 
-const QuestionView: React.FC<QuestionViewProps> = ({ fields }) => {
+const QuestionView: React.FC<QuestionViewProps> = ({ fields, experimentID }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="questionnaire">
       {fields.map((question, idx) => {
@@ -70,10 +74,24 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields }) => {
                 <div className="multiple-choice-group">
                   {question.answers.map((answer, idx) => (
                     <div key={idx} className="answer-option">
-                      <div className="answer-letter text-style">
-                        {indexToLetterMap[answer.index]}.
+                      <div className="answer-left">
+                        <div className="answer-letter text-style">
+                          {indexToLetterMap[answer.index]}.
+                        </div>
+                        <div className="answer-text text-style">{answer.text}</div>
                       </div>
-                      <div className="answer-text text-style">{answer.text}</div>
+                      <div className="message-button-container">
+                        <img
+                          src="/assets/MessageBlackSVG.svg"
+                          alt="Add Message"
+                          className="message-button-svg"
+                          onClick={() => {
+                            navigate(`/MessageCreationB/${experimentID}`, {
+                            state: { answerID: answer.ID, answerText: answer.text }
+                            });
+                          }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

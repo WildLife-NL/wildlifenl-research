@@ -13,6 +13,7 @@ import Questionnaire from './pages/Questionnaire';
 import QuestionCreation from './pages/QuestionCreation';
 import QuestionEdit from './pages/QuestionEdit';
 import MessageCreation from './pages/MessageCreation';
+import MessageCreationB from './pages/MessageCreationB';
 import MessageDashboard from './pages/MessageDashboard';
 import Message from './pages/Message';
 import Unauthorized from './pages/Unauthorized';
@@ -50,6 +51,7 @@ const App: React.FC = () => {
                 <Route path="/questioncreation/" element={<QuestionCreation />} />
                 <Route path="/questionedit/" element={<QuestionEdit />} />
                 <Route path="/messagecreation/:id" element={<MessageCreation />} />
+                <Route path="/messagecreationb/:id" element={<MessageCreationB />} />
                 <Route path="/messagedashboard/:id" element={<MessageDashboard />} />
                 <Route path="/message/:id" element={<Message />} />
 

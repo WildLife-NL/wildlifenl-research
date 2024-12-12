@@ -98,7 +98,7 @@ const Questionnaire: React.FC = () => {
 
     {/* QuestionView Component */}
     <div className="questionnaire-view-questions">
-      <QuestionView fields={questionnaire.questions || []} />
+      <QuestionView fields={questionnaire.questions || []} experimentID={questionnaire.experiment.ID} />
     </div>
   </div>
   {/* Conditionally render Add or Edit Questions Button */}

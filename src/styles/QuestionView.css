@@ -20,6 +20,7 @@
   border: 1px black solid;
   position: relative;
   padding: 20px;
+  padding-bottom: 70px; /* Increased bottom padding */
   box-sizing: border-box;
 }
 
@@ -111,4 +112,38 @@
   font-weight: 300;
   letter-spacing: 1.05px;
   word-wrap: break-word;
+}
+
+.answer-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.answer-left {
+  display: flex;
+  align-items: flex-start;
+}
+
+.answer-letter {
+  width: 50px;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.message-button-container {
+  display: flex;
+  align-items: center;
+}
+
+.message-button-svg {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.answering-methodology {
+  margin-top: 15px;
 }
