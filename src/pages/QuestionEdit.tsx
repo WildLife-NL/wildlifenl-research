@@ -43,77 +43,60 @@ const QuestionEdit: React.FC = () => {
   const [fullQuestions, setFullQuestions] = useState<Record<string, FullQuestionData>>({});
   const existingQuestions = questions.filter(q => q.isExisting);
   const newQuestions = questions.filter(q => !q.isExisting);
-  // Store original question IDs and answer IDs for deletion
   const [originalQuestionIDs, setOriginalQuestionIDs] = useState<string[]>([]);
   const [originalAnswerIDs, setOriginalAnswerIDs] = useState<string[]>([]);
 
-  // QuestionEdit.tsx
+  useEffect(() => {
+    if (questionnaire && Array.isArray(questionnaire.questions)) {
+      const questionIDs: string[] = [];
+      const answerIDs: string[] = [];
 
-useEffect(() => {
-  if (questionnaire && Array.isArray(questionnaire.questions)) {
-    const questionIDs: string[] = [];
-    const answerIDs: string[] = [];
+      const converted = questionnaire.questions.map((q: OriginalQuestion) => {
+        const localId = crypto.randomUUID();
+        const hasAnswers = Array.isArray(q.answers) && q.answers.length > 0;
+        const type: 'multiple' | 'single' = hasAnswers ? 'multiple' : 'single';
 
-    // Convert existing saved questions to local editor format
-    const converted = questionnaire.questions.map((q: OriginalQuestion) => {
-      console.log('Processing Question:', q); // Debugging line
+        const createdQ: CreatedQuestion = {
+          localId,
+          type,
+          indexValue: q.index,
+          questionText: q.text,
+          isExisting: true,
+        };
 
-      const localId = crypto.randomUUID();
-      // Determine type based on the presence of answers
-      const hasAnswers = Array.isArray(q.answers) && q.answers.length > 0;
-      const type: 'multiple' | 'single' = hasAnswers ? 'multiple' : 'single';
-      console.log(`Mapped Question ID: ${q.ID}, Type: ${type}`); // Debugging line
+        questionIDs.push(q.ID);
 
-      const createdQ: CreatedQuestion = {
-        localId,
-        type,
-        indexValue: q.index,
-        questionText: q.text,
-        isExisting: true, // Mark as existing
-      };
+        const answers = hasAnswers
+          ? q.answers.map((a: OriginalAnswer) => {
+              answerIDs.push(a.ID);
+              return {
+                index: a.index,
+                text: a.text,
+                nextQuestionID: a.nextQuestionID || null
+              };
+            })
+          : [];
 
-      // Extract original IDs
-      questionIDs.push(q.ID);
+        const fullData: FullQuestionData = {
+          localId,
+          indexValue: q.index,
+          text: q.text,
+          description: q.description,
+          allowMultipleResponse: q.allowMultipleResponse,
+          allowOpenResponse: q.allowOpenResponse,
+          openResponseFormat: q.openResponseFormat,
+          answers: answers
+        };
 
-      // Convert existing answers
-      const answers = hasAnswers
-        ? q.answers.map((a: OriginalAnswer) => {
-            answerIDs.push(a.ID); // Store original answer ID
-            return {
-              index: a.index,
-              text: a.text,
-              nextQuestionID: a.nextQuestionID || null
-            };
-          })
-        : [];
+        setFullQuestions(prev => ({ ...prev, [localId]: fullData }));
+        return createdQ;
+      });
 
-      const fullData: FullQuestionData = {
-        localId,
-        indexValue: q.index,
-        text: q.text,
-        description: q.description,
-        allowMultipleResponse: hasAnswers, // Reflecting multiple-choice based on answers
-        allowOpenResponse: q.allowOpenResponse,
-        openResponseFormat: q.openResponseFormat,
-        answers: answers
-      };
-
-      setFullQuestions(prev => ({ ...prev, [localId]: fullData }));
-      return createdQ;
-    });
-
-    setOriginalQuestionIDs(questionIDs);
-    setOriginalAnswerIDs(answerIDs);
-    setQuestions(converted);
-
-    console.log('Original Question IDs:', questionIDs);
-    console.log('Original Answer IDs:', answerIDs);
-    console.log('Converted Questions:', converted);
-    console.log('Full Questions:', fullQuestions);
-  }
-}, [questionnaire]);
-
-  
+      setOriginalQuestionIDs(questionIDs);
+      setOriginalAnswerIDs(answerIDs);
+      setQuestions(converted);
+    }
+  }, [questionnaire]);
 
   const truncateText = (text: string, maxLength: number): string => {
     if (!text) return '';
@@ -136,11 +119,12 @@ useEffect(() => {
         type,
         indexValue: nextIndexValue,
         questionText: '',
-        isExisting: false, // Mark as new
+        isExisting: false,
       },
     ]);
     setShowPopup(false);
   };
+
   const handleQuestionIndexValueChange = (questionLocalId: string, newIndexValue: number) => {
     setQuestions(prev => prev.map(q =>
       q.localId === questionLocalId ? { ...q, indexValue: newIndexValue } : q
@@ -172,6 +156,40 @@ useEffect(() => {
     questionText: q.questionText
   }));
 
+  // Validation function similar to what was done in QuestionCreation
+  const validateData = (finalQuestions: FullQuestionData[]): boolean => {
+    for (const fq of finalQuestions) {
+      // Validate question-level fields
+      if (!fq.text || fq.text.trim() === '') {
+        alert(`Question at index ${fq.indexValue} has no title.`);
+        return false;
+      }
+      if (!fq.description || fq.description.trim() === '') {
+        alert(`Question "${fq.text}" (index ${fq.indexValue}) has no description.`);
+        return false;
+      }
+      if (!fq.indexValue || fq.indexValue <= 0) {
+        alert(`Question "${fq.text}" has an invalid index value (${fq.indexValue}).`);
+        return false;
+      }
+
+      // If multiple choice or has answers, validate each answer
+      if (fq.allowMultipleResponse || fq.answers.length > 0) {
+        for (const ans of fq.answers) {
+          if (!ans.text || ans.text.trim() === '') {
+            alert(`Question "${fq.text}" has an answer with empty text.`);
+            return false;
+          }
+          if (!ans.index || ans.index <= 0) {
+            alert(`Question "${fq.text}" has an answer with an invalid index (${ans.index}).`);
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
   const saveQuestionsAndAnswers = async () => {
     try {
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
@@ -182,19 +200,23 @@ useEffect(() => {
         return;
       }
 
-      // Step 1: Delete all original answers first
-      // We assume originalAnswerIDs is an array of all old answer IDs
+      // Validate before saving
+      if (!validateData(finalQuestions)) {
+        return; // Stop if validation fails
+      }
+
+      // Delete old answers
       for (const aID of originalAnswerIDs) {
         await deleteAnswer(aID);
       }
 
-      // Step 2: Delete all original questions
+      // Delete old questions
       for (const qID of originalQuestionIDs) {
         await deleteQuestion(qID);
       }
 
-      // Step 3: Add the new questions
       const localIdToRealId: Record<string, string> = {};
+      // Add new questions
       for (const fq of finalQuestions) {
         const questionPayload = {
           allowMultipleResponse: fq.allowMultipleResponse,
@@ -210,7 +232,7 @@ useEffect(() => {
         localIdToRealId[fq.localId] = createdQuestion.ID;
       }
 
-      // Step 4: Add the new answers
+      // Add new answers
       for (const fq of finalQuestions) {
         for (const ans of fq.answers) {
           const answerPayload = {
@@ -241,57 +263,56 @@ useEffect(() => {
         )}
       </h1>
       <div>
-      {existingQuestions
-  .sort((a, b) => a.indexValue - b.indexValue)
-  .map((q) => {
-    const fq = fullQuestions[q.localId];
-    const initialAnswers = fq
-      ? fq.answers.map((ans, i) => ({
-          id: String.fromCharCode(65 + i),
-          answerIndexValue: ans.index,
-          text: ans.text,
-          followUpQuestionId: ans.nextQuestionID,
-          followUpOpen: false,
-        }))
-      : [];
+        {existingQuestions
+          .sort((a, b) => a.indexValue - b.indexValue)
+          .map((q) => {
+            const fq = fullQuestions[q.localId];
+            const initialAnswers = fq
+              ? fq.answers.map((ans, i) => ({
+                  id: String.fromCharCode(65 + i),
+                  answerIndexValue: ans.index,
+                  text: ans.text,
+                  followUpQuestionId: ans.nextQuestionID,
+                  followUpOpen: false,
+                }))
+              : [];
 
-    return (
-      <Question
-        key={q.localId}
-        localId={q.localId}
-        indexValue={q.indexValue}
-        isMultipleChoice={q.type === 'multiple'}
-        onRemoveQuestion={handleRemoveQuestion}
-        onIndexValueChange={handleQuestionIndexValueChange}
-        onQuestionTextChange={handleQuestionTextChange}
-        allQuestions={questionData}
-        currentQuestionText={q.questionText}
-        onQuestionDataChange={handleQuestionDataChange}
-        initialDescription={fq?.description}
-        initialAllowMultiple={fq?.allowMultipleResponse}
-        initialAllowOpen={fq?.allowOpenResponse}
-        initialOpenResponseFormat={fq?.openResponseFormat}
-        initialAnswers={initialAnswers}
-      />
-    );
-  })}
-  {newQuestions
-  .sort((a, b) => a.indexValue - b.indexValue)
-  .map((q) => (
-    <Question
-      key={q.localId}
-      localId={q.localId}
-      indexValue={q.indexValue}
-      isMultipleChoice={q.type === 'multiple'}
-      onRemoveQuestion={handleRemoveQuestion}
-      onIndexValueChange={handleQuestionIndexValueChange}
-      onQuestionTextChange={handleQuestionTextChange}
-      allQuestions={questionData}
-      currentQuestionText={q.questionText}
-      onQuestionDataChange={handleQuestionDataChange}
-      // No initial* props needed for new questions
-    />
-  ))}
+            return (
+              <Question
+                key={q.localId}
+                localId={q.localId}
+                indexValue={q.indexValue}
+                isMultipleChoice={q.type === 'multiple'}
+                onRemoveQuestion={handleRemoveQuestion}
+                onIndexValueChange={handleQuestionIndexValueChange}
+                onQuestionTextChange={handleQuestionTextChange}
+                allQuestions={questionData}
+                currentQuestionText={q.questionText}
+                onQuestionDataChange={handleQuestionDataChange}
+                initialDescription={fq?.description}
+                initialAllowMultiple={fq?.allowMultipleResponse}
+                initialAllowOpen={fq?.allowOpenResponse}
+                initialOpenResponseFormat={fq?.openResponseFormat}
+                initialAnswers={initialAnswers}
+              />
+            );
+          })}
+        {newQuestions
+          .sort((a, b) => a.indexValue - b.indexValue)
+          .map((q) => (
+            <Question
+              key={q.localId}
+              localId={q.localId}
+              indexValue={q.indexValue}
+              isMultipleChoice={q.type === 'multiple'}
+              onRemoveQuestion={handleRemoveQuestion}
+              onIndexValueChange={handleQuestionIndexValueChange}
+              onQuestionTextChange={handleQuestionTextChange}
+              allQuestions={questionData}
+              currentQuestionText={q.questionText}
+              onQuestionDataChange={handleQuestionDataChange}
+            />
+          ))}
       </div>
       <div className="AddQuestion-Button">
         <AddQuestion onClick={handleOpenPopup} />

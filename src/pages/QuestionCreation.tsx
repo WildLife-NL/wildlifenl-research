@@ -41,7 +41,7 @@ const QuestionCreation: React.FC = () => {
   const [questions, setQuestions] = useState<CreatedQuestion[]>([]);
 
   // NEW: A state to store full question details from Question components
-  const [fullQuestions, setFullQuestions] = useState<Record<string, FullQuestionData>>({}); // ADDED
+  const [fullQuestions, setFullQuestions] = useState<Record<string, FullQuestionData>>({});
 
   const truncateText = (text: string, maxLength: number): string => {
     if (!text) return '';
@@ -96,10 +96,10 @@ const QuestionCreation: React.FC = () => {
     });
   };
 
-  // NEW: Handle full question data from the Question component
+  // Handle full question data from the Question component
   const handleQuestionDataChange = (localId: string, data: FullQuestionData) => {
     setFullQuestions(prev => ({ ...prev, [localId]: data }));
-  }; // ADDED
+  };
 
   const questionData = questions.map(q => ({
     localId: q.localId,
@@ -108,12 +108,42 @@ const QuestionCreation: React.FC = () => {
     questionText: q.questionText
   }));
 
-  // NEW: Implementing saveQuestionsAndAnswers
+  const validateData = (finalQuestions: FullQuestionData[]): boolean => {
+    for (const fq of finalQuestions) {
+      // Check question-level validation
+      if (!fq.text || fq.text.trim() === '') {
+        alert(`Question at index ${fq.indexValue} has no title.`);
+        return false;
+      }
+      if (!fq.description || fq.description.trim() === '') {
+        alert(`Question "${fq.text}" (index ${fq.indexValue}) has no description.`);
+        return false;
+      }
+      if (!fq.indexValue || fq.indexValue <= 0) {
+        alert(`Question "${fq.text}" has an invalid index value (${fq.indexValue}).`);
+        return false;
+      }
+
+      // If multiple-choice, validate answers
+      if (fq.allowMultipleResponse || fq.answers.length > 0) {
+        for (const ans of fq.answers) {
+          if (!ans.text || ans.text.trim() === '') {
+            alert(`Question "${fq.text}" has an answer with empty text.`);
+            return false;
+          }
+          if (!ans.index || ans.index <= 0) {
+            alert(`Question "${fq.text}" has an answer with an invalid index (${ans.index}).`);
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
   const saveQuestionsAndAnswers = async () => {
     try {
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
-
-      // Gather full details for each question
       const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
 
       if (finalQuestions.length !== sortedQuestions.length) {
@@ -121,9 +151,14 @@ const QuestionCreation: React.FC = () => {
         return;
       }
 
+      // Validate data before saving
+      if (!validateData(finalQuestions)) {
+        return; // If validation fails, do not proceed
+      }
+
       const localIdToRealId: Record<string, string> = {};
 
-      // First add all questions
+      // Add all questions
       for (const fq of finalQuestions) {
         const questionPayload = {
           allowMultipleResponse: fq.allowMultipleResponse,
@@ -132,20 +167,19 @@ const QuestionCreation: React.FC = () => {
           index: fq.indexValue,
           openResponseFormat: fq.openResponseFormat,
           text: fq.text,
-          questionnaireID: questionnaire?.ID // Make sure to use questionnaireID exactly as API specifies
+          questionnaireID: questionnaire?.ID
         };
-        
 
         const createdQuestion = await addQuestion(questionPayload);
         localIdToRealId[fq.localId] = createdQuestion.ID;
       }
 
-      // Then add answers
+      // Add answers
       for (const fq of finalQuestions) {
         for (const ans of fq.answers) {
           const answerPayload = {
             index: ans.index,
-            questionID: localIdToRealId[fq.localId], // Use questionID instead of questionId
+            questionID: localIdToRealId[fq.localId],
             nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null,
             text: ans.text
           };
@@ -159,7 +193,7 @@ const QuestionCreation: React.FC = () => {
       console.error('Error saving questions and answers:', error);
       alert('Failed to save. Please try again.');
     }
-  }; // ADDED
+  };
 
   return (
     <div className="scrollable-body">
@@ -189,9 +223,7 @@ const QuestionCreation: React.FC = () => {
               onQuestionTextChange={handleQuestionTextChange}
               allQuestions={questionData}
               currentQuestionText={q.questionText}
-
-              // Pass the new callback for full data
-              onQuestionDataChange={handleQuestionDataChange} // ADDED
+              onQuestionDataChange={handleQuestionDataChange}
             />
           ))}
       </div>
@@ -208,7 +240,7 @@ const QuestionCreation: React.FC = () => {
 
       <button
         className="save-questions-button"
-        onClick={saveQuestionsAndAnswers} // call the new save function
+        onClick={saveQuestionsAndAnswers}
         data-testid="save-questions-button"
       >
         <img src="/assets/saveSVG.svg" alt="Save" />
