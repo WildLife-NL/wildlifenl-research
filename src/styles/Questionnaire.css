@@ -47,7 +47,7 @@
   margin-top: 20px;
 }
 
-.add-experiment-button {
+.add-questions-button {
   position: fixed;
   bottom: 12px; /* 12px from bottom */
   right: 6px;   /* 6px from right */
@@ -60,7 +60,25 @@
   z-index: 1000; /* Ensure it appears above other elements */
 }
 
-.add-experiment-button img {
+.add-questions-button img {
+  width: 100%;
+  height: auto;
+}
+
+.edit-questions-button {
+  position: fixed;
+  bottom: 12px; /* 12px from bottom */
+  right: 1vw;   /* 6px from right */
+  width: 106px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.edit-questions-button img {
   width: 100%;
   height: auto;
 }

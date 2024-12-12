@@ -58,18 +58,17 @@ const QuestionCreation: React.FC = () => {
   };
 
   const handleSelectType = (type: 'single' | 'multiple') => {
-    const newId = crypto.randomUUID(); // Generate a UUID for this question
-
-    // Determine the next index value by finding the max current index
+    const newId = crypto.randomUUID(); 
     const maxIndexValue = questions.reduce((max, q) => Math.max(max, q.indexValue), 0);
     const nextIndexValue = maxIndexValue + 1;
-
+  
     setQuestions((prev) => [
       ...prev,
       { localId: newId, type, indexValue: nextIndexValue, questionText: '' },
     ]);
     setShowPopup(false);
   };
+  
 
   const handleQuestionIndexValueChange = (questionLocalId: string, newIndexValue: number) => {
     setQuestions((prevQuestions) => {
@@ -155,6 +154,7 @@ const QuestionCreation: React.FC = () => {
       }
 
       alert('Questions and answers saved successfully!');
+      window.history.back();
     } catch (error) {
       console.error('Error saving questions and answers:', error);
       alert('Failed to save. Please try again.');

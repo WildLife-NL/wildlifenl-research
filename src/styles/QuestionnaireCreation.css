@@ -40,7 +40,6 @@
   margin-left: 140px;
   margin-top: 15px;
 }
-
 /* Text Input */
 .questionnaire-creation-text-input {
   width: calc(100% - 280px);
@@ -114,6 +113,14 @@
   border-radius: 12px;
 }
 
+/* Error Message */
+.error-message {
+  color: #ff0000;
+  font-size: 16px;
+  margin-left: 140px;  
+  margin-top: 5px;     
+  width: 30%;          
+}
 .questionnaire-creation-dropdown.open .questionnaire-creation-dropdown-content {
   display: block;
 }

@@ -68,7 +68,7 @@ export const getQuestionnaireByExperimentID = async (id: string): Promise<Questi
   }
 };
 
-export const getQuestionnaireByID = async (id: string): Promise<Questionnaire[]> => {
+export const getQuestionnaireByID = async (id: string): Promise<Questionnaire> => {
   try {
     const token = getAuthToken();
     if (!token) {
@@ -88,8 +88,8 @@ export const getQuestionnaireByID = async (id: string): Promise<Questionnaire[]>
       throw new Error(`Failed to fetch messages: ${errorText}`);
     }
 
-    const data = await response.json();
-    return data as Questionnaire[];
+    const questionnaire = await response.json();
+    return questionnaire as Questionnaire;
   } catch (error) {
     console.error('Error fetching messages:', error);
     throw error;

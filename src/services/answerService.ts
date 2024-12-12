@@ -1,4 +1,4 @@
-import { Answer } from "../types/answer";
+import { AddAnswer } from "../types/answer";
 
 const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/answer/';
 const getAuthToken = (): string | null => {
@@ -6,7 +6,7 @@ const getAuthToken = (): string | null => {
 };
 
 // Add Answer
-export const addAnswer = async (answerData: any): Promise<Answer> => {
+export const addAnswer = async (answerData: any): Promise<AddAnswer> => {
   try {
     const token = getAuthToken();
     if (!token) {
@@ -35,6 +35,32 @@ export const addAnswer = async (answerData: any): Promise<Answer> => {
     }
   } catch (error) {
     console.error('Add Answer error:', error);
+    throw error;
+  }
+};
+
+
+export const deleteAnswer = async (id: string): Promise<void> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_URL}${id}`, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json, application/problem+json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to delete answer: ${errorText}`);
+    }
+  } catch (error) {
+    console.error('Error deleting answer:', error);
     throw error;
   }
 };

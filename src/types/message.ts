@@ -1,10 +1,10 @@
 import { Experiment } from "./experiment";
-import { Answer } from "./answer";
+import { AddAnswer } from "./answer";
 import { Species } from "./species";
 
 export interface Message{
   ID: string;
-  answer: Answer;
+  answer: AddAnswer;
   encounterMeters: number;
   encounterMinutes: number;
   experiment: Experiment;

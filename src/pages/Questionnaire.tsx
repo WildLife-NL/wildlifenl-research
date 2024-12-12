@@ -1,16 +1,44 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import QuestionView from '../components/QuestionView';
 import '../styles/Questionnaire.css';
 import { Questionnaire as QuestionnaireType } from '../types/questionnaire';
-
+import { getQuestionnaireByID } from '../services/questionnaireService';
 
 const Questionnaire: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const questionnaire = location.state?.questionnaire as QuestionnaireType | null;
+  const [questionnaire, setQuestionnaire] = useState<QuestionnaireType | null>(
+    location.state?.questionnaire || null
+  );
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchQuestionnaire = async () => {
+      if (questionnaire && questionnaire.ID) {
+        try {
+          const fetchedQuestionnaire = await getQuestionnaireByID(questionnaire.ID.toString());
+          // Ensure questions is an array
+          fetchedQuestionnaire.questions = fetchedQuestionnaire.questions || [];
+          setQuestionnaire(fetchedQuestionnaire);
+        } catch (err: any) {
+          console.error('Error fetching questionnaire:', err);
+          setError('Failed to fetch questionnaire.');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+  
+    fetchQuestionnaire();
+  }, [questionnaire?.ID]);
 
+  
   if (!questionnaire) {
     return (
       <>
@@ -26,6 +54,11 @@ const Questionnaire: React.FC = () => {
     navigate('/questioncreation', { state: { questionnaire } });
   };
 
+  const navigateToEditQuestions = () => {
+    navigate('/questionedit', { state: { questionnaire } });
+  };
+
+ 
 
   // Prepare fields to display
   const fields = [
@@ -41,9 +74,7 @@ const Questionnaire: React.FC = () => {
     },
     {
       name: 'Number of Questions',
-      value: questionnaire.questions
-        ? questionnaire.questions.length.toString()
-        : 'N/A',
+      value: questionnaire.questions.length.toString()
     },
   ];
 
@@ -70,15 +101,25 @@ const Questionnaire: React.FC = () => {
       <QuestionView fields={questionnaire.questions || []} />
     </div>
   </div>
-  {/* Add Questions Button */}
-  <button
-            className="add-experiment-button"
-            onClick={navigateToCreateQuestions}
-            data-testid="add-experiment-button"
+  {/* Conditionally render Add or Edit Questions Button */}
+          {questionnaire.questions && questionnaire.questions.length > 0 ? (
+          <button
+            className="edit-questions-button"
+            onClick={navigateToEditQuestions}
+            data-testid="edit-questions-button"
           >
-            <img src="/assets/AddButtonSVG.svg" alt="Add Experiment" />
+            <img src="/assets/EditButtonSVG.svg" alt="Edit Questions" />
           </button>
-  </div>
+        ) : (
+          <button
+            className="add-questions-button"
+            onClick={navigateToCreateQuestions}
+            data-testid="add-questions-button"
+          >
+            <img src="/assets/AddButtonSVG.svg" alt="Add Questions" />
+          </button>
+        )}
+      </div>
     </>
   );
 };

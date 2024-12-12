@@ -14,7 +14,7 @@
 }
 
 .question-box {
-  width: 90vw;  /* Changed to 85% of viewport width */
+  width: 85vw;  
   margin: 0 auto;
   background: rgba(217, 217, 217, 0);
   border: 1px black solid;

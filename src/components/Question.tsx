@@ -41,7 +41,21 @@ interface QuestionProps {
   allQuestions: QuestionData[];
   currentQuestionText: string;
   onQuestionDataChange?: (localId: string, data: FullQuestionData) => void;
+  
+  // New initial props:
+  initialDescription?: string;
+  initialAllowMultiple?: boolean;
+  initialAllowOpen?: boolean;
+  initialOpenResponseFormat?: string;
+  initialAnswers?: {
+    id: string;
+    answerIndexValue: number;
+    text: string;
+    followUpQuestionId: string | null;
+    followUpOpen?: boolean;
+  }[];
 }
+
 
 const Question: React.FC<QuestionProps> = ({
   localId,
@@ -52,19 +66,33 @@ const Question: React.FC<QuestionProps> = ({
   onQuestionTextChange,
   allQuestions,
   currentQuestionText,
-  onQuestionDataChange
-}) => {
-  const [questionText, setQuestionText] = useState(currentQuestionText);
-  const [questionDescription, setQuestionDescription] = useState('');
-  const [answers, setAnswers] = useState<AnswerOption[]>([
+  onQuestionDataChange,
+  initialDescription = '',
+  initialAllowMultiple = false,
+  initialAllowOpen = false,
+  initialOpenResponseFormat = '',
+  initialAnswers = [
     { id: 'A', answerIndexValue: 1, text: '', followUpQuestionId: null, followUpOpen: false },
     { id: 'B', answerIndexValue: 2, text: '', followUpQuestionId: null, followUpOpen: false },
     { id: 'C', answerIndexValue: 3, text: '', followUpQuestionId: null, followUpOpen: false },
-  ]);
-
-  const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(false);
-  const [allowOpenAnswers, setAllowOpenAnswers] = useState(false);
-  const [regexValue, setRegexValue] = useState('');
+  ]
+}) => {
+  const [questionText, setQuestionText] = useState(currentQuestionText);
+  const [questionDescription, setQuestionDescription] = useState(initialDescription);
+  const [answers, setAnswers] = useState<AnswerOption[]>(
+    isMultipleChoice ? initialAnswers : []
+  );
+  const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(initialAllowMultiple);
+  const [allowOpenAnswers, setAllowOpenAnswers] = useState(
+    isMultipleChoice ? initialAllowOpen ?? false : true
+  );
+  const [regexValue, setRegexValue] = useState(initialOpenResponseFormat);
+  
+  useEffect(() => {
+    if (!isMultipleChoice && !allowOpenAnswers) {
+      setAllowOpenAnswers(true);
+    }
+  }, [isMultipleChoice, allowOpenAnswers]);
 
   // Update parent with current question text
   useEffect(() => {
