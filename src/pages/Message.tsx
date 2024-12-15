@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
@@ -68,13 +67,21 @@ const Message: React.FC = () => {
       value: message.experiment.name || 'N/A',
     },
   ];
+  
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
 
   return (
     <>
       <Navbar />
       <div className="message-container">
         {/* Title */}
-        <h1 className="message-view-title">Message View</h1>
+        <h1 className="message-view-title">
+          View for Message: {truncateText(message?.name || `Message ${message.ID}`, 23)}
+
+        </h1>
 
         {/* Message Details Component */}
         <div className="message-details-component">

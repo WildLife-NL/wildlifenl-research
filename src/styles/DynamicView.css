@@ -1,14 +1,16 @@
 .dynamic-view-container {
-  /* Remove fixed width to allow dynamic sizing */
   border: 1px solid #000;
   background: rgba(217, 217, 217, 0.0);
   padding: 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  width: fit-content; /* Allows the width to adjust based on content */
+  width: 97vw;
+  margin: 0 auto;  
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%); 
   height: fit-content;
-  max-width: 100%; /* Prevents the container from exceeding the viewport width */
   overflow-y: auto;
   max-height: 62vh;
 }
@@ -32,7 +34,7 @@
 }
 
 .dynamic-view-field-value {
-  width: 816px; /* You can adjust or remove this fixed width */
+  width: 75vw; /* You can adjust or remove this fixed width */
   color: #0F0F0F;
   font-family: Roboto;
   font-size: 25px;

@@ -1,0 +1,259 @@
+.qst-question-container {
+  width: 85vw;
+  background: white;
+  margin-top: 2vh;
+  padding: 20px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
+  border: 3px solid rgba(0,0,0,0.25);
+  margin-bottom: 20px;
+  font-family: Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 20px;
+}
+
+.qst-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qst-question-index {
+  color: black;
+  font-size: 35px;
+  font-weight: 300;
+  letter-spacing: 1.05px;
+}
+
+.qst-remove-question-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.qst-input-container {
+  background: rgba(196,196,196,0);
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
+  border-radius: 12px;
+  border: 3px solid rgba(0,0,0,0.25);
+  height: 82px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.qst-text-input {
+  border: none;
+  font-size: 32px;
+  font-weight: 300;
+  color: rgb(0, 0, 0);
+  width: 100%;
+  background: none;
+  outline: none;
+}
+
+.qst-question-text::placeholder,
+.qst-description-text::placeholder,
+.qst-answer-text::placeholder,
+.qst-regex-text::placeholder {
+  color: rgba(0,0,0,0.55);
+}
+
+.qst-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-top: 5px;
+}
+
+.qst-answer-label {
+  font-size: 35px;
+  font-weight: 400;
+  letter-spacing: 1.05px;
+  color: black;
+  text-align: center;
+}
+
+.qst-answer-input-container {
+  flex: 1;
+}
+
+.qst-remove-answer-btn {
+  width: 50px;
+  height: 50px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.qst-create-new-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.qst-create-new-answer-btn {
+  width: 284px;
+  height: 56px;
+  background: #27A966;
+  box-shadow: 0px 4px 10px rgba(233,68,75,0.25);
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Toggles placed on the same line as create-new-answer-row */
+.qst-toggle-row {
+  display: flex;
+  align-items: center;
+}
+
+.qst-toggle-btn {
+  width: 35px;
+  height: 35px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 70px;
+}
+
+.qst-toggle-label {
+  color: black;
+  font-size: 20px;
+  font-weight: 200;
+  letter-spacing: 0.6px;
+  text-align: center;
+  margin-left: 10px;
+}
+
+.qst-regex-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.qst-regex-label {
+  font-size: 35px;
+  font-weight: 400;
+  letter-spacing: 1.05px;
+  color: black;
+  text-align: center;
+}
+
+.qst-regex-input-container {
+  flex: 1;
+}
+
+button:focus {
+  outline: none;
+}
+
+.qst-index-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.qst-index-input {
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  margin-left: 10px;
+
+}
+
+.qst-index-input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.55);
+}
+
+.qst-question-index-input {
+  width: 46px;
+  font-size: 26px;
+  text-align: center;
+}
+
+/* Style for the follow-up button */
+.qst-follow-up-btn {
+  
+  padding-top: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Ensure the image fits within the button */
+.qst-follow-up-btn img {
+  width: 103%;
+  height: 103%;
+}
+
+
+.save-questions-button {
+  position: fixed;
+  bottom: 3vh; /* 12px from bottom */
+  right: 1.5vw;   /* 6px from right */
+  width: 100px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.save-questions-button img {
+  width: 120%;
+  height: auto;
+}
+
+/* Ensure the follow-up container is positioned relatively */
+.qst-follow-up-container {
+  position: relative;
+}
+
+/* Style for the "No valid follow-ups" message */
+.qst-follow-up-info {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+  font-size: 12px;
+  color: gray;
+  white-space: nowrap;
+}
+
+/* Style for the dropdown container */
+.qst-follow-up-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+  z-index: 10; /* Ensure it appears above other elements */
+}
+
+/* Style for the dropdown itself */
+.qst-follow-up-select {
+  width: 200px; /* Adjust as needed */
+  padding: 5px;
+  font-size: 13.5px;
+}
+
+
+
+/* Optional: Add hover effect for follow-up button */
+.qst-follow-up-btn:hover {
+  opacity: 0.95;
+}

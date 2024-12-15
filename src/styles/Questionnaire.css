@@ -1,4 +1,9 @@
-/* Questionnaire.css */
+.scrollable-body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
 
 /* Container for the Questionnaire View */
 .questionnaire-view-container {
@@ -10,13 +15,12 @@
 
 /* Title Styling */
 .questionnaire-view-title {
-  position: absolute;
-  top: 90px;
-  left: 25px;
-  width: 600px;
+
+  margin-top: 100px;   
+  padding-left: 24px;
+  width: 100%;
   height: 60px;
   color: #000;
-  font-family: 'Inter', sans-serif;
   font-size: 50px;
   font-weight: 700;
   line-height: normal;
@@ -25,7 +29,7 @@
 /* Details Component */
 .questionnaire-view-details {
   width: 100%;
-  margin-top: 160px;
+  margin-top: 20px;
 }
 
 /* Not Found Styling */
@@ -37,6 +41,64 @@
   font-size: 24px;
   color: #555;
   font-family: 'Roboto', sans-serif;
+}
+
+.questionnaire-view-questions {
+  margin-top: 20px;
+}
+
+.add-questions-button {
+  position: fixed;
+  bottom: 12px; /* 12px from bottom */
+  right: 6px;   /* 6px from right */
+  width: 106px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.add-questions-button img {
+  width: 100%;
+  height: auto;
+}
+
+.edit-questions-button {
+  position: fixed;
+  bottom: 12px; /* 12px from bottom */
+  right: 1vw;   /* 6px from right */
+  width: 106px;
+  height: 102px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.edit-questions-button img {
+  width: 100%;
+  height: auto;
+}
+
+.scrollable-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.scrollable-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.scrollable-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 /* Additional Responsive Styles (Optional) */

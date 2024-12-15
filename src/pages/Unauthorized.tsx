@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Unauthorized: React.FC = () => {
   return (
     <div>

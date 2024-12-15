@@ -1,15 +1,21 @@
-import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
 import { Experiment as ExperimentType } from '../types/experiment';
-import { updateExperiment } from '../services/experimentService';
+import { EndExperimentByID, DeleteExperimentByID } from '../services/experimentService';
+import ConfirmationPopup from '../components/ConfirmationPopup';
 
 const Experiment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const experiment = location.state?.experiment as ExperimentType | null;
+  
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
+  const [isStopping, setIsStopping] = useState(false);
 
   if (!experiment) {
     return (
@@ -21,6 +27,7 @@ const Experiment: React.FC = () => {
       </>
     );
   }
+
   const fields = [
     { name: 'Experiment Title', value: experiment.name },
     { name: 'Description', value: experiment.description },
@@ -37,40 +44,77 @@ const Experiment: React.FC = () => {
   
   // Navigation handlers
   const handleQuestionnaireOverviewClick = () => {
-    navigate(`/questionnairedashboard/${experiment.ID}`);
+    navigate(`/questionnairedashboard/${experiment.ID}`, { state: { experiment } });
   };
 
   const handleMessageOverviewClick = async () => {
     if (!experiment) return;
     try {
-      navigate(`/messagedashboard/${experiment.ID}`);
+      navigate(`/messagedashboard/${experiment.ID}`, { state: { experiment } });
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
   };
 
-  // Handler for stopping the experiment
-  const handleStopExperiment = async () => {
+  const confirmStopExperiment = async () => {
+    setIsConfirmationVisible(false);
+    setIsStopping(true);
+
     if (!experiment) return;
+
     try {
-      // Update the end time to the current time
-      const updatedExperiment = {
-        ...experiment,
-        end: new Date().toISOString(),
-      };
-
-      // Call the updateExperiment function
-      const result = await updateExperiment(updatedExperiment);
-
-      // Optionally navigate or update the UI
+      const result = await EndExperimentByID(experiment.ID);
       console.log('Experiment stopped:', result);
       alert('Experiment has been successfully stopped.');
-      // Navigate back to the experiments list or another appropriate page
       navigate('/experiments');
     } catch (error) {
       console.error('Error stopping experiment:', error);
       alert('Failed to stop the experiment. Please try again.');
+    } finally {
+      setIsStopping(false);
     }
+  };
+
+  const confirmDeleteExperiment = async () => {
+    setIsConfirmationVisible(false);
+
+    if (!experiment) return;
+
+    try {
+      
+      DeleteExperimentByID(experiment.ID);
+      
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting experiment:', error);
+      alert('Failed to delete the experiment. Please try again.');
+    } finally {
+      setIsStopping(false);
+    }
+  };
+
+  const cancelAction = () => {
+    setIsConfirmationVisible(false);
+    setConfirmationMessage('');
+    setOnConfirmAction(null);
+  };
+
+  // Handlers for showing confirmation popup
+  const handleStopExperiment = () => {
+    setConfirmationMessage('Are you sure you want to permanently stop the experiment?');
+    setOnConfirmAction(() => confirmStopExperiment);
+    setIsConfirmationVisible(true);
+  };
+
+  const handleDeleteExperiment = () => {
+    setConfirmationMessage('Are you sure you want to permanently delete the experiment?');
+    setOnConfirmAction(() => confirmDeleteExperiment);
+    setIsConfirmationVisible(true);
+  };
+
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
 
   return (
@@ -78,7 +122,9 @@ const Experiment: React.FC = () => {
       <Navbar />
       <div className="experiment-container">
         {/* Title */}
-        <h1 className="experiment-view-title">Experiment View</h1>
+        <h1 className="experiment-view-title">
+          View for Experiment: {truncateText(experiment?.name || `Experiment ${experiment.ID}`, 23)}
+        </h1>
 
         {/* Experiment Details Component */}
         <div className="experiment-details-component">
@@ -117,13 +163,37 @@ const Experiment: React.FC = () => {
           <button
             className="stop-experiment-button"
             onClick={handleStopExperiment}
+            disabled={isStopping}
           >
-            <span className="stop-button-text">Stop Experiment</span>
+            <span className="stop-button-text">
+              {isStopping ? 'Stopping...' : 'Stop Experiment'}
+            </span>
+          </button>
+          
+          {/* Delete Experiment Button */}
+          <button
+            className="delete-experiment-button"
+            onClick={handleDeleteExperiment}
+          >
+            <img
+              src="/assets/TrashSVG.svg"
+              alt="Delete Icon"
+              className="delete-experiment-button-icon"
+            />
           </button>
         </div>
       </div>
+
+      {/* Confirmation Popup */}
+      {isConfirmationVisible && (
+        <ConfirmationPopup
+          message={confirmationMessage}
+          onConfirm={onConfirmAction!}
+          onCancel={cancelAction}
+        />
+      )}
     </>
   );
-}
+};
 
 export default Experiment;

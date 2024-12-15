@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/QuestionnaireDashboard.css';
 import { Questionnaire } from '../types/questionnaire';
@@ -11,9 +11,10 @@ import { InteractionType } from '../types/interactiontype';
 const QuestionnaireDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
 
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
-  const [experiment] = useState<Experiment | null>(null);
+  const experiment = location.state?.experiment as Experiment | null;
   const [filteredQuestionnaires, setFilteredQuestionnaires] = useState<Questionnaire[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -152,7 +153,7 @@ const QuestionnaireDashboard: React.FC = () => {
 
       {/* Questionnaires Title */}
       <h1 className="questionnaires-title" data-testid="questionnaires-title">
-        Questionnaires for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 35)}
+        Questionnaires for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 21)}
       </h1>
 
       {/* Filters Container */}

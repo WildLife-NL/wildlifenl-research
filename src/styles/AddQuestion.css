@@ -1,0 +1,19 @@
+.add-question-container {
+  position: relative;
+  display: inline-block;
+}
+
+.add-question-button {
+  width: 20vw;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.add-question-button img {
+  width: 100%;
+  height: auto;
+  display: block;
+}

@@ -20,11 +20,9 @@ body {
   position: absolute;
   top: 90px;
   left: 25px;
-  width: 433px;
+  width: 100%;
   height: 60px;
-
   color: #000;
-  font-family: 'Inter', sans-serif;
   font-size: 50px;
   font-style: normal;
   font-weight: 700;
@@ -44,13 +42,13 @@ body {
   justify-content: center;
   align-items: center;
   gap: 20px;
-  margin-top: 23px; /* Spacing above the buttons */
+  margin-top: 11px; /* Spacing above the buttons */
 }
 
 
 /* View Questionnaires Button */
 .view-questionnaires-button {
-  width: 500px;
+  width: 430px;
   height: 91px;
   flex-shrink: 0;
   border-radius: 19px;
@@ -72,7 +70,7 @@ body {
 .view-questionnaires-button-text {
   color: #FFF;
   font-family: 'Roboto', sans-serif;
-  font-size: 34px;
+  font-size: 27px;
   font-weight: 500;
   letter-spacing: 1.35px;
   line-height: normal;
@@ -90,7 +88,7 @@ body {
 
 /* View Messages Button */
 .view-messages-button {
-  width: 415px;
+  width: 400px;
   height: 91px;
   flex-shrink: 0;
   border-radius: 19px;
@@ -112,7 +110,7 @@ body {
 .view-messages-button-text {
   color: #FFF;
   font-family: 'Roboto', sans-serif;
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 500;
   letter-spacing: 1.35px;
   line-height: normal;
@@ -130,7 +128,7 @@ body {
 
 /* Stop Experiment Button */
 .stop-experiment-button {
-  width: 468px;
+  width: 400px;
   height: 91px;
   flex-shrink: 0;
   border-radius: 19px;
@@ -154,4 +152,15 @@ body {
 
 .stop-experiment-button:hover {
   background-color: #bf181e;
+}
+
+.delete-experiment-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-experiment-button img {
+  width: 85px; /* Match other button icons */
+  height: 85px;
 }

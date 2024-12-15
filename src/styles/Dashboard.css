@@ -188,8 +188,8 @@
 /* Table Container */
 .table-container {
   margin-top: 20px;
-  margin-left: 5%; /* Margins to prevent touching edges */
-  margin-right: 5%;
+  margin-left: 0.5%; 
+  margin-right: 0.5%;
   overflow-x: auto;
   overflow-y: auto; /* Enables vertical scrolling */
   height: calc(100vh - 270px); /* Adjusted total offset */

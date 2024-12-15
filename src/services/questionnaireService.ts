@@ -68,3 +68,30 @@ export const getQuestionnaireByExperimentID = async (id: string): Promise<Questi
   }
 };
 
+export const getQuestionnaireByID = async (id: string): Promise<Questionnaire> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${QUESTIONNAIRE_API_URL}${id}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json, application/problem+json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch messages: ${errorText}`);
+    }
+
+    const questionnaire = await response.json();
+    return questionnaire as Questionnaire;
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    throw error;
+  }
+};

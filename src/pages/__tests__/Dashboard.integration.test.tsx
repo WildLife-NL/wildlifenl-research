@@ -35,7 +35,7 @@ describe('Dashboard Integration Tests', () => {
     }
   
     // Generate unique experiment names
-    experimentNames = [`Experiment 1 ${uniqueId}`, `Experiment 2 ${uniqueId}`];
+    experimentNames = [`Exp 1 ${uniqueId}`, `Exp 2 ${uniqueId}`];
   
     // Calculate future start and end dates
     const today = new Date();

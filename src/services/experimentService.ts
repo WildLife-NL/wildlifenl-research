@@ -139,3 +139,69 @@ export const updateExperiment = async (experimentData: Experiment): Promise<Expe
     throw error;
   }
 };
+
+//End Experiment
+export const EndExperimentByID = async (id: string): Promise<Experiment> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${EXPERIMENT_API_URL}end/${id}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json, application/problem+json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to end experiment: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data as Experiment;
+  } catch (error) {
+    console.error('Error ending experiment:', error);
+    throw error;
+  }
+};
+
+// Delete Experiment
+export const DeleteExperimentByID = async (id: string): Promise<Experiment | void> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${EXPERIMENT_API_URL}${id}`, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json, application/problem+json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to delete experiment: ${errorText}`);
+    }
+
+    // If the response is 204 No Content, there's no JSON to parse
+    if (response.status === 204) {
+      return;
+    }
+
+    // Otherwise, parse JSON
+    const data = await response.json();
+    return data as Experiment;
+
+  } catch (error) {
+    console.error('Error deleting experiment:', error);
+    throw error;
+  }
+};

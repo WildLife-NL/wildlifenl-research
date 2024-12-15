@@ -1,0 +1,42 @@
+.scrollable-body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+
+.question-view-title {
+  margin-top: 90px;
+  margin-left: 25px;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.AddQuestion-Button {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.scrollable-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.scrollable-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.scrollable-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
