@@ -113,7 +113,7 @@ const sortedInitialAnswers = isMultipleChoice
   // Update parent with current question text
   useEffect(() => {
     onQuestionTextChange(localId, questionText);
-  }, [questionText]);
+  }, [questionText, localId, onQuestionTextChange]);
 
   const sortedQuestions = [...allQuestions].sort((a, b) => a.indexValue - b.indexValue);
   const currentQuestionIndexInSorted = sortedQuestions.findIndex(q => q.localId === localId);
@@ -133,7 +133,7 @@ const sortedInitialAnswers = isMultipleChoice
       return answer;
     });
     setAnswers(updatedAnswers);
-  }, [allQuestions, indexValue]);
+  }, [allQuestions, indexValue, answers]);
 
   // Use a ref to store the last sent data to avoid infinite loops
   const lastFullDataRef = useRef<FullQuestionData | null>(null);

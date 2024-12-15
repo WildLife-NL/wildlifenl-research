@@ -387,7 +387,7 @@ const MessageDashboard: React.FC = () => {
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.species
                           ? `${msg.species.commonName} (${msg.species.name})`
-                          : 'Unknown Species'}
+                          : 'No Species'}
                       </td>
                       <td onClick={() => handleMessageClick(msg)}>
                         {msg.trigger}

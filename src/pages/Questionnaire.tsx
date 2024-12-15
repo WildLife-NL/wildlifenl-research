@@ -36,7 +36,7 @@ const Questionnaire: React.FC = () => {
     };
   
     fetchQuestionnaire();
-  }, [questionnaire?.ID]);
+  }, [questionnaire]);
 
   
   if (!questionnaire) {
@@ -45,6 +45,28 @@ const Questionnaire: React.FC = () => {
         <Navbar />
         <div className="questionnaire-view-not-found">
           <p>Questionnaire not found.</p>
+        </div>
+      </>
+    );
+  }
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="loading">
+          <p>Loading questionnaire...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div className="error">
+          <p>{error}</p>
         </div>
       </>
     );

@@ -1,12 +1,11 @@
 import { useState, useRef} from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/MessageCreationB.css';
 import { addMessage } from '../services/messageService';
 
 const MessageCreationB: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
   const { answerID, answerText } = location.state || {};
 
@@ -84,7 +83,7 @@ const MessageCreationB: React.FC = () => {
       <div className="message-creationb-main-container">
         {/* Title */}
         <h1 className="message-creationb-page-title">
-          New Message for {answerText || 'Selected Answer'}
+          New Message for answer: {answerText || 'Selected Answer'}
         </h1>
         {/* Content Box */}
         <form
