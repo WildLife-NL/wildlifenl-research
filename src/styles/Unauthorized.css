@@ -1,4 +1,4 @@
-.container {
+.unauthorized-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,11 +9,11 @@
   padding: 0 5vw;
 }
 
-.container h1 {
+.unauthorized-container h1 {
   font-size: 4vw;
 }
 
-.container p {
+.unauthorized-container p {
   font-size: 2vw;
   text-align: center;
 }

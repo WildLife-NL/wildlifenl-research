@@ -10,7 +10,7 @@ const Unauthorized: React.FC = () => {
 
 
   return (
-    <div className="container">
+    <div className="unauthorized-container">
       <h1>Unauthorized Access</h1>
       <p>
         It seems like you don't have the <strong>Researcher</strong> role right now.
@@ -19,13 +19,10 @@ const Unauthorized: React.FC = () => {
         If you believe this is a mistake or you should have the necessary role,
         please contact the organization
       </p>
-
       <button className="retry-button" onClick={handleLogout}>
-              Retry
+        Retry
       </button>
     </div>
-
-    
   );
 };
 
