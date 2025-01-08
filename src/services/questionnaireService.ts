@@ -1,6 +1,6 @@
 import {AddQuestionnaire, Questionnaire} from '../types/questionnaire'
 const QUESTIONNAIRE_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/questionnaire/';
-const QUESTIONNAIRES_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/questionnaires/';
+const QUESTIONNAIRES_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/questionnaires/experiment/';
 
 
 const getAuthToken = (): string | null => {
