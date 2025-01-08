@@ -9,3 +9,8 @@ export interface User {
   email: string;
   roles: Role[];
 }
+
+export interface UserApp {
+  ID: string;
+  name: string;
+}
