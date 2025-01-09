@@ -14,7 +14,7 @@ const MessageCreation: React.FC = () => {
   // State variables for inputs
   const [messageTitle, setMessageTitle] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [severity, setSeverity] = useState(1);
+  const [severity, setSeverity] = useState(3);
 
   const [triggerTypes, setTriggerTypes] = useState<string[]>([]);
   const [selectedTriggerID, setSelectedTriggerID] = useState<string>('encounter'); // Default trigger ID
@@ -221,7 +221,7 @@ const MessageCreation: React.FC = () => {
             {/* Severity */}
             <div className="message-creation-severity-section">
               <label className="message-creation-section-number">1. Severity *</label>
-              <div className="message-creation-slider-input">
+                <div className="message-creation-slider-input">
                 <input
                   type="range"
                   id="severity"
@@ -232,7 +232,7 @@ const MessageCreation: React.FC = () => {
                   onChange={(e) => setSeverity(Number(e.target.value))}
                 />
                 <span>{severity}</span>
-              </div>
+                </div>
               <small className="severity-label">
                 {severityLabels[severity]}
               </small>
