@@ -14,17 +14,19 @@ const MessageCreation: React.FC = () => {
   // State variables for inputs
   const [messageTitle, setMessageTitle] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [severity, setSeverity] = useState(1);
+  const [severity, setSeverity] = useState(3);
 
   const [triggerTypes, setTriggerTypes] = useState<string[]>([]);
   const [selectedTriggerID, setSelectedTriggerID] = useState<string>('encounter'); // Default trigger ID
   const [selectedTriggerName, setSelectedTriggerName] = useState<string>('Encounter'); // Default trigger name
   const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState<boolean>(false);
+  const [triggerError, setTriggerError] = useState<string>(''); // Added trigger error state
 
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [selectedSpeciesID, setSelectedSpeciesID] = useState('');
   const [selectedSpeciesName, setSelectedSpeciesName] = useState('Select Species');
   const [isSpeciesDropdownOpen, setIsSpeciesDropdownOpen] = useState(false);
+  const [speciesError, setSpeciesError] = useState<string>(''); // Added species error state
 
   const [encounterMeters, setEncounterMeters] = useState('');
   const [encounterMinutes, setEncounterMinutes] = useState('');
@@ -34,8 +36,17 @@ const MessageCreation: React.FC = () => {
   const encounterMetersRef = useRef<HTMLInputElement>(null);
   const encounterMinutesRef = useRef<HTMLInputElement>(null);
   const speciesDropdownRef = useRef<HTMLButtonElement>(null);
+  const formRef = useRef<HTMLFormElement>(null); // Added form ref
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  const severityLabels: { [key: number]: string } = {
+    1: 'Debug',
+    2: 'Info',
+    3: 'Warning',
+    4: 'Urgent',
+    5: 'Critical',
+  };
 
   // Fetch trigger types when component mounts
   useEffect(() => {
@@ -75,6 +86,8 @@ const MessageCreation: React.FC = () => {
     messageTextRef.current?.setCustomValidity('');
     encounterMetersRef.current?.setCustomValidity('');
     encounterMinutesRef.current?.setCustomValidity('');
+    setTriggerError('');
+    setSpeciesError('');
 
     // Validate Message Title
     if (messageTitle.trim() === '') {
@@ -88,8 +101,15 @@ const MessageCreation: React.FC = () => {
       isValid = false;
     }
 
+    // Validate Trigger Selection
+    if (!selectedTriggerID) {
+      setTriggerError('Please select a trigger.');
+      isValid = false;
+    }
+
+    // Validate Species Selection
     if (selectedSpeciesID === '') {
-      speciesDropdownRef.current?.setCustomValidity('Please select a species.');
+      setSpeciesError('Please select a species.');
       isValid = false;
     }
     
@@ -112,15 +132,13 @@ const MessageCreation: React.FC = () => {
     return isValid;
   };
 
-  const handleSubmitMessage = async (e: React.FormEvent) => {
-    // Validate inputs
-    e.preventDefault();
+  const handleSubmitMessage = async () => { // Removed event parameter
+    if (!formRef.current) return; // Ensure form exists
 
     const isValid = validateForm();
 
-    const form = e.currentTarget as HTMLFormElement;
-    if (!form.checkValidity()) {
-      form.reportValidity();
+    if (!formRef.current.checkValidity()) {
+      formRef.current.reportValidity();
       return;
     }
 
@@ -139,7 +157,6 @@ const MessageCreation: React.FC = () => {
 
     // Adjust fields based on trigger type
     if (selectedTriggerID === 'encounter') {
-      // Convert encounterMeters and encounterMinutes to numbers
       const meters = Number(encounterMeters);
       const minutes = Number(encounterMinutes);
       messageData.encounterMeters = meters;
@@ -147,11 +164,9 @@ const MessageCreation: React.FC = () => {
     }
 
     try {
-      // Call the addMessage API
       const response = await addMessage(messageData);
       console.log('Message added successfully:', response);
-      // Redirect to the message dashboard
-      navigate(`/messagedashboard/${id}`);
+      navigate(-1);
     } catch (error) {
       console.error('Error adding message:', error);
       alert('Failed to add message. Please check your input and try again.');
@@ -170,13 +185,8 @@ const MessageCreation: React.FC = () => {
         {/* Content Box */}
         <form
           className="message-creation-content-box"
-          onSubmit={handleSubmitMessage}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-            }
-          }}
           noValidate
+          ref={formRef} // Added form ref
         >
           {/* Message Title */}
           <label className="message-creation-section-label message-creation-title-label">
@@ -211,7 +221,7 @@ const MessageCreation: React.FC = () => {
             {/* Severity */}
             <div className="message-creation-severity-section">
               <label className="message-creation-section-number">1. Severity *</label>
-              <div className="message-creation-slider-input">
+                <div className="message-creation-slider-input">
                 <input
                   type="range"
                   id="severity"
@@ -222,7 +232,10 @@ const MessageCreation: React.FC = () => {
                   onChange={(e) => setSeverity(Number(e.target.value))}
                 />
                 <span>{severity}</span>
-              </div>
+                </div>
+              <small className="severity-label">
+                {severityLabels[severity]}
+              </small>
             </div>
 
             {/* Specify Trigger */}
@@ -230,27 +243,30 @@ const MessageCreation: React.FC = () => {
               <label className="message-creation-section-number">2. Specify Trigger *</label>
               <div className="message-creation-trigger-content">
                 <div
-                  className={`message-creation-dropdown ${
-                    isTriggerDropdownOpen ? 'message-creation-open' : ''
+                  className={`message-creation-dropdown-custom ${
+                    isTriggerDropdownOpen ? 'open' : ''
                   }`}
                 >
                   <button
-                    className="message-creation-dropdown-button"
+                    type="button"
+                    className="message-creation-dropdown-button-custom"
                     onClick={() => setIsTriggerDropdownOpen(!isTriggerDropdownOpen)}
                   >
                     {selectedTriggerName}
                     <img
                       src="/assets/vsvg.svg"
                       alt="Dropdown Icon"
-                      className="message-creation-dropdown-icon"
+                      className={`message-creation-dropdown-icon-custom ${
+                        isTriggerDropdownOpen ? 'message-creation-dropdown-icon-hover-custom' : ''
+                      }`} // Updated className for animation
                     />
                   </button>
                   {isTriggerDropdownOpen && (
-                    <div className="message-creation-dropdown-content">
+                    <div className="message-creation-dropdown-content-custom">
                       {triggerTypes.map((trigger) => (
                         <div
                           key={trigger}
-                          className="message-creation-dropdown-item"
+                          className="message-creation-dropdown-item-custom"
                           onClick={() => {
                             setSelectedTriggerID(trigger);
                             setSelectedTriggerName(capitalize(trigger));
@@ -266,6 +282,7 @@ const MessageCreation: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {triggerError && <span className="error-message">{triggerError}</span>}
               </div>
             </div>
 
@@ -274,12 +291,13 @@ const MessageCreation: React.FC = () => {
               <label className="message-creation-section-number">3. Species *</label>
               <div className="message-creation-species-content">
                 <div
-                  className={`message-creation-dropdown ${
-                    isSpeciesDropdownOpen ? 'message-creation-open' : ''
-                  }`}
+                  className={`message-creation-dropdown-custom message-creation-species-dropdown-custom ${
+                    isSpeciesDropdownOpen ? 'open' : ''
+                  }`} // Added 'message-creation-species-dropdown-custom' class
                 >
                   <button
-                    className="message-creation-dropdown-button"
+                    type="button"
+                    className="message-creation-dropdown-button-custom"
                     onClick={() => setIsSpeciesDropdownOpen(!isSpeciesDropdownOpen)}
                     ref={speciesDropdownRef}
                   >
@@ -287,15 +305,17 @@ const MessageCreation: React.FC = () => {
                     <img
                       src="/assets/vsvg.svg"
                       alt="Dropdown Icon"
-                      className="message-creation-dropdown-icon"
+                      className={`message-creation-dropdown-icon-custom ${
+                        isSpeciesDropdownOpen ? 'message-creation-dropdown-icon-hover-custom' : ''
+                      }`} // Updated className for animation
                     />
                   </button>
                   {isSpeciesDropdownOpen && (
-                    <div className="message-creation-dropdown-content">
+                    <div className="message-creation-dropdown-content-custom">
                       {speciesList.map((species) => (
                         <div
                           key={species.ID}
-                          className="message-creation-dropdown-item"
+                          className="message-creation-dropdown-item-custom"
                           onClick={() => {
                             setSelectedSpeciesID(species.ID);
                             setSelectedSpeciesName(`${species.commonName} (${species.name})`);
@@ -309,6 +329,7 @@ const MessageCreation: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {speciesError && <span className="error-message">{speciesError}</span>}
               </div>
             </div>
 
@@ -354,9 +375,10 @@ const MessageCreation: React.FC = () => {
 
           {/* Submit Button */}
           <button
-              type="submit"
+              type="button"
               className="message-creation-submit-button"
               data-testid="submit-message-button"
+              onClick={handleSubmitMessage} // Updated onClick handler
             >
               <img src="/assets/saveSVG.svg" alt="Submit Message" />
           </button>

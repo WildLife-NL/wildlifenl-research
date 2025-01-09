@@ -1,4 +1,4 @@
-import { Experiment } from '../types/experiment';
+import { Experiment, UpdateExperiment } from '../types/experiment';
 
 const EXPERIMENT_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/experiment/';
 const EXPERIMENTS_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/experiments/';
@@ -107,14 +107,14 @@ export const getMyExperiments = async (): Promise<Experiment[]> => {
 };
 
 // Update Experiment
-export const updateExperiment = async (experimentData: Experiment): Promise<Experiment> => {
+export const updateExperiment = async (id: string, experimentData: UpdateExperiment): Promise<Experiment> => {
   try {
     const token = getAuthToken();
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(EXPERIMENT_API_URL, {
+    const response = await fetch(`${EXPERIMENT_API_URL}${id}`, { 
       method: 'PUT',
       headers: {
         Accept: 'application/json, application/problem+json',
@@ -130,9 +130,9 @@ export const updateExperiment = async (experimentData: Experiment): Promise<Expe
       const data = await response.json();
       return data as Experiment;
     } else {
-      const errorData = await response.json();
-      console.error('Failed to update experiment:', errorData);
-      throw new Error('Failed to update experiment');
+      const errorText = await response.text();
+      console.error('Failed to update experiment:', errorText);
+      throw new Error(errorText);
     }
   } catch (error) {
     console.error('Update Experiment error:', error);

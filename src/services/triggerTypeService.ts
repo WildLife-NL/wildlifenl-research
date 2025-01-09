@@ -1,5 +1,4 @@
-const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/triggerTypes/';
-
+const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/schemas/Message.json';
 
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
@@ -7,28 +6,26 @@ const getAuthToken = (): string | null => {
 
 export const getAllTriggerTypes = async (): Promise<string[]> => {
   try {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_URL}`, {
+    const response = await fetch(API_URL, {
       method: 'GET',
       headers: {
         Accept: 'application/json, application/problem+json',
-        Authorization: `Bearer ${token}`,
       },
     });
 
-    console.log('Get All Trigger Types response:', response);
+    console.log('Fetch Schema response:', response);
 
     if (response.ok) {
-      const data: string[] = await response.json();
-      return data;
+      const data = await response.json();
+      const triggerEnum: string[] = data.properties.trigger.enum;
+      if (!triggerEnum || !Array.isArray(triggerEnum)) {
+        throw new Error('Trigger enum not found in schema');
+      }
+      return triggerEnum;
     } else {
       const errorData = await response.json();
-      console.error('Failed to fetch all trigger types:', errorData);
-      throw new Error('Failed to fetch all trigger types');
+      console.error('Failed to fetch schema:', errorData);
+      throw new Error('Failed to fetch schema');
     }
   } catch (error) {
     console.error('Get All Trigger Types error:', error);

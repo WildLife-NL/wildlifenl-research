@@ -1,4 +1,5 @@
 import { Answer } from './answer';
+import { Questionnaire } from './questionnaire';
 
 export interface Question {
   ID: string;
@@ -8,6 +9,7 @@ export interface Question {
   description: string;
   index: number;
   openResponseFormat: string;
+  questionnair: Questionnaire
   text: string;
 }
 

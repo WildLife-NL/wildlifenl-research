@@ -17,3 +17,10 @@ export interface AddQuestionnaire{
   interactionTypeID: string;
   name: string;
 }
+
+export interface UpdatedQuestionnaire{
+  experimentID: string;
+  identifier: string;
+  interactionTypeID: string;
+  name: string;
+}

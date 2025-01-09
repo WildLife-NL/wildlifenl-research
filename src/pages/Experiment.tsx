@@ -1,11 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
-import { Experiment as ExperimentType } from '../types/experiment';
-import { EndExperimentByID, DeleteExperimentByID } from '../services/experimentService';
+import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
+import { EndExperimentByID, DeleteExperimentByID, updateExperiment } from '../services/experimentService';
+import { getAllLivingLabs } from '../services/livingLabService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
+import { LivingLab } from '../types/livinglab';
 
 const Experiment: React.FC = () => {
   const location = useLocation();
@@ -16,6 +18,32 @@ const Experiment: React.FC = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
   const [isStopping, setIsStopping] = useState(false);
+  const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
+
+  // For editing
+  const [editName, setEditName] = useState(experiment?.name ?? '');
+  const [editDescription, setEditDescription] = useState(experiment?.description ?? '');
+  const [editStart, setEditStart] = useState(experiment?.start ?? '');
+  const [editEnd, setEditEnd] = useState(experiment?.end ?? '');
+  const [editLivingLabID, setEditLivingLabID] = useState(experiment?.livingLab?.ID ?? '');
+  const [editLivingLabName, setEditLivingLabName] = useState(experiment?.livingLab?.name ?? 'None');
+  const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
+  const [loadingLabs, setLoadingLabs] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchLabs = async () => {
+      try {
+        const labs = await getAllLivingLabs();
+        setLivingLabs(labs);
+      } catch (error) {
+        console.error('Failed to fetch living labs:', error);
+      } finally {
+        setLoadingLabs(false);
+      }
+    };
+    fetchLabs();
+  }, []);
 
   if (!experiment) {
     return (
@@ -112,10 +140,48 @@ const Experiment: React.FC = () => {
     setIsConfirmationVisible(true);
   };
 
+  const handleEditExperimentButton = () => {
+    setIsEditPopupVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    const payload: UpdateExperiment = {
+      ID: experiment.ID, 
+      name: editName,
+      description: editDescription,
+      start: editStart,
+      ...(editEnd && { end: editEnd }),
+      ...(editLivingLabID && { livingLabID: editLivingLabID })
+    };
+    try {
+      await updateExperiment(experiment.ID, payload); 
+      setIsEditPopupVisible(false);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating experiment:', error);
+      alert('Failed to update experiment.');
+    }
+  };
+
   const truncateText = (text: string, maxLength: number): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
+
+  const getStatus = (startDate: string, endDate?: string | null): string => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    if (start > today) {
+      return 'Upcoming';
+    } else if (end && end < today) {
+      return 'Completed';
+    } else {
+      return 'Live';
+    }
+  };
+
+  const status = getStatus(experiment.start, experiment.end);
 
   return (
     <>
@@ -158,29 +224,46 @@ const Experiment: React.FC = () => {
               className="view-messages-button-icon"
             />
           </button>
-
-          {/* Stop Experiment Button */}
-          <button
-            className="stop-experiment-button"
-            onClick={handleStopExperiment}
-            disabled={isStopping}
-          >
-            <span className="stop-button-text">
-              {isStopping ? 'Stopping...' : 'Stop Experiment'}
-            </span>
-          </button>
           
-          {/* Delete Experiment Button */}
-          <button
-            className="delete-experiment-button"
-            onClick={handleDeleteExperiment}
-          >
-            <img
-              src="/assets/TrashSVG.svg"
-              alt="Delete Icon"
-              className="delete-experiment-button-icon"
-            />
-          </button>
+          {/* Show Stop only if Live */}
+          {status === 'Live' && (
+            <button
+              className="stop-experiment-button"
+              onClick={handleStopExperiment}
+              disabled={isStopping}
+            >
+              <span className="stop-button-text">
+                {isStopping ? 'Stopping...' : 'Stop Experiment'}
+              </span>
+            </button>
+          )}
+
+          {/* Show Delete only if Upcoming or Completed */}
+          {(status === 'Upcoming' || status === 'Completed') && (
+            <button
+              className="delete-experiment-button"
+              onClick={handleDeleteExperiment}
+            >
+              <img
+                src="/assets/TrashSVG.svg"
+                alt="Delete Icon"
+                className="delete-experiment-button-icon"
+              />
+            </button>
+          )}
+
+          {/* Show Edit only if Upcoming */}
+          {status === 'Upcoming' && (
+            <button
+              className="delete-experiment-button" /* existing delete style */
+              onClick={handleEditExperimentButton}
+            >
+              <img
+                src="/assets/EditSVG.svg"
+                alt="Edit Icon"
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -191,6 +274,94 @@ const Experiment: React.FC = () => {
           onConfirm={onConfirmAction!}
           onCancel={cancelAction}
         />
+      )}
+
+      {/* Edit Experiment Popup */}
+      {isEditPopupVisible && (
+        <div className="edit-experiment-popup">
+          <div className="edit-popup-content">
+            <h2>Edit Experiment</h2>
+            <label>Name</label>
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+            />
+            <label>Description</label>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              required
+            />
+            <label>Start Date</label>
+            <input
+              type="date"
+              value={editStart.split('T')[0]}
+              onChange={(e) => setEditStart(e.target.value)}
+              required
+            />
+            <label>End Date</label>
+            <input
+              type="date"
+              value={editEnd ? editEnd.split('T')[0] : ''}
+              onChange={(e) => setEditEnd(e.target.value)}
+            />
+            <label>LivingLab</label>
+            <div
+              className={`experimentview-dropdown ${isDropdownOpen ? 'experimentview-open' : ''}`}
+            >
+              <button
+                type="button"
+                className="experimentview-dropdown-button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                {editLivingLabName}
+                <img
+                  src="/assets/vsvg.svg"
+                  alt="Dropdown Icon"
+                  className="experimentview-dropdown-icon"
+                />
+              </button>
+              {isDropdownOpen && (
+                <div className="experimentview-dropdown-content">
+                  {loadingLabs ? (
+                    <div>Loading...</div>
+                  ) : (
+                    <>
+                      <div
+                        className="experimentview-dropdown-item"
+                        onClick={() => {
+                          setEditLivingLabID('');
+                          setEditLivingLabName('None');
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        None
+                      </div>
+                      {livingLabs.map((lab) => (
+                        <div
+                          key={lab.ID}
+                          className="experimentview-dropdown-item"
+                          onClick={() => {
+                            setEditLivingLabID(lab.ID);
+                            setEditLivingLabName(lab.name);
+                            setIsDropdownOpen(false);
+                          }}
+                        >
+                          {lab.name}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="edit-popup-buttons">
+              <button onClick={handleSaveEdit}>Save</button>
+              <button onClick={() => setIsEditPopupVisible(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

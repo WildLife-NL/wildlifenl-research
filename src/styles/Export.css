@@ -1,0 +1,431 @@
+/***** Popup overlay styles (unchanged) *****/
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.popup-overlay.show {
+  opacity: 1;
+}
+
+.popup-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-height: 90vh;
+
+   /* Remove horizontal scroll from popup */
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+  width: 90%;
+  height: 210vh;
+  position: relative; /* So the buttons can be positioned at bottom */
+}
+
+/* Styles for smaller popup when no responses are found */
+.popup-content-small {
+  width: 25%; /* Smaller width */
+  height: auto; /* Adjust height as needed */
+  padding: 10px; /* Reduced padding */
+}
+
+/* Add styles for the preview box within the popup */
+.popup-preview-box {
+  width: 100%;
+  height: 92%;
+  align-items: center;
+  overflow: auto;
+ /* Center horizontally */
+}
+
+.popup-preview-box::-webkit-scrollbar {
+  width: 12px; /* Match scrollbar width */
+}
+
+.popup-preview-box::-webkit-scrollbar-track {
+  background: #e0e0e0; /* Match scrollbar track background */
+  border-radius: 6px; /* Consistent border radius */
+}
+
+.popup-preview-box::-webkit-scrollbar-thumb {
+  background-color: #a0a0a0; /* Match scrollbar thumb color */
+  border-radius: 6px; /* Consistent border radius */
+  border: 3px solid #e0e0e0; /* Padding around thumb */
+}
+
+.popup-preview-box::-webkit-scrollbar-thumb:hover {
+  background-color: #808080; /* Match scrollbar thumb hover color */
+}
+
+.popup-overlay.show .popup-content {
+  transform: translateY(0);
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: center; /* Center the buttons */
+  gap: 20px; /* Space between buttons */
+  margin-top: 1vh; /* Lower the buttons by 2vh */
+  width: 100%;
+}
+
+.popup-actions button {
+  padding: 2vh 2vw;
+  border: none;
+  border-radius: 10px;
+  background-color: #27A966;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.0vw;
+  margin-bottom: 4vh; 
+}
+
+.popup-actions button:hover {
+  opacity: 0.9;
+}
+
+/* Change all Close buttons to blue */
+.popup-actions button.close-button {
+  background-color: #007BFF; /* Blue color */
+  color: #fff;
+}
+
+.popup-actions button.close-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Ensure Download CSV button stays green */
+.popup-actions button.download-csv-button {
+  background-color: #27A966; /* Green color */
+  color: #fff;
+}
+
+.popup-actions button.download-csv-button:hover {
+  background-color: #1e8a4e; /* Darker green on hover */
+}
+
+/***** New Unique Classes mirroring the Dashboard table *****/
+
+/* Container (similar to .table-container in Dashboard) */
+.export-table-container-dash {         
+  margin-left: 0.5%;
+  margin-right: 0.5%;
+  overflow-x: auto;
+  overflow-y: auto;
+  height: 70vh;
+  user-select: none;
+}
+
+/* Table (similar to .experiments-table in Dashboard) */
+.export-table-dash {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* TH / TD styling */
+.export-table-dash th,
+.export-table-dash td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+/* Table header styling */
+.export-table-dash th {
+  background: #D9D9D9;
+  border: 1px solid #000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  position: sticky;
+  top: 0;
+}
+
+/* Override center alignment for "Experiment Name" header */
+.export-table-dash th.export-experiment-name-header {
+  text-align: left;
+}
+
+/* Table cell styling */
+.export-table-dash td {
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.45px;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px; /* Adjust if needed */
+}
+
+/* Override center alignment for "Experiment Name" cells */
+.export-table-dash td.export-experiment-name-cell {
+  text-align: left;
+}
+
+/* Align "Experiment Name" header to the left */
+.export-experiment-name-header {
+  text-align: left;
+}
+
+/* Align "Experiment Name" cells to the left */
+.export-experiment-name-cell {
+  text-align: left;
+}
+
+/* Hover effect (like Dashboard) */
+.export-table-dash tbody tr:hover {
+  background-color: rgba(217, 217, 217, 0.8);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/***** Striped row backgrounds for experiments (row-even-dash / row-odd-dash) *****/
+.row-even-dash {
+  background-color: rgba(217, 217, 217, 0.60);
+}
+
+.row-odd-dash {
+  background-color: rgba(217, 217, 217, 0.40);
+}
+
+/***** Distinguish Questionnaire rows *****/
+.questionnaire-dash {
+  background-color: #FAFAFA; /* Lighter background */
+}
+
+.questionnaire-dash td {
+  /* Add extra left padding to visually distinguish them */
+  padding-left: 40px;
+}
+
+/***** Scrollbar styling (optional) *****/
+.export-table-container-dash::-webkit-scrollbar {
+  width: 8px;
+}
+
+.export-table-container-dash::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.export-table-container-dash::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.export-table-container-dash::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Truncate text class (unchanged) */
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scrollable table container */
+.table-container-scroll {
+  overflow-x: auto;
+  max-height: 180vh; /* Adjust as needed to fit 3 times vertically higher */
+}
+
+.table-container-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-container-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-container-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.table-container-scroll table {
+  min-width: 100%;
+}
+
+/* Search Filter Styles */
+.export-search-filter {
+  position: relative;
+  top: 2vh;
+  margin-bottom: 4vh;
+  left: 5vw; /* Align to the right */
+}
+
+/* Search Input Container */
+.export-search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Export Search Input */
+.export-search-input {
+  width: 350px;
+  height: 50px;
+  padding: 0 40px 0 10px;
+  font-size: 25px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.55);
+  border: 3px solid rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.export-search-input:hover:not(:focus) {
+  border-color: #27A966;
+  box-shadow: 0 0 5px #27A966;
+}
+
+.export-search-input:focus {
+  color: #000; /* Reveal text on focus */
+}
+
+/* Export Search Icon Styles */
+.export-search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+}
+
+/* Responsive Adjustments for Search Filter */
+@media (max-width: 768px) {
+  .export-search-filter {
+    margin: 15px 2.5%;
+    right: 2.5vw;
+  }
+
+  .export-search-input {
+    max-width: 300px;
+    height: 45px;
+    font-size: 18px;
+  }
+
+  .export-search-icon {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+/* Export Title Styles */
+.export-title {
+  color: #000;
+  font-family: 'Roboto', sans-serif; 
+  margin-top: 100px;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: normal; 
+  margin-left: 25px; 
+  user-select: none;
+}
+
+/* Set specific widths for Responses and Actions columns */
+.export-responses-header {
+  width: 150px; /* Adjust as needed */
+}
+
+.export-actions-header {
+  width: 150px; /* Adjust as needed */
+}
+
+.export-responses-cell {
+  width: 100px; /* Ensure consistency with header */
+}
+
+.export-actions-cell {
+  width: 150px; /* Ensure consistency with header */
+}
+
+.export-actions-cell button {
+  padding: 6px 12px; /* Smaller buttons */
+  font-size: 14px; /* Smaller font */
+}
+
+.export-responses-cell {
+  /* Center align the content if desired */
+  text-align: center;
+}
+
+/* Sort Icon Animations for Export */
+.export-sort-icon {
+  margin-left: 5px;
+  width: 10px;
+  height: 10px;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+
+.export-sort-ascending {
+  transform: rotate(180deg);
+}
+
+.export-sort-descending {
+  transform: rotate(0deg);
+}
+
+/* Style for the "No responses found" message */
+.no-responses-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+  padding: 15px;
+  font-size: 18px;
+  color: #555;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.no-responses-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-responses-message {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1vh; /* Add vertical spacing */
+  font-size: 20px;
+  color: #333333;
+}
+
+/* Lower the solo Close button in "No responses found" popup by 2vh */
+.no-responses-container .popup-actions {
+  margin-top: 1vh; /* Increased from 2vh to 4vh to lower the button by 2vh */
+}
+
+/* Specific style for Close button in 'No responses found' popup */
+.close-button-no-responses {
+  margin-top: 1px; /* Lower the button by 2vh */
+}
