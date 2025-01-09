@@ -1,5 +1,3 @@
-import { ExperimentResponses } from '../types/experimentresponses';
-
 const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/responses/experiment/';
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');

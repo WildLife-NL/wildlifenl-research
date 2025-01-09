@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { getMyExperiments } from '../services/experimentService';
 import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
 import { getResponsesByExperimentID } from '../services/responseService';
+import { getConveyancesByExperimentID } from '../services/conveyanceService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
 import '../styles/Export.css';
@@ -21,6 +22,11 @@ const Export: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filteredExperiments, setFilteredExperiments] = useState<Experiment[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'responses'; direction: 'ascending' | 'descending' } | null>(null);
+  const [showConveyancePopup, setShowConveyancePopup] = useState(false);
+  const [popupConveyances, setPopupConveyances] = useState<any[]>([]);
+  const [conveyanceTableHeaders, setConveyanceTableHeaders] = useState<string[]>([]);
+  const [conveyanceTableRows, setConveyanceTableRows] = useState<string[][]>([]);
+  const [currentExperimentName, setCurrentExperimentName] = useState<string>('');
 
   const truncateText = (text: string, maxLength: number = 100): string => {
     return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
@@ -142,8 +148,9 @@ const Export: React.FC = () => {
     return csvLines.join('\n');
   }
 
-  const handleShowResponses = async (experimentId: string) => {
+  const handleShowResponses = async (experimentId: string, experimentName: string) => {
     try {
+      setCurrentExperimentName(experimentName);
       const data = await getResponsesByExperimentID(experimentId);
       const { headers, rows } = buildTableData(data);
       setTableHeaders(headers);
@@ -157,11 +164,14 @@ const Export: React.FC = () => {
 
   const downloadCSV = () => {
     const csv = convertToCSV(popupResponses);
+    const now = new Date();
+    const dateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}H-${String(now.getMinutes()).padStart(2, '0')}M-${String(now.getSeconds()).padStart(2, '0')}S`;
+    const filename = `Responses_${currentExperimentName}_${dateTime}.csv`;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'responses.csv');
+    link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -180,6 +190,35 @@ const Export: React.FC = () => {
       return sortConfig.direction === 'ascending' ? 'export-sort-ascending' : 'export-sort-descending';
     }
     return '';
+  };
+
+  const handleShowConveyances = async (experimentId: string, experimentName: string) => {
+    try {
+      setCurrentExperimentName(experimentName);
+      const data = await getConveyancesByExperimentID(experimentId);
+      const { headers, rows } = buildTableData(data);
+      setConveyanceTableHeaders(headers);
+      setConveyanceTableRows(rows.slice(0, 10)); // show first 10
+      setPopupConveyances(data);
+      setShowConveyancePopup(true);
+    } catch (error) {
+      console.error('Error fetching conveyances:', error);
+    }
+  };
+
+  const downloadCSVConveyances = () => {
+    const csv = convertToCSV(popupConveyances);
+    const now = new Date();
+    const dateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}H-${String(now.getMinutes()).padStart(2, '0')}M-${String(now.getSeconds()).padStart(2, '0')}S`;
+    const filename = `Conveyances_${currentExperimentName}_${dateTime}.csv`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -251,6 +290,82 @@ const Export: React.FC = () => {
         </div>
       )}
 
+      {showConveyancePopup && (
+        <div
+          className={`popup-overlay show`}
+          onClick={() => setShowConveyancePopup(false)}
+        >
+          <div
+            className={`popup-content ${
+              conveyanceTableRows.length === 0 ? 'popup-content-small' : ''
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {conveyanceTableRows.length === 0 ? (
+              <div className="no-responses-container">
+                <div className="no-responses-message">No conveyances found for this experiment.</div>
+                <div className="popup-actions">
+                  <button
+                    className="close-button close-button-no-responses"
+                    onClick={() => setShowConveyancePopup(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="popup-preview-box">
+                  {/* ...similar table structure... */}
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        {conveyanceTableHeaders.map((header, idx) => (
+                          <th
+                            key={`hc-${idx}`}
+                            style={{ border: '1px solid #ccc', padding: '8px' }}
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {conveyanceTableRows.map((row, i) => (
+                        <tr key={`rc-${i}`}>
+                          {row.map((cell, j) => (
+                            <td
+                              key={`cc-${i}-${j}`}
+                              style={{ border: '1px solid #ccc', padding: '8px' }}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="popup-actions">
+                  <button
+                    className="close-button"
+                    onClick={() => setShowConveyancePopup(false)}
+                  >
+                    Close
+                  </button>
+                  <button
+                    className="download-csv-button"
+                    onClick={downloadCSVConveyances}
+                  >
+                    Download CSV
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Container + table with new unique classes */}
       <div className="export-table-container-dash">
         <table className="export-table-dash">
@@ -293,12 +408,19 @@ const Export: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleShowResponses(experiment.ID);
+                          handleShowResponses(experiment.ID, experiment.name);
                         }}
                       >
                         Responses
                       </button>
-                      <button>Conveyances</button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShowConveyances(experiment.ID, experiment.name);
+                        }}
+                      >
+                        Conveyances
+                      </button>
                     </td>
                   </tr>
 
