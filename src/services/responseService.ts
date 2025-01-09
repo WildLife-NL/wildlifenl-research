@@ -5,10 +5,10 @@ const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
 };
 
-export const getResponsesByExperimentID = async (id: string): Promise<ExperimentResponses[]> => {
+export const getResponsesByExperimentID = async (id: string): Promise<any[]> => {
   try {
     const token = getAuthToken();
-    if (!token) { 
+    if (!token) {
       throw new Error('No authentication token found');
     }
 
@@ -25,13 +25,15 @@ export const getResponsesByExperimentID = async (id: string): Promise<Experiment
       throw new Error(`Failed to fetch responses: ${errorText}`);
     }
 
+    // Return raw JSON for dynamic fields
     const data = await response.json();
-    return data as ExperimentResponses[];
+    return Array.isArray(data) ? data : [data];
   } catch (error) {
     console.error('Error fetching responses:', error);
     throw error;
   }
 };
+
 /*export const getResponsesByQuestionnaireID = async (id: string): Promise<Responses[]> => {
   try {
     const token = getAuthToken();

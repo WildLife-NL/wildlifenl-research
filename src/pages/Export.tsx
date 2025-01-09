@@ -88,74 +88,71 @@ const Export: React.FC = () => {
     return { headers, rows };
   };
 
+  // Helper to recursively extract keys from nested objects
+  const extractKeys = (obj: any, parentKey: string = '', keys: Set<string>) => {
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        const fullKey = parentKey ? `${parentKey}_${key}` : key;
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          extractKeys(obj[key], fullKey, keys);
+        } else {
+          keys.add(fullKey);
+        }
+      }
+    }
+  };
+
+  // Updated buildTableData to handle dynamic and nested fields, including boolean values
+  function buildTableData(data: any[]) {
+    if (!data || data.length === 0) return { headers: [], rows: [] };
+
+    const allKeys = new Set<string>();
+    data.forEach(obj => extractKeys(obj, '', allKeys));
+
+    const headers = Array.from(allKeys);
+    const rows = data.map(obj => {
+      const row: string[] = [];
+      headers.forEach(key => {
+        const keys = key.split('_');
+        let value = obj;
+        keys.forEach(k => {
+          value = value ? value[k] : '';
+        });
+        if (typeof value === 'boolean') {
+          row.push(value.toString());
+        } else {
+          row.push(typeof value === 'object' ? JSON.stringify(value) : value ?? '');
+        }
+      });
+      return row;
+    });
+
+    return { headers, rows };
+  }
+
+  function convertToCSV(data: any[]) {
+    if (!data || data.length === 0) return '';
+    const { headers, rows } = buildTableData(data);
+
+    const csvLines = [];
+    csvLines.push(headers.join(','));
+    rows.forEach(row => {
+      csvLines.push(row.join(','));
+    });
+    return csvLines.join('\n');
+  }
+
   const handleShowResponses = async (experimentId: string) => {
     try {
       const data = await getResponsesByExperimentID(experimentId);
-      const csv = convertToCSV(data); // Removed ExperimentResponses
-      const { headers, rows } = parseCsvToTable(csv);
+      const { headers, rows } = buildTableData(data);
       setTableHeaders(headers);
-      setTableRows(rows.slice(0, 10)); // Show first 10 rows
-      setPopupResponses(data); // Set the data array directly
+      setTableRows(rows.slice(0, 10)); // show first 10 rows
+      setPopupResponses(data);
       setShowPopup(true);
     } catch (error) {
       console.error('Error fetching responses:', error);
     }
-  };
-
-  const flattenResponse = (resp: any) => {
-    const q = resp.question || {};
-    const qq = q.questionnaire || {};
-    const exp = qq.experiment || {};
-    const expUser = exp.user || {};
-    const i = resp.interaction || {};
-    const loc = i.location || {};
-    const sp = i.species || {};
-    const iUser = i.user || {};
-    const iType = i.type || {};
-
-    return {
-      response_ID: resp.ID ?? '',
-      response_Text: resp.text ?? '',
-      question_ID: q.ID ?? '',
-      question_Text: q.text ?? '',
-      question_Description: q.description ?? '',
-      question_Index: q.index ?? '',
-      question_AllowMultipleResponse: q.allowMultipleResponse ?? '',
-      question_AllowOpenResponse: q.allowOpenResponse ?? '',
-      questionnaire_ID: qq.ID ?? '',
-      questionnaire_Name: qq.name ?? '',
-      questionnaire_Identifier: qq.identifier ?? '',
-      experiment_ID: exp.ID ?? '',
-      experiment_Name: exp.name ?? '',
-      experiment_Description: exp.description ?? '',
-      experiment_Start: exp.start ?? '',
-      experiment_End: exp.end ?? '',
-      experiment_UserID: expUser.ID ?? '',
-      experiment_UserName: expUser.name ?? '',
-      interaction_ID: i.ID ?? '',
-      interaction_Description: i.description ?? '',
-      interaction_Timestamp: i.timestamp ?? '',
-      interaction_Latitude: loc.latitude ?? '',
-      interaction_Longitude: loc.longitude ?? '',
-      species_ID: sp.ID ?? '',
-      species_Name: sp.name ?? '',
-      species_CommonName: sp.commonName ?? '',
-      interaction_UserID: iUser.ID ?? '',
-      interaction_UserName: iUser.name ?? '',
-      interactionType_ID: iType.ID ?? '',
-      interactionType_Name: iType.name ?? '',
-      interactionType_Description: iType.description ?? '',
-    };
-  };
-
-  const convertToCSV = (data: any[]) => {
-    // Flatten each response
-    const flattened = data.map(flattenResponse);
-    // Create headers from all keys in the first flattened object
-    const headers = Object.keys(flattened[0] || {});
-    // Build CSV rows
-    const rows = flattened.map(item => headers.map(h => (item as any)[h]).join(','));
-    return [headers.join(','), ...rows].join('\n');
   };
 
   const downloadCSV = () => {

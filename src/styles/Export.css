@@ -130,14 +130,16 @@
 .export-table-dash {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto; /* Allow table to adjust based on content */
 }
 
 /* TH / TD styling */
 .export-table-dash th,
 .export-table-dash td {
   padding: 12px;
-  text-align: center;
+  text-align: left; /* Changed to left-align for better readability */
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  word-wrap: break-word; /* Allow text to wrap within cells */
 }
 
 /* Table header styling */
@@ -343,12 +345,11 @@
 }
 
 /* Set specific widths for Responses and Actions columns */
-.export-responses-header {
-  width: 150px; /* Adjust as needed */
-}
-
-.export-actions-header {
-  width: 150px; /* Adjust as needed */
+.export-responses-header,
+.export-actions-header,
+.export-responses-cell,
+.export-actions-cell {
+  width: auto;
 }
 
 .export-responses-cell {
