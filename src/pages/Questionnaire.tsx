@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react'; // Import useCallback
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import QuestionView from '../components/QuestionView';
+import ConfirmationPopup from '../components/ConfirmationPopup'; // Import ConfirmationPopup
 import '../styles/Questionnaire.css';
 import { Questionnaire as QuestionnaireType } from '../types/questionnaire';
-import { getQuestionnaireByID } from '../services/questionnaireService';
+import { getQuestionnaireByID, DeleteQuestionnaireByID } from '../services/questionnaireService';
 
 const Questionnaire: React.FC = () => {
   const location = useLocation();
@@ -16,6 +17,37 @@ const Questionnaire: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Add state variables for confirmation popup
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
+
+  // Memoize the confirmDeleteQuestionnaire function
+  const confirmDeleteQuestionnaire = useCallback(async () => {
+    if (!questionnaire) return;
+    try {
+      await DeleteQuestionnaireByID(questionnaire.ID.toString());
+      navigate(-1);
+    } catch (error) {
+      console.error('Error deleting questionnaire:', error);
+      alert('Failed to delete the questionnaire. Please try again.');
+    }
+  }, [questionnaire, navigate]);
+
+  // Memoize the handleDeleteQuestionnaire function
+  const handleDeleteQuestionnaire = useCallback(() => {
+    setConfirmationMessage('Are you sure you want to delete this questionnaire?');
+    setOnConfirmAction(() => confirmDeleteQuestionnaire);
+    setIsConfirmationVisible(true);
+  }, [confirmDeleteQuestionnaire]);
+
+  // Memoize the cancelAction function
+  const cancelAction = useCallback(() => {
+    setIsConfirmationVisible(false);
+    setConfirmationMessage('');
+    setOnConfirmAction(null);
+  }, []);
+
   useEffect(() => {
     const fetchQuestionnaire = async () => {
       if (questionnaire && questionnaire.ID) {
@@ -117,6 +149,15 @@ const Questionnaire: React.FC = () => {
     <div className="questionnaire-view-details">
       <DynamicView fields={fields} />
     </div>
+    
+    {/* Delete Questionnaire Button */}
+    <button
+      className="questionnaire-delete-button"
+      onClick={handleDeleteQuestionnaire}
+      data-testid="delete-questionnaire-button"
+    >
+      <img src="/assets/TrashSVG.svg" alt="Delete Questionnaire" />
+    </button>
 
     {/* QuestionView Component */}
     <div className="questionnaire-view-questions">
@@ -140,6 +181,15 @@ const Questionnaire: React.FC = () => {
           >
             <img src="/assets/AddButtonSVG.svg" alt="Add Questions" />
           </button>
+        )}
+
+        {/* Confirmation Popup */}
+        {isConfirmationVisible && (
+          <ConfirmationPopup
+            message={confirmationMessage}
+            onConfirm={onConfirmAction!}
+            onCancel={cancelAction}
+          />
         )}
       </div>
     </>

@@ -83,6 +83,25 @@
   height: auto;
 }
 
+/* Delete Questionnaire Button */
+.questionnaire-delete-button {
+  margin: 0 auto; /* Center the button horizontally */
+  margin-top: 10px;
+  align-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  width: 85px; /* Match Message button width */
+  height: 85px; /* Match Message button height */
+}
+
+.questionnaire-delete-button img {
+  width: 85px; /* Ensure the image matches the button size */
+  height: 85px;
+}
+
 .scrollable-body::-webkit-scrollbar {
   width: 8px;
 }

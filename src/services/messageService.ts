@@ -76,7 +76,7 @@ export const getMessagesByExperimentID = async (id: string): Promise<Message[]> 
   }
 };
 
-// Delete Experiment
+// Delete Message
 export const DeleteMessageByID = async (id: string): Promise<Message | void> => {
   try {
     const token = getAuthToken();
@@ -94,7 +94,7 @@ export const DeleteMessageByID = async (id: string): Promise<Message | void> => 
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to delete experiment: ${errorText}`);
+      throw new Error(`Failed to delete Message: ${errorText}`);
     }
 
     // If the response is 204 No Content, there's no JSON to parse
@@ -107,7 +107,7 @@ export const DeleteMessageByID = async (id: string): Promise<Message | void> => 
     return data as Message;
 
   } catch (error) {
-    console.error('Error deleting experiment:', error);
+    console.error('Error deleting message:', error);
     throw error;
   }
 };
