@@ -151,7 +151,7 @@ const MessageCreation: React.FC = () => {
       const response = await addMessage(messageData);
       console.log('Message added successfully:', response);
       // Redirect to the message dashboard
-      navigate(`/messagedashboard/${id}`);
+      navigate(-1);
     } catch (error) {
       console.error('Error adding message:', error);
       alert('Failed to add message. Please check your input and try again.');

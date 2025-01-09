@@ -1,12 +1,21 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Message.css';
 import { Message as MessageType } from '../types/message';
+import { DeleteMessageByID } from '../services/messageService'; // Import delete function
+import ConfirmationPopup from '../components/ConfirmationPopup'; // Import ConfirmationPopup
+import { useState } from 'react';
 
 const Message: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // Initialize navigate
   const message = location.state?.message as MessageType | null;
+
+  // Add state variables for confirmation popup
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
 
   if (!message) {
     return (
@@ -73,6 +82,32 @@ const Message: React.FC = () => {
     return text.substring(0, maxLength) + '...';
   };
 
+  // Modify handleDeleteMessage to show confirmation popup
+  const handleDeleteMessage = () => {
+    setConfirmationMessage('Are you sure you want to delete this message?');
+    setOnConfirmAction(() => confirmDeleteMessage);
+    setIsConfirmationVisible(true);
+  };
+
+  // Define the confirm delete action
+  const confirmDeleteMessage = async () => {
+    if (!message) return;
+    try {
+      await DeleteMessageByID(message.ID);
+      navigate(-1);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Failed to delete the message. Please try again.');
+    }
+  };
+
+  // Define the cancel action
+  const cancelAction = () => {
+    setIsConfirmationVisible(false);
+    setConfirmationMessage('');
+    setOnConfirmAction(null);
+  };
+
   return (
     <>
       <Navbar />
@@ -80,14 +115,34 @@ const Message: React.FC = () => {
         {/* Title */}
         <h1 className="message-view-title">
           View for Message: {truncateText(message?.name || `Message ${message.ID}`, 23)}
-
         </h1>
 
         {/* Message Details Component */}
         <div className="message-details-component">
           <DynamicView fields={fields} />
         </div>
+
+        {/* Delete Message Button */}
+        <button
+          className="delete-message-button"
+          onClick={handleDeleteMessage}
+        >
+          <img
+            src="/assets/TrashSVG.svg"
+            alt="Delete Icon"
+            className="delete-message-button-icon"
+          />
+        </button>
       </div>
+
+      {/* Confirmation Popup */}
+      {isConfirmationVisible && (
+        <ConfirmationPopup
+          message={confirmationMessage}
+          onConfirm={onConfirmAction!}
+          onCancel={cancelAction}
+        />
+      )}
     </>
   );
 };

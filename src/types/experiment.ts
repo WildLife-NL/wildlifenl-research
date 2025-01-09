@@ -15,3 +15,12 @@ export interface Experiment {
   messageActivity: number;       
   questionnaireActivity: number;
 }
+
+export interface UpdateExperiment {
+  ID: string;
+  name: string;
+  description: string;
+  start: string;
+  end?: string;
+  livingLabID?: string;
+}
