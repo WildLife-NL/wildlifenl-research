@@ -287,28 +287,28 @@ const Experiment: React.FC = () => {
             />
             <label>LivingLab</label>
             <div
-              className={`experiment-creation-dropdown experiment-livinglab-dropdown ${isDropdownOpen ? 'experiment-creation-open' : ''}`}
+              className={`experimentview-dropdown ${isDropdownOpen ? 'experimentview-open' : ''}`}
             >
               <button
                 type="button"
-                className="experiment-creation-dropdown-button"
+                className="experimentview-dropdown-button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 {editLivingLabName}
                 <img
                   src="/assets/vsvg.svg"
                   alt="Dropdown Icon"
-                  className="experiment-creation-dropdown-icon"
+                  className="experimentview-dropdown-icon"
                 />
               </button>
               {isDropdownOpen && (
-                <div className="experiment-creation-dropdown-content">
+                <div className="experimentview-dropdown-content">
                   {loadingLabs ? (
                     <div>Loading...</div>
                   ) : (
                     <>
                       <div
-                        className="experiment-creation-dropdown-item"
+                        className="experimentview-dropdown-item"
                         onClick={() => {
                           setEditLivingLabID('');
                           setEditLivingLabName('None');
@@ -320,7 +320,7 @@ const Experiment: React.FC = () => {
                       {livingLabs.map((lab) => (
                         <div
                           key={lab.ID}
-                          className="experiment-creation-dropdown-item"
+                          className="experimentview-dropdown-item"
                           onClick={() => {
                             setEditLivingLabID(lab.ID);
                             setEditLivingLabName(lab.name);

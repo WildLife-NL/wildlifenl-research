@@ -1,4 +1,4 @@
-.popup-overlay {
+.questionselection-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,7 +12,7 @@
   z-index: 9999;
 }
 
-.Popup-container {
+.questionselection-Popup-container {
   width: 900px;
   height: 450px;
   position: relative;

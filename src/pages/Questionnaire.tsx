@@ -5,8 +5,10 @@ import DynamicView from '../components/DynamicView';
 import QuestionView from '../components/QuestionView';
 import ConfirmationPopup from '../components/ConfirmationPopup'; // Import ConfirmationPopup
 import '../styles/Questionnaire.css';
-import { Questionnaire as QuestionnaireType } from '../types/questionnaire';
-import { getQuestionnaireByID, DeleteQuestionnaireByID } from '../services/questionnaireService';
+import { Questionnaire as QuestionnaireType, UpdatedQuestionnaire } from '../types/questionnaire';
+import { getQuestionnaireByID, DeleteQuestionnaireByID, updateQuestionnaireByID } from '../services/questionnaireService'; // Import update function
+import { InteractionType } from '../types/interactiontype'; // Import InteractionType
+import { getAllInteractions } from '../services/interactionTypeService'; // Import interaction types service
 
 const Questionnaire: React.FC = () => {
   const location = useLocation();
@@ -21,6 +23,15 @@ const Questionnaire: React.FC = () => {
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
+
+  // Add state variables for edit popup
+  const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editIdentifier, setEditIdentifier] = useState('');
+  const [editExperimentID, setEditExperimentID] = useState('');
+  const [editInteractionTypeID, setEditInteractionTypeID] = useState<string | null>(null);
+  const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]); // Define interactionTypes state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Memoize the confirmDeleteQuestionnaire function
   const confirmDeleteQuestionnaire = useCallback(async () => {
@@ -46,6 +57,60 @@ const Questionnaire: React.FC = () => {
     setIsConfirmationVisible(false);
     setConfirmationMessage('');
     setOnConfirmAction(null);
+  }, []);
+
+  // Handler to open the edit popup
+  const handleEditQuestionnaire = useCallback(() => {
+    if (questionnaire) {
+      setEditName(questionnaire.name);
+      setEditIdentifier(questionnaire.identifier || '');
+      setEditExperimentID(questionnaire.experiment.ID.toString());
+      setEditInteractionTypeID(questionnaire.interactionType?.ID || null);
+      setIsEditPopupVisible(true);
+    }
+  }, [questionnaire]);
+
+  // Handler to save the edited questionnaire
+  const saveEditedQuestionnaire = useCallback(async () => {
+    if (!questionnaire) return;
+    if (!editInteractionTypeID) {
+      alert('Interaction Type must be selected.');
+      return;
+    }
+    const updatedData: UpdatedQuestionnaire = {
+      name: editName,
+      identifier: editIdentifier,
+      experimentID: editExperimentID,
+      interactionTypeID: editInteractionTypeID, // Ensure this is a string
+    };
+    try {
+      await updateQuestionnaireByID(questionnaire.ID.toString(), updatedData);
+      setIsEditPopupVisible(false);
+      // Refresh questionnaire data
+      const refreshedQuestionnaire = await getQuestionnaireByID(questionnaire.ID.toString());
+      setQuestionnaire(refreshedQuestionnaire);
+    } catch (error) {
+      console.error('Error updating questionnaire:', error);
+      alert('Failed to update the questionnaire. Please try again.');
+    }
+  }, [questionnaire, editName, editIdentifier, editExperimentID, editInteractionTypeID]);
+
+  // Handler to cancel editing
+  const cancelEdit = useCallback(() => {
+    setIsEditPopupVisible(false);
+  }, []);
+
+  // Fetch interaction types
+  useEffect(() => {
+    const fetchInteractionTypes = async () => {
+      try {
+        const types = await getAllInteractions();
+        setInteractionTypes(types);
+      } catch (error) {
+        console.error('Failed to fetch interaction types:', error);
+      }
+    };
+    fetchInteractionTypes();
   }, []);
 
   useEffect(() => {
@@ -150,14 +215,26 @@ const Questionnaire: React.FC = () => {
       <DynamicView fields={fields} />
     </div>
     
-    {/* Delete Questionnaire Button */}
-    <button
-      className="questionnaire-delete-button"
-      onClick={handleDeleteQuestionnaire}
-      data-testid="delete-questionnaire-button"
-    >
-      <img src="/assets/TrashSVG.svg" alt="Delete Questionnaire" />
-    </button>
+    {/* Container for Delete and Edit Buttons */}
+    <div className="questionnaire-buttons-container">
+      {/* Delete Questionnaire Button */}
+      <button
+        className="questionnaire-delete-button"
+        onClick={handleDeleteQuestionnaire}
+        data-testid="delete-questionnaire-button"
+      >
+        <img src="/assets/TrashSVG.svg" alt="Delete Questionnaire" />
+      </button>
+
+      {/* Edit Questionnaire Button */}
+      <button
+        className="questionnaire-edit-button"
+        onClick={handleEditQuestionnaire}
+        data-testid="edit-questionnaire-button"
+      >
+        <img src="/assets/EditSVG.svg" alt="Edit Questionnaire" />
+      </button>
+    </div>
 
     {/* QuestionView Component */}
     <div className="questionnaire-view-questions">
@@ -190,6 +267,81 @@ const Questionnaire: React.FC = () => {
             onConfirm={onConfirmAction!}
             onCancel={cancelAction}
           />
+        )}
+
+        {/* Edit Popup */}
+        {isEditPopupVisible && (
+          <div className="edit-questionnaire-popup"> {/* Updated class name */}
+            <div className="edit-questionnaire-popup-content"> {/* Updated class name */}
+              <h2>Edit Questionnaire</h2>
+              {/* Name */}
+              <label>Name*</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+              />
+
+              {/* Identifier */}
+              <label>Identifier</label>
+              <input
+                type="text"
+                value={editIdentifier}
+                onChange={(e) => setEditIdentifier(e.target.value)}
+              />
+
+              {/* Experiment ID */}
+              <label>Experiment ID*</label>
+              <input
+                type="text"
+                value={editExperimentID}
+                onChange={(e) => setEditExperimentID(e.target.value)}
+                required
+              />
+
+              {/* Interaction Type Dropdown */}
+              <label>Interaction Type*</label>
+              <div className={`questionnaireview-interactiontype-dropdown ${isDropdownOpen ? 'open' : ''}`}> {/* Updated class names */}
+                <button
+                  type="button"
+                  className="questionnaireview-interactiontype-dropdown-button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  {editInteractionTypeID
+                    ? interactionTypes.find((type: InteractionType) => type.ID === editInteractionTypeID)?.name || 'Select Interaction Type'
+                    : 'Select Interaction Type'}
+                  <img
+                    src="/assets/vsvg.svg"
+                    alt="Dropdown Icon"
+                    className="questionnaireview-interactiontype-dropdown-icon"
+                  />
+                </button>
+                {isDropdownOpen && (
+                  <div className="questionnaireview-interactiontype-dropdown-content"> 
+                    {interactionTypes.map((type: InteractionType) => (
+                      <div
+                        key={type.ID}
+                        className="questionnaireview-interactiontype-dropdown-item" 
+                        onClick={() => {
+                          setEditInteractionTypeID(type.ID);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        {type.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="edit-questionnaire-popup-buttons"> {/* Updated class name */}
+                <button onClick={saveEditedQuestionnaire}>Save</button>
+                <button onClick={cancelEdit}>Cancel</button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </>

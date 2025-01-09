@@ -83,24 +83,45 @@
   height: auto;
 }
 
+/* Container for the buttons to align them horizontally */
+.questionnaire-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Adjust the gap as needed */
+  margin-top: 10px;
+}
+
 /* Delete Questionnaire Button */
 .questionnaire-delete-button {
-  margin: 0 auto; /* Center the button horizontally */
-  margin-top: 10px;
-  align-content: center;
   background: none;
   border: none;
   cursor: pointer;
   display: flex;
   justify-content: center;
-  width: 85px; /* Match Message button width */
-  height: 85px; /* Match Message button height */
+  width: 85px; /* Match button width */
+  height: 85px; /* Match button height */
 }
 
 .questionnaire-delete-button img {
   width: 85px; /* Ensure the image matches the button size */
   height: 85px;
 }
+
+/* Edit Questionnaire Button */
+.questionnaire-edit-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  width: 85px; /* Match button width */
+  height: 85px; /* Match button height */
+}
+.questionnaire-edit-button img{
+  width: 85px; /* Ensure the image matches the button size */
+  height: 85px;
+}
+
 
 .scrollable-body::-webkit-scrollbar {
   width: 8px;
@@ -140,4 +161,114 @@
     display: block;
     margin-bottom: 5px;
   }
+}
+
+/* Edit Popup Styles */
+.edit-questionnaire-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.edit-questionnaire-popup-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.edit-questionnaire-popup-content h2 {
+  margin-bottom: 10px;
+}
+
+.edit-questionnaire-popup-content label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.edit-questionnaire-popup-content input,
+.edit-questionnaire-popup-content textarea {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.edit-questionnaire-popup-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Dropdown Styles */
+.questionnaireview-interactiontype-dropdown {
+  position: relative;
+  width: 225px;
+}
+
+.questionnaireview-interactiontype-dropdown-button {
+  width: 100%;
+  height: 50px;
+  background: #27A966;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(39, 169, 102, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Ensure space between text and icon */
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  padding: 0 15px;
+}
+
+.questionnaireview-interactiontype-dropdown-button:focus {
+  outline: none;
+}
+
+.questionnaireview-interactiontype-dropdown-icon {
+  width: 17px;
+  height: 11px;
+  transition: transform 0.2s;
+}
+
+.questionnaireview-interactiontype-dropdown-content {
+  display: none;
+  position: absolute;
+  top: 55px; /* Position below the button */
+  left: 0;
+  background-color: #fff;
+  min-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 12px;
+  margin-top: 5px;
+}
+
+.questionnaireview-interactiontype-dropdown.open .questionnaireview-interactiontype-dropdown-content {
+  display: block;
+}
+
+.questionnaireview-interactiontype-dropdown-item {
+  padding: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.equestionnaireview-interactiontype-dropdown-item:hover {
+  background-color: #f1f1f1;
 }

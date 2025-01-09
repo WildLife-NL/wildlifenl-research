@@ -1,4 +1,4 @@
-import {AddQuestionnaire, UpdateQuestionnaire, Questionnaire} from '../types/questionnaire'
+import {AddQuestionnaire, UpdatedQuestionnaire, Questionnaire} from '../types/questionnaire'
 const QUESTIONNAIRE_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/questionnaire/';
 const QUESTIONNAIRES_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/questionnaires/experiment/';
 
@@ -97,7 +97,7 @@ export const getQuestionnaireByID = async (id: string): Promise<Questionnaire> =
 };
 
 // Update Questionnaire
-export const updateExperiment = async (id: string, questionnaireData: UpdateQuestionnaire): Promise<Questionnaire> => {
+export const updateQuestionnaireByID = async (id: string, questionnaireData: UpdatedQuestionnaire): Promise<Questionnaire> => {
   try {
     const token = getAuthToken();
     if (!token) {

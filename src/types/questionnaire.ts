@@ -18,7 +18,7 @@ export interface AddQuestionnaire{
   name: string;
 }
 
-export interface UpdateQuestionnaire{
+export interface UpdatedQuestionnaire{
   experimentID: string;
   identifier: string;
   interactionTypeID: string;

@@ -34,8 +34,8 @@ const QuestionSelectionPopup: React.FC<QuestionSelectionPopupProps> = ({ onClose
   };
 
   return (
-    <div className="popup-overlay">
-      <div className="Popup-container" ref={popupRef}>
+    <div className="questionselection-popup-overlay">
+      <div className="questionselection-Popup-container" ref={popupRef}>
         <div className="Multiplechoicerectangle" onClick={handleMultipleClick}></div>
         <div className="Seperationline"></div>
         <div className="Singleanswerheader"></div>
