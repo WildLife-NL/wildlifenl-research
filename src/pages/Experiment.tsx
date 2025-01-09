@@ -168,6 +168,21 @@ const Experiment: React.FC = () => {
     return text.substring(0, maxLength) + '...';
   };
 
+  const getStatus = (startDate: string, endDate?: string | null): string => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    if (start > today) {
+      return 'Upcoming';
+    } else if (end && end < today) {
+      return 'Completed';
+    } else {
+      return 'Live';
+    }
+  };
+
+  const status = getStatus(experiment.start, experiment.end);
+
   return (
     <>
       <Navbar />
@@ -209,40 +224,46 @@ const Experiment: React.FC = () => {
               className="view-messages-button-icon"
             />
           </button>
-
-          {/* Stop Experiment Button */}
-          <button
-            className="stop-experiment-button"
-            onClick={handleStopExperiment}
-            disabled={isStopping}
-          >
-            <span className="stop-button-text">
-              {isStopping ? 'Stopping...' : 'Stop Experiment'}
-            </span>
-          </button>
           
-          {/* Delete Experiment Button */}
-          <button
-            className="delete-experiment-button"
-            onClick={handleDeleteExperiment}
-          >
-            <img
-              src="/assets/TrashSVG.svg"
-              alt="Delete Icon"
-              className="delete-experiment-button-icon"
-            />
-          </button>
+          {/* Show Stop only if Live */}
+          {status === 'Live' && (
+            <button
+              className="stop-experiment-button"
+              onClick={handleStopExperiment}
+              disabled={isStopping}
+            >
+              <span className="stop-button-text">
+                {isStopping ? 'Stopping...' : 'Stop Experiment'}
+              </span>
+            </button>
+          )}
 
-          {/* Edit Experiment Button */}
-          <button
-            className="delete-experiment-button" /* existing delete style */
-            onClick={handleEditExperimentButton}
-          >
-            <img
-              src="/assets/EditSVG.svg"
-              alt="Edit Icon"
-            />
-          </button>
+          {/* Show Delete only if Upcoming or Completed */}
+          {(status === 'Upcoming' || status === 'Completed') && (
+            <button
+              className="delete-experiment-button"
+              onClick={handleDeleteExperiment}
+            >
+              <img
+                src="/assets/TrashSVG.svg"
+                alt="Delete Icon"
+                className="delete-experiment-button-icon"
+              />
+            </button>
+          )}
+
+          {/* Show Edit only if Upcoming */}
+          {status === 'Upcoming' && (
+            <button
+              className="delete-experiment-button" /* existing delete style */
+              onClick={handleEditExperimentButton}
+            >
+              <img
+                src="/assets/EditSVG.svg"
+                alt="Edit Icon"
+              />
+            </button>
+          )}
         </div>
       </div>
 
