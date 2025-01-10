@@ -246,18 +246,18 @@ const Experiment: React.FC = () => {
             />
           </button>
 
-          {/* Delete Experiment (red if not completed, else gray) */}
+          {/* Delete Experiment (red if not live, else gray) */}
           <button
             className={`experiment-button ${
-              status === 'Completed' ? 'gray-button' : 'red-button'
+              status === 'Live' || status === 'Completed' ? 'gray-button' : 'red-button'
             }`}
             title={
-              status === 'Completed'
-                ? 'An experiment can only be deleted before being live'
+              status === 'Live' || status === 'Completed'
+                ? 'An experiment cannot be deleted while it is live or completed'
                 : ''
             }
-            onClick={status === 'Completed' ? undefined : handleDeleteExperiment}
-            disabled={status === 'Completed'}
+            onClick={status === 'Live' || status === 'Completed' ? undefined : handleDeleteExperiment}
+            disabled={status === 'Live' || status === 'Completed'}
           >
             <span>Delete Experiment</span>
             <img
