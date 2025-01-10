@@ -1,18 +1,17 @@
-import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Message.css';
 import { Message as MessageType } from '../types/message';
-import { DeleteMessageByID } from '../services/messageService'; // Import delete function
-import ConfirmationPopup from '../components/ConfirmationPopup'; // Import ConfirmationPopup
+import { DeleteMessageByID } from '../services/messageService';
+import ConfirmationPopup from '../components/ConfirmationPopup';
 import { useState } from 'react';
 
 const Message: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const message = location.state?.message as MessageType | null;
 
-  // Add state variables for confirmation popup
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
@@ -76,20 +75,38 @@ const Message: React.FC = () => {
       value: message.experiment.name || 'N/A',
     },
   ];
-  
+
   const truncateText = (text: string, maxLength: number): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
 
-  // Modify handleDeleteMessage to show confirmation popup
+  // Helper function to get experiment status
+  const getStatus = (startDate: string, endDate?: string | null): string => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    if (start > today) {
+      return 'Upcoming';
+    } else if (end && end < today) {
+      return 'Completed';
+    } else {
+      return 'Live';
+    }
+  };
+
+  const status = message.experiment
+    ? getStatus(message.experiment.start, message.experiment.end)
+    : 'Unknown';
+
+  // Show confirmation popup
   const handleDeleteMessage = () => {
     setConfirmationMessage('Are you sure you want to delete this message?');
     setOnConfirmAction(() => confirmDeleteMessage);
     setIsConfirmationVisible(true);
   };
 
-  // Define the confirm delete action
+  // Actual delete action
   const confirmDeleteMessage = async () => {
     if (!message) return;
     try {
@@ -101,7 +118,6 @@ const Message: React.FC = () => {
     }
   };
 
-  // Define the cancel action
   const cancelAction = () => {
     setIsConfirmationVisible(false);
     setConfirmationMessage('');
@@ -117,16 +133,26 @@ const Message: React.FC = () => {
           View for Message: {truncateText(message?.name || `Message ${message.ID}`, 23)}
         </h1>
 
-        {/* Message Details Component */}
+        {/* Message Details */}
         <div className="message-details-component">
           <DynamicView fields={fields} />
         </div>
 
-        {/* Delete Message Button */}
+        {/* Delete Button */}
         <button
-          className="delete-message-button"
-          onClick={handleDeleteMessage}
+          className={`delete-message-button ${
+            status === 'Upcoming' ? 'delete-message-red-button' : 'delete-message-gray-button'
+          }`}
+          onClick={status === 'Upcoming' ? handleDeleteMessage : undefined}
+          disabled={status !== 'Upcoming'}
+          title={
+            status === 'Upcoming'
+              ? ''
+              : 'Messages can only be deleted before the experiment goes live'
+          }
+          data-testid="delete-message-button"
         >
+          <span>Delete Message</span>
           <img
             src="/assets/TrashSVG.svg"
             alt="Delete Icon"

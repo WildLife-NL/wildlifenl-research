@@ -135,6 +135,21 @@ const Questionnaire: React.FC = () => {
     fetchQuestionnaire();
   }, [questionnaire]);
 
+  const getStatus = (startDate: string, endDate?: string | null): string => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    if (start > today) {
+      return 'Upcoming';
+    } else if (end && end < today) {
+      return 'Completed';
+    } else {
+      return 'Live';
+    }
+  };
+
+  const status = questionnaire?.experiment.start ? getStatus(questionnaire.experiment.start, questionnaire.experiment.end) : 'Unknown';
+
   
   if (!questionnaire) {
     return (
@@ -216,47 +231,60 @@ const Questionnaire: React.FC = () => {
     </div>
     
     {/* Container for Delete and Edit Buttons */}
-    <div className="questionnaire-buttons-container">
-      {/* Delete Questionnaire Button */}
+    <div className="questionnaire-buttons-container2">
       <button
-        className="questionnaire-delete-button"
-        onClick={handleDeleteQuestionnaire}
+        className={`questionnaire-button ${status === 'Upcoming' ? 'red-button' : 'gray-button'}`}
+        onClick={status === 'Upcoming' ? handleDeleteQuestionnaire : undefined}
+        disabled={status !== 'Upcoming'}
+        title={status === 'Upcoming' ? '' : 'Questionnaires can only be deleted before the experiment goes live'}
         data-testid="delete-questionnaire-button"
       >
+        <span>Delete Questionnaire</span>
         <img src="/assets/TrashSVG.svg" alt="Delete Questionnaire" />
       </button>
-
-      {/* Edit Questionnaire Button */}
       <button
-        className="questionnaire-edit-button"
-        onClick={handleEditQuestionnaire}
+        className={`questionnaire-button ${status === 'Upcoming' ? 'blue-button' : 'gray-button'}`}
+        onClick={status === 'Upcoming' ? handleEditQuestionnaire : undefined}
+        disabled={status !== 'Upcoming'}
+        title={status === 'Upcoming' ? '' : 'Questionnaires can only be edited before the experiment goes live'}
         data-testid="edit-questionnaire-button"
       >
+        <span>Edit Questionnaire</span>
         <img src="/assets/EditSVG.svg" alt="Edit Questionnaire" />
       </button>
     </div>
 
     {/* QuestionView Component */}
     <div className="questionnaire-view-questions">
-      <QuestionView fields={questionnaire.questions || []} experimentID={questionnaire.experiment.ID} />
+      <QuestionView fields={questionnaire.questions || []} experiment={questionnaire.experiment} />
     </div>
   </div>
   {/* Conditionally render Add or Edit Questions Button */}
           {questionnaire.questions && questionnaire.questions.length > 0 ? (
           <button
             className="edit-questions-button"
-            onClick={navigateToEditQuestions}
+            onClick={status === 'Upcoming' ? navigateToEditQuestions : undefined}
+            disabled={status !== 'Upcoming'}
+            title={status !== 'Upcoming' ? 'Questions can only be edited before the experiment goes live' : ''}
             data-testid="edit-questions-button"
           >
-            <img src="/assets/EditButtonSVG.svg" alt="Edit Questions" />
+            <img
+              src={status === 'Upcoming' ? "/assets/EditButtonSVG.svg" : "/assets/GrayEditButtonSVG.svg"}
+              alt="Edit Questions"
+            />
           </button>
         ) : (
           <button
             className="add-questions-button"
-            onClick={navigateToCreateQuestions}
+            onClick={status === 'Upcoming' ? navigateToCreateQuestions : undefined}
+            disabled={status !== 'Upcoming'}
+            title={status !== 'Upcoming' ? 'Questions can only be created before the experiment goes live' : ''}
             data-testid="add-questions-button"
           >
-            <img src="/assets/AddButtonSVG.svg" alt="Add Questions" />
+            <img
+              src={status === 'Upcoming' ? "/assets/AddButtonSVG.svg" : "/assets/GrayAddButtonSVG.svg"}
+              alt="Add Questions"
+            />
           </button>
         )}
 

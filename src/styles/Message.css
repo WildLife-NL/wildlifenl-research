@@ -1,24 +1,9 @@
-/* Message.css */
-
-/* Reset and Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Roboto', sans-serif;
-}
-
-/* Message Container */
 .message-container {
-  max-width: 1200px; /* Set a max width */
-  margin: 0 auto;    /* Center the container */
-  padding: 20px; 
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-/* Title Styling */
 .message-view-title {
   position: absolute;
   top: 90px;
@@ -32,13 +17,11 @@ body {
   line-height: normal;
 }
 
-/* Message Details Component */
 .message-details-component {
-  width: 100%;        
-  margin-top: 160px;  
+  width: 100%;
+  margin-top: 160px;
 }
 
-/* Message Not Found Styling */
 .message-not-found {
   display: flex;
   justify-content: center;
@@ -48,23 +31,54 @@ body {
   color: #555;
 }
 
+/* ----------------------------------
+   Make Delete Message look like
+   other Delete buttons
+---------------------------------- */
 .delete-message-button {
-  margin: 0 auto; /* Center the button horizontally */
-  margin-top: 10px;
-  align-content: center;
-  background: none;
+  width: 250px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  justify-content: space-between; /* space between text & icon */
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
   border: none;
   cursor: pointer;
-  display: flex;
-  justify-content: center;
+  margin: 20px auto;
+
+  color: #FFF;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  letter-spacing: 1.35px;
+  line-height: normal;
+  font-size: 20px;
 }
 
-.delete-message-button img {
-  width: 85px; /* Match other button icons */
-  height: 85px;
+.delete-message-button-icon {
+  width: 30px;
+  height: 30px;
+  margin-left: 10px; /* Space between text and icon (optional) */
 }
 
+/* Red & Gray states (like .red-button / .gray-button) */
+.delete-message-red-button {
+  background-color: #E81E21;
+}
+.delete-message-red-button:hover {
+  background-color: #bf181e;
+}
+.delete-message-gray-button {
+  background-color: #BEBEBE;
+  cursor: not-allowed;
+}
 
+/* ----------------------------------
+   Responsive
+---------------------------------- */
 @media (max-width: 768px) {
   .message-view-title {
     font-size: 36px;

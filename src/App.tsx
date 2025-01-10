@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Activity from './pages/Activity';
 import Profile from './pages/Profile';
 import Export from './pages/Export';
 import ExperimentCreation from './pages/ExperimentCreation';
@@ -40,7 +39,6 @@ const App: React.FC = () => {
 
                 {/* Private Routes */}
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/activity" element={<Activity />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/export" element={<Export />} />
                 <Route path="/experimentcreation" element={<ExperimentCreation />} />
