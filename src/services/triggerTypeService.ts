@@ -1,8 +1,5 @@
 const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/schemas/Message.json';
 
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('authToken');
-};
 
 export const getAllTriggerTypes = async (): Promise<string[]> => {
   try {
