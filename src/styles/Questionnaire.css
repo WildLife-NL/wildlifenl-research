@@ -65,6 +65,12 @@
   height: auto;
 }
 
+/* Disabled Add Questions Button */
+.add-questions-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .edit-questions-button {
   position: fixed;
   bottom: 12px; /* 12px from bottom */
@@ -81,6 +87,12 @@
 .edit-questions-button img {
   width: 100%;
   height: auto;
+}
+
+/* Disabled Edit Questions Button */
+.edit-questions-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Container for the buttons to align them horizontally */
