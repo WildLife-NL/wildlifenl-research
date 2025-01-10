@@ -45,6 +45,64 @@ body {
   margin-top: 11px; /* Spacing above the buttons */
 }
 
+/* Unified Button Styles */
+.experiment-button {
+  width: 300px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px; /* Adjust as needed */
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  letter-spacing: 1.35px;
+  line-height: normal;
+  font-size: 20px;
+}
+
+.experiment-button-icon {
+  width: 30px;
+  height: 30px;
+  margin-left: 10px; /* Add space between label and icon */
+}
+
+.stop-button-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.red-button {
+  background-color: #E81E21;
+}
+.red-button:hover {
+  background-color: #bf181e;
+}
+
+.blue-button {
+  background-color: #007BFF;
+}
+.blue-button:hover {
+  background-color: #0060cc;
+}
+
+.green-button {
+  background-color: #27A966;
+}
+.green-button:hover {
+  background-color: #1e8a52;
+}
+
+.gray-button {
+  background-color: #BEBEBE;
+  cursor: not-allowed;
+}
 
 /* View Questionnaires Button */
 .view-questionnaires-button {

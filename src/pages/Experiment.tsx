@@ -199,71 +199,94 @@ const Experiment: React.FC = () => {
 
         {/* Buttons Container */}
         <div className="buttons-container">
-          {/* Questionnaire Overview Button */}
+          {/* View Questionnaires (always green, never disabled) */}
           <button
-            className="view-questionnaires-button"
+            className={`experiment-button green-button`}
             onClick={handleQuestionnaireOverviewClick}
           >
-            <span className="view-questionnaires-button-text">View Questionnaires</span>
+            <span>View Questionnaires</span>
             <img
               src="/assets/questionnaireSVG.svg"
               alt="Questionnaire Icon"
-              className="view-questionnaires-button-icon"
+              className="experiment-button-icon"
             />
           </button>
 
-          {/* View Messages Button */}
+          {/* View Messages (always green, never disabled) */}
           <button
-            className="view-messages-button"
+            className="experiment-button green-button"
             onClick={handleMessageOverviewClick}
           >
-            <span className="view-messages-button-text">View Messages</span>
+            <span>View Messages</span>
             <img
               src="/assets/messageSVG.svg"
               alt="Message Icon"
-              className="view-messages-button-icon"
+              className="experiment-button-icon"
             />
           </button>
-          
-          {/* Show Stop only if Live */}
-          {status === 'Live' && (
-            <button
-              className="stop-experiment-button"
-              onClick={handleStopExperiment}
-              disabled={isStopping}
-            >
-              <span className="stop-button-text">
-                {isStopping ? 'Stopping...' : 'Stop Experiment'}
-              </span>
-            </button>
-          )}
 
-          {/* Show Delete only if Upcoming or Completed */}
-          {(status === 'Upcoming' || status === 'Completed') && (
-            <button
-              className="delete-experiment-button"
-              onClick={handleDeleteExperiment}
-            >
-              <img
-                src="/assets/TrashSVG.svg"
-                alt="Delete Icon"
-                className="delete-experiment-button-icon"
-              />
-            </button>
-          )}
+          {/* Stop Experiment (red if Live, else gray) */}
+          <button
+            className={`experiment-button ${
+              status === 'Live' && !isStopping ? 'red-button' : 'gray-button'
+            }`}
+            title={
+              status === 'Live' && !isStopping
+                ? ''
+                : 'An experiment can only be stopped when it is live'
+            }
+            onClick={status === 'Live' && !isStopping ? handleStopExperiment : undefined}
+            disabled={status !== 'Live' || isStopping}
+          >
+            <span>{isStopping ? 'Stopping...' : 'Stop Experiment'}</span>
+            <img
+              src="/assets/StopSVG.svg"
+              alt="Stop Icon"
+              className="experiment-button-icon stop-button-icon"
+            />
+          </button>
 
-          {/* Show Edit only if Upcoming */}
-          {status === 'Upcoming' && (
-            <button
-              className="delete-experiment-button" /* existing delete style */
-              onClick={handleEditExperimentButton}
-            >
-              <img
-                src="/assets/EditSVG.svg"
-                alt="Edit Icon"
-              />
-            </button>
-          )}
+          {/* Delete Experiment (red if not live, else gray) */}
+          <button
+            className={`experiment-button ${
+              status === 'Live' || status === 'Completed' ? 'gray-button' : 'red-button'
+            }`}
+            title={
+              status === 'Live' || status === 'Completed'
+                ? 'An experiment cannot be deleted while it is live or completed'
+                : ''
+            }
+            onClick={status === 'Live' || status === 'Completed' ? undefined : handleDeleteExperiment}
+            disabled={status === 'Live' || status === 'Completed'}
+          >
+            <span>Delete Experiment</span>
+            <img
+              src="/assets/TrashSVG.svg"
+              alt="Delete Icon"
+              className="experiment-button-icon"
+            />
+          </button>
+
+          {/* Edit Experiment (blue if Upcoming, else gray) */}
+          <button
+            className={`experiment-button ${
+              status === 'Upcoming' ? 'blue-button' : 'gray-button'
+            }`}
+            title={
+              status === 'Upcoming'
+                ? ''
+                : 'An experiment can only be edited before being live'
+            }
+            onClick={status === 'Upcoming' ? handleEditExperimentButton : undefined}
+            disabled={status !== 'Upcoming'}
+          >
+            <span>Edit Experiment</span>
+            <img
+              src="/assets/EditSVG.svg"
+              alt="Edit Icon"
+              className="experiment-button-icon"
+            />
+          </button>
         </div>
       </div>
 

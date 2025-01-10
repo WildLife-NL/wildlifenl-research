@@ -246,6 +246,12 @@
   height: auto;
 }
 
+/* Disabled Add Questionnaire Button */
+.add-questionnaire-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Loading Container */
 .loading-container {
   display: flex;

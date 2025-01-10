@@ -1,29 +1,22 @@
 import { Question } from "../types/question";
 import { useNavigate } from 'react-router-dom';
 import '../styles/QuestionView.css';
-import { Experiment } from '../types/experiment';
 
 interface QuestionViewProps {
   fields: Question[];
-  experiment: Experiment; // Changed from experimentID: string
+  experiment: any; // Changed from experimentID to experiment
 }
-
-const getStatus = (startDate: string, endDate?: string | null): string => {
-  const today = new Date();
-  const start = new Date(startDate);
-  const end = endDate ? new Date(endDate) : null;
-  if (start > today) {
-    return 'Upcoming';
-  } else if (end && end < today) {
-    return 'Completed';
-  } else {
-    return 'Live';
-  }
-};
 
 const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment }) => {
   const navigate = useNavigate();
-  const status = getStatus(experiment.start, experiment.end);
+
+  const getStatus = (experiment: any) => {
+    // Implement the logic to determine the experiment status
+    // For example:
+    return experiment.status;
+  };
+
+  const experimentStatus = getStatus(experiment);
 
   return (
     <div className="questionnaire">
@@ -90,13 +83,15 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment }) => {
                       </div>
                       <div className="message-button-container">
                         <img
-                          src={status === 'Live' || status === 'Completed' ? "/assets/MessageGraySVG.svg" : "/assets/MessageBlackSVG.svg"}
+                          src={experimentStatus === 'active' ? "/assets/MessageBlackSVG.svg" : "/assets/MessageGraySVG.svg"}
                           alt="Add Message"
                           className="message-button-svg"
                           onClick={() => {
-                            navigate(`/MessageCreationB/${experiment.ID}`, { // Updated to use experiment.ID
-                              state: { answerID: answer.ID, answerText: answer.text }
-                            });
+                            if (experimentStatus === 'active') {
+                              navigate(`/MessageCreationB/${experiment.ID}`, {
+                                state: { answerID: answer.ID, answerText: answer.text }
+                              });
+                            }
                           }}
                         />
                       </div>

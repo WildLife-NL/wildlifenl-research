@@ -146,6 +146,21 @@ const QuestionnaireDashboard: React.FC = () => {
     return text.substring(0, maxLength) + '...';
   };
 
+  const getStatus = (startDate: string, endDate?: string | null): string => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    if (start > today) {
+      return 'Upcoming';
+    } else if (end && end < today) {
+      return 'Completed';
+    } else {
+      return 'Live';
+    }
+  };
+
+  const status = experiment ? getStatus(experiment.start, experiment.end) : 'Unknown';
+
   return (
     <div className="questionnaire-dashboard-container" data-testid="questionnaire-dashboard-container">
       {/* Navbar */}
@@ -286,10 +301,15 @@ const QuestionnaireDashboard: React.FC = () => {
           {/* Add Questionnaire Button */}
           <button
             className="add-questionnaire-button"
-            onClick={navigateToCreateQuestionnaire}
+            onClick={status === 'Upcoming' ? navigateToCreateQuestionnaire : undefined}
+            disabled={status !== 'Upcoming'}
+            title={status !== 'Upcoming' ? 'Questionnaires can only be created before the experiment goes live' : 'Add Questionnaire'}
             data-testid="add-questionnaire-button"
           >
-            <img src="/assets/AddButtonSVG.svg" alt="Add Questionnaire" />
+            <img
+              src={status === 'Upcoming' ? "/assets/AddButtonSVG.svg" : "/assets/GrayAddButtonSVG.svg"}
+              alt="Add Questionnaire"
+            />
           </button>
         </>
       )}

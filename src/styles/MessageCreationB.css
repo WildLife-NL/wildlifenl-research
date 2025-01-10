@@ -254,6 +254,15 @@
   background: #555;
 }
 
+/* Severity Label */
+.severity-label {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-top: 5px;
+}
+
 @media (max-width: 1600px) {
   .message-creationb-flex-container {
     flex-direction: column;

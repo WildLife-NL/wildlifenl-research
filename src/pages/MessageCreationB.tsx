@@ -13,10 +13,18 @@ const MessageCreationB: React.FC = () => {
   // State variables for inputs
   const [messageTitle, setMessageTitle] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [severity, setSeverity] = useState(1);
+  const [severity, setSeverity] = useState(3);
 
   const messageTitleRef = useRef<HTMLInputElement>(null);
   const messageTextRef = useRef<HTMLInputElement>(null);
+
+  const severityLabels: { [key: number]: string } = {
+    1: 'Debug',
+    2: 'Info',
+    3: 'Warning',
+    4: 'Urgent',
+    5: 'Critical',
+  };
 
   const validateForm = (): boolean => {
     let isValid = true;
@@ -140,6 +148,9 @@ const MessageCreationB: React.FC = () => {
                 />
                 <span>{severity}</span>
               </div>
+              <small className="severity-label">
+                {severityLabels[severity]}
+              </small>
             </div>
           </div>
 

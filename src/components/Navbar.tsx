@@ -31,19 +31,6 @@ const Navbar: React.FC = () => {
           <p>Dashboard</p>
         </div>
 
-        {/* Activity */}
-        <div
-          className="navbar-action"
-          onClick={() => navigate('/activity')}
-        >
-          <img
-            src="../assets/ActivitySVG.svg"
-            alt="Activity"
-            className="navbar-icon"
-          />
-          <p>Activity</p>
-        </div>
-
         {/* Profile */}
         <div
           className="navbar-action"
