@@ -92,8 +92,8 @@ const Login: React.FC = () => {
 
       {/* OTP Popup */}
       {showOTP && (
-        <div className="popup-overlay">
-          <div className="popup-content">
+        <div className="OTP-popup-overlay">
+          <div className="OTP-popup-content">
             <OTPPopup email={email} onClose={() => setShowOTP(false)} />
           </div>
         </div>

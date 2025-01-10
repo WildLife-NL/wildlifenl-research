@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useState, useEffect } from 'react';
 import { getMyExperiments } from '../services/experimentService';
@@ -16,7 +15,7 @@ const Export: React.FC = () => {
   const [questionnairesByExperiment, setQuestionnairesByExperiment] = useState<Record<string, Questionnaire[]>>({});
   const [showPopup, setShowPopup] = useState(false);
   const [popupResponses, setPopupResponses] = useState<any[]>([]);
-  const [csvPreview, setCsvPreview] = useState<string>('');
+ 
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [tableRows, setTableRows] = useState<string[][]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -85,13 +84,6 @@ const Export: React.FC = () => {
         return updated;
       });
     }
-  };
-
-  const parseCsvToTable = (csv: string) => {
-    const lines = csv.split('\n');
-    const headers = lines[0] ? lines[0].split(',') : [];
-    const rows = lines.slice(1).map(line => line.split(','));
-    return { headers, rows };
   };
 
   // Helper to recursively extract keys from nested objects

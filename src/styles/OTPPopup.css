@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
 
 /* Popup Overlay */
-.popup-overlay {
+.OTP-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;

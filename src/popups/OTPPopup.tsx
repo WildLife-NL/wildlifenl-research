@@ -126,7 +126,7 @@ const OTPPopup: React.FC<OTPPopupProps> = ({ email, onClose }) => {
   };
 
   return (
-    <div className="popup-overlay">
+    <div className="OTP-popup-overlay">
       <div className="otp-popup">
         {/* Email SVG at the top */}
         <div className="email-svg">
