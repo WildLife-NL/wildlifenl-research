@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import { useState, useEffect } from 'react';
 import { getMyExperiments } from '../services/experimentService';
 import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
-import { getResponsesByExperimentID } from '../services/responseService';
+import { getResponsesByExperimentID, getResponsesByQuestionnaireID } from '../services/responseService';
 import { getConveyancesByExperimentID } from '../services/conveyanceService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
@@ -26,6 +26,10 @@ const Export: React.FC = () => {
   const [conveyanceTableHeaders, setConveyanceTableHeaders] = useState<string[]>([]);
   const [conveyanceTableRows, setConveyanceTableRows] = useState<string[][]>([]);
   const [currentExperimentName, setCurrentExperimentName] = useState<string>('');
+  const [showQuestionnairePopup, setShowQuestionnairePopup] = useState(false);
+  const [popupQuestionnaireResponses, setPopupQuestionnaireResponses] = useState<any[]>([]);
+  const [questionnaireTableHeaders, setQuestionnaireTableHeaders] = useState<string[]>([]);
+  const [questionnaireTableRows, setQuestionnaireTableRows] = useState<string[][]>([]);
 
   const truncateText = (text: string, maxLength: number = 100): string => {
     return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
@@ -213,6 +217,35 @@ const Export: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleShowQuestionnaireResponses = async (questionnaireId: string, questionnaireName: string) => {
+    try {
+      setCurrentExperimentName(questionnaireName);
+      const data = await getResponsesByQuestionnaireID(questionnaireId);
+      const { headers, rows } = buildTableData(data);
+      setQuestionnaireTableHeaders(headers);
+      setQuestionnaireTableRows(rows.slice(0, 10));
+      setPopupQuestionnaireResponses(data);
+      setShowQuestionnairePopup(true);
+    } catch (error) {
+      console.error('Error fetching questionnaire responses:', error);
+    }
+  };
+
+  const downloadCSVQuestionnaire = () => {
+    const csv = convertToCSV(popupQuestionnaireResponses);
+    const now = new Date();
+    const dateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}H-${String(now.getMinutes()).padStart(2, '0')}M-${String(now.getSeconds()).padStart(2, '0')}S`;
+    const filename = `QuestionnaireResponses_${currentExperimentName}_${dateTime}.csv`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       {/* Navbar */}
@@ -358,6 +391,56 @@ const Export: React.FC = () => {
         </div>
       )}
 
+      {showQuestionnairePopup && (
+        <div className="popup-overlay show" onClick={() => setShowQuestionnairePopup(false)}>
+          <div className={`popup-content ${questionnaireTableRows.length === 0 ? 'popup-content-small' : ''}`} onClick={(e) => e.stopPropagation()}>
+            {questionnaireTableRows.length === 0 ? (
+              <div className="no-responses-container">
+                <div className="no-responses-message">No responses found for this questionnaire.</div>
+                <div className="popup-actions">
+                  <button className="close-button close-button-no-responses" onClick={() => setShowQuestionnairePopup(false)}>Close</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="popup-preview-box">
+                  {/* ...existing code... */}
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        {questionnaireTableHeaders.map((header, idx) => (
+                          <th key={`qh-${idx}`} style={{ border: '1px solid #ccc', padding: '8px' }}>
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {questionnaireTableRows.map((row, i) => (
+                        <tr key={`qr-${i}`}>
+                          {row.map((cell, j) => (
+                            <td
+                              key={`qc-${i}-${j}`}
+                              style={{ border: '1px solid #ccc', padding: '8px' }}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="popup-actions">
+                  <button className="close-button" onClick={() => setShowQuestionnairePopup(false)}>Close</button>
+                  <button className="download-csv-button" onClick={downloadCSVQuestionnaire}>Download CSV</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Container + table with new unique classes */}
       <div className="export-table-container-dash">
         <table className="export-table-dash">
@@ -421,7 +504,16 @@ const Export: React.FC = () => {
                     <tr className="questionnaire-dash" key={q.ID}>
                       <td className="truncate-text">{truncateText(q.identifier)}</td>
                       <td></td>
-                      <td></td>
+                      <td className="export-questionnaire-actions-cell">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShowQuestionnaireResponses(q.ID, q.identifier);
+                          }}
+                        >
+                          Questionnaire Responses
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </React.Fragment>

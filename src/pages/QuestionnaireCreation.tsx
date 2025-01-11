@@ -66,7 +66,7 @@ const QuestionnaireCreation: React.FC = () => {
     try {
       const response = await addQuestionnaire(questionnaireData);
       console.log('Questionnaire added successfully:', response);
-      navigate(`/QuestionnaireDashboard/${experimentID}`);
+      navigate(-1);
     } catch (error) {
       console.error('Error adding questionnaire:', error);
     }

@@ -61,7 +61,9 @@ const Experiment: React.FC = () => {
     { name: 'Description', value: experiment.description },
     {
       name: 'Duration',
-      value: `${new Date(experiment.start).toLocaleDateString()} - ${new Date(experiment.end).toLocaleDateString()}`,
+      value: experiment.end
+        ? `${new Date(experiment.start).toLocaleDateString()} - ${new Date(experiment.end).toLocaleDateString()}`
+        : `${new Date(experiment.start).toLocaleDateString()} - No End-date`,
     },
     { name: 'Specified LivingLab', value: experiment.livingLab?.name || 'N/A' },
     { name: 'Number of Questionnaires', value: experiment.numberOfQuestionnaires?.toString() || '0' },
