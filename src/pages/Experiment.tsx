@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
 import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
-import { EndExperimentByID, DeleteExperimentByID, updateExperiment } from '../services/experimentService';
+import { EndExperimentByID, DeleteExperimentByID, updateExperiment, getMyExperiments } from '../services/experimentService';
 import { getAllLivingLabs } from '../services/livingLabService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { LivingLab } from '../types/livinglab';
@@ -12,7 +12,7 @@ import { LivingLab } from '../types/livinglab';
 const Experiment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const experiment = location.state?.experiment as ExperimentType | null;
+  const [currentExperiment, setCurrentExperiment] = useState<ExperimentType | null>(null);
   
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -21,15 +21,20 @@ const Experiment: React.FC = () => {
   const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
 
   // For editing
-  const [editName, setEditName] = useState(experiment?.name ?? '');
-  const [editDescription, setEditDescription] = useState(experiment?.description ?? '');
-  const [editStart, setEditStart] = useState(experiment?.start ?? '');
-  const [editEnd, setEditEnd] = useState(experiment?.end ?? '');
-  const [editLivingLabID, setEditLivingLabID] = useState(experiment?.livingLab?.ID ?? '');
-  const [editLivingLabName, setEditLivingLabName] = useState(experiment?.livingLab?.name ?? 'None');
+  const [editName, setEditName] = useState(currentExperiment?.name ?? '');
+  const [editDescription, setEditDescription] = useState(currentExperiment?.description ?? '');
+  const [editStart, setEditStart] = useState(currentExperiment?.start ?? '');
+  const [editEnd, setEditEnd] = useState(currentExperiment?.end ?? '');
+  const [editLivingLabID, setEditLivingLabID] = useState(currentExperiment?.livingLab?.ID ?? '');
+  const [editLivingLabName, setEditLivingLabName] = useState(currentExperiment?.livingLab?.name ?? 'None');
   const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
   const [loadingLabs, setLoadingLabs] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // New state variables for error messages
+  const [errorName, setErrorName] = useState('');
+  const [errorDescription, setErrorDescription] = useState('');
+  const [errorStart, setErrorStart] = useState('');
 
   useEffect(() => {
     const fetchLabs = async () => {
@@ -45,7 +50,28 @@ const Experiment: React.FC = () => {
     fetchLabs();
   }, []);
 
-  if (!experiment) {
+  useEffect(() => {
+    if (location.state?.experiment?.ID) {
+      (async () => {
+        const allExperiments = await getMyExperiments();
+        const fresh = allExperiments.find(exp => exp.ID === location.state.experiment.ID);
+        setCurrentExperiment(fresh || null);
+      })();
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (currentExperiment) {
+      setEditName(currentExperiment.name);
+      setEditDescription(currentExperiment.description);
+      setEditStart(currentExperiment.start);
+      setEditEnd(currentExperiment.end);
+      setEditLivingLabID(currentExperiment.livingLab?.ID ?? '');
+      setEditLivingLabName(currentExperiment.livingLab?.name ?? 'None');
+    }
+  }, [currentExperiment]);
+
+  if (!currentExperiment) {
     return (
       <>
         <Navbar />
@@ -57,28 +83,30 @@ const Experiment: React.FC = () => {
   }
 
   const fields = [
-    { name: 'Experiment Title', value: experiment.name },
-    { name: 'Description', value: experiment.description },
+    { name: 'Experiment Title', value: currentExperiment.name },
+    { name: 'Description', value: currentExperiment.description },
     {
       name: 'Duration',
-      value: `${new Date(experiment.start).toLocaleDateString()} - ${new Date(experiment.end).toLocaleDateString()}`,
+      value: currentExperiment.end
+        ? `${new Date(currentExperiment.start).toLocaleDateString()} - ${new Date(currentExperiment.end).toLocaleDateString()}`
+        : `${new Date(currentExperiment.start).toLocaleDateString()} - No End-date`,
     },
-    { name: 'Specified LivingLab', value: experiment.livingLab?.name || 'N/A' },
-    { name: 'Number of Questionnaires', value: experiment.numberOfQuestionnaires?.toString() || '0' },
-    { name: 'Responses on Questionnaires', value: experiment.questionnaireActivity?.toString() || '0' },
-    { name: 'Number of Messages', value: experiment.numberOfMessages?.toString() || '0' },
-    { name: 'Messages Sent', value: experiment.messageActivity?.toString() || '0' },
+    { name: 'Specified LivingLab', value: currentExperiment.livingLab?.name || 'N/A' },
+    { name: 'Number of Questionnaires', value: currentExperiment.numberOfQuestionnaires?.toString() || '0' },
+    { name: 'Responses on Questionnaires', value: currentExperiment.questionnaireActivity?.toString() || '0' },
+    { name: 'Number of Messages', value: currentExperiment.numberOfMessages?.toString() || '0' },
+    { name: 'Messages Sent', value: currentExperiment.messageActivity?.toString() || '0' },
   ];
   
   // Navigation handlers
   const handleQuestionnaireOverviewClick = () => {
-    navigate(`/questionnairedashboard/${experiment.ID}`, { state: { experiment } });
+    navigate(`/questionnairedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment } });
   };
 
   const handleMessageOverviewClick = async () => {
-    if (!experiment) return;
+    if (!currentExperiment) return;
     try {
-      navigate(`/messagedashboard/${experiment.ID}`, { state: { experiment } });
+      navigate(`/messagedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment } });
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -88,10 +116,10 @@ const Experiment: React.FC = () => {
     setIsConfirmationVisible(false);
     setIsStopping(true);
 
-    if (!experiment) return;
+    if (!currentExperiment) return;
 
     try {
-      const result = await EndExperimentByID(experiment.ID);
+      const result = await EndExperimentByID(currentExperiment.ID);
       console.log('Experiment stopped:', result);
       alert('Experiment has been successfully stopped.');
       navigate('/experiments');
@@ -106,11 +134,11 @@ const Experiment: React.FC = () => {
   const confirmDeleteExperiment = async () => {
     setIsConfirmationVisible(false);
 
-    if (!experiment) return;
+    if (!currentExperiment) return;
 
     try {
       
-      DeleteExperimentByID(experiment.ID);
+      DeleteExperimentByID(currentExperiment.ID);
       
       navigate('/dashboard');
     } catch (error) {
@@ -145,18 +173,52 @@ const Experiment: React.FC = () => {
   };
 
   const handleSaveEdit = async () => {
+    let isValid = true;
+
+    // Reset error messages
+    setErrorName('');
+    setErrorDescription('');
+    setErrorStart('');
+
+    // Validate Name
+    if (!editName.trim()) {
+      setErrorName('Name is required.');
+      isValid = false;
+    }
+
+    // Validate Description
+    if (!editDescription.trim()) {
+      setErrorDescription('Description is required.');
+      isValid = false;
+    }
+
+    // Validate Start Date
+    if (!editStart) {
+      setErrorStart('Start date is required.');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return;
+    }
+
     const payload: UpdateExperiment = {
-      ID: experiment.ID, 
+      ID: currentExperiment.ID, 
       name: editName,
       description: editDescription,
-      start: editStart,
-      ...(editEnd && { end: editEnd }),
+      start: new Date(editStart).toISOString(),
+      ...(editEnd && { end: new Date(editEnd).toISOString() }),
       ...(editLivingLabID && { livingLabID: editLivingLabID })
     };
     try {
-      await updateExperiment(experiment.ID, payload); 
+      await updateExperiment(currentExperiment.ID, payload); 
+      const allExperiments = await getMyExperiments();
+      const updatedExperiment = allExperiments.find(exp => exp.ID === currentExperiment.ID);
+      if (updatedExperiment) {
+        // Replace the experiment in state
+        setCurrentExperiment(updatedExperiment);
+      }
       setIsEditPopupVisible(false);
-      window.location.reload();
     } catch (error) {
       console.error('Error updating experiment:', error);
       alert('Failed to update experiment.');
@@ -181,7 +243,7 @@ const Experiment: React.FC = () => {
     }
   };
 
-  const status = getStatus(experiment.start, experiment.end);
+  const status = getStatus(currentExperiment.start, currentExperiment.end);
 
   return (
     <>
@@ -189,7 +251,7 @@ const Experiment: React.FC = () => {
       <div className="experiment-container">
         {/* Title */}
         <h1 className="experiment-view-title">
-          View for Experiment: {truncateText(experiment?.name || `Experiment ${experiment.ID}`, 23)}
+          View for Experiment: {truncateText(currentExperiment?.name || `Experiment ${currentExperiment.ID}`, 23)}
         </h1>
 
         {/* Experiment Details Component */}
@@ -310,12 +372,16 @@ const Experiment: React.FC = () => {
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
             />
+            {errorName && <p className="error-message-update-experiment">{errorName}</p>}
+            
             <label>Description</label>
             <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               required
             />
+            {errorDescription && <p className="error-message-update-experiment">{errorDescription}</p>}
+            
             <label>Start Date</label>
             <input
               type="date"
@@ -323,12 +389,15 @@ const Experiment: React.FC = () => {
               onChange={(e) => setEditStart(e.target.value)}
               required
             />
+            {errorStart && <p className="error-message-update-experiment">{errorStart}</p>}
+            
             <label>End Date</label>
             <input
               type="date"
               value={editEnd ? editEnd.split('T')[0] : ''}
               onChange={(e) => setEditEnd(e.target.value)}
             />
+            
             <label>LivingLab</label>
             <div
               className={`experimentview-dropdown ${isDropdownOpen ? 'experimentview-open' : ''}`}
@@ -379,6 +448,7 @@ const Experiment: React.FC = () => {
                 </div>
               )}
             </div>
+            
             <div className="edit-popup-buttons">
               <button onClick={handleSaveEdit}>Save</button>
               <button onClick={() => setIsEditPopupVisible(false)}>Cancel</button>
