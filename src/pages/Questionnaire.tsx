@@ -227,7 +227,7 @@ const Questionnaire: React.FC = () => {
     },
     {
       name: 'Number of Questions',
-      value: questionnaire.questions.length.toString()
+      value: (questionnaire.questions || []).length.toString()
     },
   ];
 
