@@ -35,7 +35,6 @@ const Questionnaire: React.FC = () => {
 
   // Add state variables for error messages
   const [errorName, setErrorName] = useState('');
-  const [errorExperimentID, setErrorExperimentID] = useState('');
 
   // Memoize the confirmDeleteQuestionnaire function
   const confirmDeleteQuestionnaire = useCallback(async () => {
@@ -80,17 +79,10 @@ const Questionnaire: React.FC = () => {
 
     // Reset error messages
     setErrorName('');
-    setErrorExperimentID('');
 
     // Validate Name
     if (!editName) {
       setErrorName('Name is required.');
-      isValid = false;
-    }
-
-    // Validate Experiment ID
-    if (!editExperimentID) {
-      setErrorExperimentID('Experiment ID is required.');
       isValid = false;
     }
 
@@ -346,16 +338,6 @@ const Questionnaire: React.FC = () => {
                 value={editIdentifier}
                 onChange={(e) => setEditIdentifier(e.target.value)}
               />
-
-              {/* Experiment ID */}
-              <label>Experiment ID*</label>
-              <input
-                type="text"
-                value={editExperimentID}
-                onChange={(e) => setEditExperimentID(e.target.value)}
-                required
-              />
-              {errorExperimentID && <p className="error-message-update-questionnaire">{errorExperimentID}</p>}
 
               {/* Interaction Type Dropdown */}
               <label>Interaction Type*</label>
