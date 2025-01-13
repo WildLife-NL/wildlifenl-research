@@ -33,6 +33,11 @@ const Experiment: React.FC = () => {
   const [loadingLabs, setLoadingLabs] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // New state variables for error messages
+  const [errorName, setErrorName] = useState('');
+  const [errorDescription, setErrorDescription] = useState('');
+  const [errorStart, setErrorStart] = useState('');
+
   useEffect(() => {
     const fetchLabs = async () => {
       try {
@@ -172,6 +177,35 @@ const Experiment: React.FC = () => {
   };
 
   const handleSaveEdit = async () => {
+    let isValid = true;
+
+    // Reset error messages
+    setErrorName('');
+    setErrorDescription('');
+    setErrorStart('');
+
+    // Validate Name
+    if (!editName.trim()) {
+      setErrorName('Name is required.');
+      isValid = false;
+    }
+
+    // Validate Description
+    if (!editDescription.trim()) {
+      setErrorDescription('Description is required.');
+      isValid = false;
+    }
+
+    // Validate Start Date
+    if (!editStart) {
+      setErrorStart('Start date is required.');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return;
+    }
+
     const payload: UpdateExperiment = {
       ID: currentExperiment.ID, 
       name: editName,
@@ -342,12 +376,16 @@ const Experiment: React.FC = () => {
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
             />
+            {errorName && <p className="error-message-update-experiment">{errorName}</p>}
+            
             <label>Description</label>
             <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               required
             />
+            {errorDescription && <p className="error-message-update-experiment">{errorDescription}</p>}
+            
             <label>Start Date</label>
             <input
               type="date"
@@ -355,12 +393,15 @@ const Experiment: React.FC = () => {
               onChange={(e) => setEditStart(e.target.value)}
               required
             />
+            {errorStart && <p className="error-message-update-experiment">{errorStart}</p>}
+            
             <label>End Date</label>
             <input
               type="date"
               value={editEnd ? editEnd.split('T')[0] : ''}
               onChange={(e) => setEditEnd(e.target.value)}
             />
+            
             <label>LivingLab</label>
             <div
               className={`experimentview-dropdown ${isDropdownOpen ? 'experimentview-open' : ''}`}
@@ -411,6 +452,7 @@ const Experiment: React.FC = () => {
                 </div>
               )}
             </div>
+            
             <div className="edit-popup-buttons">
               <button onClick={handleSaveEdit}>Save</button>
               <button onClick={() => setIsEditPopupVisible(false)}>Cancel</button>

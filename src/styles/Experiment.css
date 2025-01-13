@@ -333,4 +333,12 @@ body {
   background-color: #f1f1f1;
 }
 
+/* Error Message Styles */
+.error-message-update-experiment {
+  color: #E81E21;
+  font-size: 15px;
+  margin-top: -18px;
+  width: 100%;
+}
+
 

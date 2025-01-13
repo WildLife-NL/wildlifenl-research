@@ -33,6 +33,10 @@ const Questionnaire: React.FC = () => {
   const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]); // Define interactionTypes state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Add state variables for error messages
+  const [errorName, setErrorName] = useState('');
+  const [errorExperimentID, setErrorExperimentID] = useState('');
+
   // Memoize the confirmDeleteQuestionnaire function
   const confirmDeleteQuestionnaire = useCallback(async () => {
     if (!questionnaire) return;
@@ -71,17 +75,40 @@ const Questionnaire: React.FC = () => {
   }, [questionnaire]);
 
   // Handler to save the edited questionnaire
-  const saveEditedQuestionnaire = useCallback(async () => {
-    if (!questionnaire) return;
-    if (!editInteractionTypeID) {
-      alert('Interaction Type must be selected.');
+  const saveEditedQuestionnaire = async () => {
+    let isValid = true;
+
+    // Reset error messages
+    setErrorName('');
+    setErrorExperimentID('');
+
+    // Validate Name
+    if (!editName) {
+      setErrorName('Name is required.');
+      isValid = false;
+    }
+
+    // Validate Experiment ID
+    if (!editExperimentID) {
+      setErrorExperimentID('Experiment ID is required.');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
+
+    // Ensure questionnaire is not null
+    if (!questionnaire) {
+      alert('Questionnaire data is missing.');
+      return;
+    }
+
     const updatedData: UpdatedQuestionnaire = {
       name: editName,
       identifier: editIdentifier,
       experimentID: editExperimentID,
-      interactionTypeID: editInteractionTypeID, // Ensure this is a string
+      interactionTypeID: editInteractionTypeID!, // Ensure this is a string
     };
     try {
       await updateQuestionnaireByID(questionnaire.ID.toString(), updatedData);
@@ -93,7 +120,7 @@ const Questionnaire: React.FC = () => {
       console.error('Error updating questionnaire:', error);
       alert('Failed to update the questionnaire. Please try again.');
     }
-  }, [questionnaire, editName, editIdentifier, editExperimentID, editInteractionTypeID]);
+  };
 
   // Handler to cancel editing
   const cancelEdit = useCallback(() => {
@@ -310,6 +337,7 @@ const Questionnaire: React.FC = () => {
                 onChange={(e) => setEditName(e.target.value)}
                 required
               />
+              {errorName && <p className="error-message-update-questionnaire">{errorName}</p>}
 
               {/* Identifier */}
               <label>Identifier</label>
@@ -327,6 +355,7 @@ const Questionnaire: React.FC = () => {
                 onChange={(e) => setEditExperimentID(e.target.value)}
                 required
               />
+              {errorExperimentID && <p className="error-message-update-questionnaire">{errorExperimentID}</p>}
 
               {/* Interaction Type Dropdown */}
               <label>Interaction Type*</label>
