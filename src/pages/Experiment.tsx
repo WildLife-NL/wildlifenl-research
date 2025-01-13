@@ -62,14 +62,6 @@ const Experiment: React.FC = () => {
 
   useEffect(() => {
     if (currentExperiment) {
-      (async () => {
-        const allExperiments = await getMyExperiments();
-      })();
-    }
-  }, [currentExperiment]);
-
-  useEffect(() => {
-    if (currentExperiment) {
       setEditName(currentExperiment.name);
       setEditDescription(currentExperiment.description);
       setEditStart(currentExperiment.start);
