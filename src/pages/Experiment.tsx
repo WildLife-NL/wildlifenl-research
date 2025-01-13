@@ -12,9 +12,7 @@ import { LivingLab } from '../types/livinglab';
 const Experiment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentExperiment, setCurrentExperiment] = useState<ExperimentType | null>(
-    location.state?.experiment ?? null
-  );
+  const [currentExperiment, setCurrentExperiment] = useState<ExperimentType | null>(null);
   
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -53,16 +51,22 @@ const Experiment: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (location.state?.experiment?.ID) {
+      (async () => {
+        const allExperiments = await getMyExperiments();
+        const fresh = allExperiments.find(exp => exp.ID === location.state.experiment.ID);
+        setCurrentExperiment(fresh || null);
+      })();
+    }
+  }, [location.state]);
+
+  useEffect(() => {
     if (currentExperiment) {
       (async () => {
         const allExperiments = await getMyExperiments();
-        const fresh = allExperiments.find(exp => exp.ID === currentExperiment.ID);
-        if (fresh) {
-          setCurrentExperiment(fresh);
-        }
       })();
     }
-  }, []);
+  }, [currentExperiment]);
 
   useEffect(() => {
     if (currentExperiment) {

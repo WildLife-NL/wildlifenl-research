@@ -75,7 +75,7 @@ const Export: React.FC = () => {
       });
       setFilteredExperiments(sortedExperiments);
     }
-  }, [sortConfig]);
+  }, [filteredExperiments, sortConfig]);
 
   const handleExperimentClick = async (experimentId: string) => {
     if (!questionnairesByExperiment[experimentId]) {
