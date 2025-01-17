@@ -1,12 +1,14 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import { useState, useEffect } from 'react';
-import { getMyExperiments } from '../services/experimentService';
+import { getExperiments } from '../services/experimentService';
+import { getMyProfile } from '../services/profileService';
 import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
 import { getResponsesByExperimentID, getResponsesByQuestionnaireID } from '../services/responseService';
 import { getConveyancesByExperimentID } from '../services/conveyanceService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
+import { User } from '../types/user';
 import '../styles/Export.css';
 
 const Export: React.FC = () => {
@@ -30,6 +32,8 @@ const Export: React.FC = () => {
   const [popupQuestionnaireResponses, setPopupQuestionnaireResponses] = useState<any[]>([]);
   const [questionnaireTableHeaders, setQuestionnaireTableHeaders] = useState<string[]>([]);
   const [questionnaireTableRows, setQuestionnaireTableRows] = useState<string[][]>([]);
+  const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+  const [allExperimentsChecked, setAllExperimentsChecked] = useState<boolean>(false);
 
   const truncateText = (text: string, maxLength: number = 100): string => {
     return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
@@ -37,8 +41,12 @@ const Export: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      const data = await getMyExperiments();
-      const expsWithResponses = data.map(exp => ({
+      const [exps, user] = await Promise.all([
+        getExperiments(),
+        getMyProfile()
+      ]);
+      setLoggedInUser(user);
+      const expsWithResponses = exps.map(exp => ({
         ...exp,
         responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
       }));
@@ -47,11 +55,17 @@ const Export: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = experiments.filter(exp =>
-      exp.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    let filtered = [...experiments];
+    if (searchQuery) {
+      filtered = filtered.filter(exp =>
+        exp.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    if (!allExperimentsChecked && loggedInUser) {
+      filtered = filtered.filter(exp => exp.user?.ID === loggedInUser.ID);
+    }
     setFilteredExperiments(filtered);
-  }, [experiments, searchQuery]);
+  }, [experiments, searchQuery, allExperimentsChecked, loggedInUser]);
 
   useEffect(() => {
     let sortedExperiments = [...filteredExperiments];
@@ -252,16 +266,34 @@ const Export: React.FC = () => {
       <Navbar />
       <h1 className="export-title">Export</h1>
       {/* Search Filter */}
-      <div className="filter export-search-filter">
-        <div className="export-search-input-container">
-          <input
-            type="text"
-            placeholder="Search experiment..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="export-search-input"
-          />
-          <img src="/assets/SearchSVG.svg" alt="Search Icon" className="export-search-icon" />
+      <div className="filters-container">
+        <div className="filter export-search-filter">
+          <div className="export-search-input-container">
+            <input
+              type="text"
+              placeholder="Search experiment..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="export-search-input"
+            />
+            <img src="/assets/SearchSVG.svg" alt="Search Icon" className="export-search-icon" />
+          </div>
+        </div>
+        <div className="filter show-all-experiments-filter">
+          <label className="filter-label">All Experiments:</label>
+          <button
+            className="dashboard-qst-toggle-btn"
+            onClick={() => setAllExperimentsChecked(!allExperimentsChecked)}
+          >
+            <img
+              src={
+                allExperimentsChecked
+                  ? '../assets/RadioBoxFilledInSVG.svg'
+                  : '../assets/RadioBoxNotFilledSVG.svg'
+              }
+              alt="Toggle multiple answers"
+            />
+          </button>
         </div>
       </div>
 
@@ -465,9 +497,13 @@ const Export: React.FC = () => {
                   className={`export-sort-icon ${getSortIconClass('responses')}`}
                 />
               </th>
+              {allExperimentsChecked && (
+                <th className="export-creator-header">Creator</th>
+              )}
               <th className="export-actions-header">Export Options</th>
             </tr>
           </thead>
+
           <tbody>
             {filteredExperiments.map((experiment: Experiment, expIndex) => {
               // Use striped background like in Dashboard
@@ -479,6 +515,9 @@ const Export: React.FC = () => {
                   <tr className={rowClass} onClick={() => handleExperimentClick(experiment.ID)}>
                     <td className="export-experiment-name-cell">{truncateText(experiment.name)}</td>
                     <td className="export-responses-cell">{experiment.responses}</td>
+                    {allExperimentsChecked && (
+                      <td className="export-creator-cell">{experiment.user.name}</td>
+                    )}
                     <td className="export-actions-cell">
                       <button
                         onClick={(e) => {
@@ -504,6 +543,7 @@ const Export: React.FC = () => {
                     <tr className="questionnaire-dash" key={q.ID}>
                       <td className="truncate-text">{truncateText(q.identifier)}</td>
                       <td></td>
+                      {allExperimentsChecked && <td></td>}
                       <td className="export-questionnaire-actions-cell">
                         <button
                           onClick={(e) => {
