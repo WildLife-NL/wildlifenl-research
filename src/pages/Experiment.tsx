@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
@@ -35,6 +35,10 @@ const Experiment: React.FC = () => {
   const [errorName, setErrorName] = useState('');
   const [errorDescription, setErrorDescription] = useState('');
   const [errorStart, setErrorStart] = useState('');
+
+  // Add refs for start and end date inputs
+  const editStartDateRef = useRef<HTMLInputElement>(null);
+  const editEndDateRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchLabs = async () => {
@@ -172,6 +176,43 @@ const Experiment: React.FC = () => {
     setIsEditPopupVisible(true);
   };
 
+  // Add validateDates function
+  const validateDates = (): boolean => {
+    const now = new Date();
+    const start = new Date(editStart);
+    const end = editEnd ? new Date(editEnd) : null;
+
+    let isValid = true;
+
+    // Reset custom validity
+    if (editStartDateRef.current) {
+      editStartDateRef.current.setCustomValidity('');
+    }
+    if (editEndDateRef.current) {
+      editEndDateRef.current.setCustomValidity('');
+    }
+
+    // Validate Start Date
+    if (start < now) {
+      if (editStartDateRef.current) {
+        editStartDateRef.current.setCustomValidity('Start date cannot be in the past.');
+      }
+      isValid = false;
+    }
+
+    // Validate End Date
+    if (end) {
+      if (end <= start) {
+        if (editEndDateRef.current) {
+          editEndDateRef.current.setCustomValidity('End date must be later than start date.');
+        }
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  };
+
   const handleSaveEdit = async () => {
     let isValid = true;
 
@@ -179,6 +220,19 @@ const Experiment: React.FC = () => {
     setErrorName('');
     setErrorDescription('');
     setErrorStart('');
+
+    // Perform date validation
+    isValid = validateDates() && isValid;
+
+    if (!isValid) {
+      if (editStartDateRef.current) {
+        editStartDateRef.current.reportValidity();
+      }
+      if (editEndDateRef.current) {
+        editEndDateRef.current.reportValidity();
+      }
+      return;
+    }
 
     // Validate Name
     if (!editName.trim()) {
@@ -386,7 +440,11 @@ const Experiment: React.FC = () => {
             <input
               type="date"
               value={editStart.split('T')[0]}
-              onChange={(e) => setEditStart(e.target.value)}
+              onChange={(e) => {
+                setEditStart(e.target.value);
+                validateDates();
+              }}
+              ref={editStartDateRef}
               required
             />
             {errorStart && <p className="error-message-update-experiment">{errorStart}</p>}
@@ -395,7 +453,11 @@ const Experiment: React.FC = () => {
             <input
               type="date"
               value={editEnd ? editEnd.split('T')[0] : ''}
-              onChange={(e) => setEditEnd(e.target.value)}
+              onChange={(e) => {
+                setEditEnd(e.target.value);
+                validateDates();
+              }}
+              ref={editEndDateRef}
             />
             
             <label>LivingLab</label>
