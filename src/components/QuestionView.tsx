@@ -2,10 +2,12 @@ import { Question } from "../types/question";
 import { useNavigate } from 'react-router-dom';
 import '../styles/QuestionView.css';
 import { Experiment } from '../types/experiment';
+import { User } from '../types/user'; // Import User
 
 interface QuestionViewProps {
   fields: Question[];
   experiment: Experiment; // Changed from experimentID: string
+  loggedInUser?: User; // Added loggedInUser prop
 }
 
 const getStatus = (startDate: string, endDate?: string | null): string => {
@@ -21,9 +23,10 @@ const getStatus = (startDate: string, endDate?: string | null): string => {
   }
 };
 
-const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment }) => {
+const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedInUser }) => { // Updated props
   const navigate = useNavigate();
   const status = getStatus(experiment.start, experiment.end);
+  const isCreator = loggedInUser ? experiment.user.ID === loggedInUser.ID : false; // Determine if user is creator
 
   return (
     <div className="questionnaire">
@@ -79,31 +82,56 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment }) => {
 
               {/* Multiple Choice Group */}
               {hasAnswers && (
-                <div className="multiple-choice-group">
-                  {question.answers.map((answer, idx) => (
-                    <div key={idx} className="answer-option">
-                      <div className="answer-left">
-                        <div className="answer-letter text-style">
-                          {indexToLetterMap[answer.index]}.
-                        </div>
-                        <div className="answer-text text-style">{answer.text}</div>
-                      </div>
-                      <div className="message-button-container">
-                        <img
-                          src={status === 'Live' || status === 'Completed' ? "/assets/MessageGraySVG.svg" : "/assets/MessageBlackSVG.svg"}
-                          alt="Add Message"
-                          className="message-button-svg"
-                          onClick={() => {
-                            navigate(`/MessageCreationB/${experiment.ID}`, { // Updated to use experiment.ID
-                              state: { answerID: answer.ID, answerText: answer.text }
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+  <div className="multiple-choice-group">
+    {question.answers.map((answer, idx) => {
+      // Decide if this user can link messages
+      const canLinkMessage = isCreator && status === 'Upcoming';
+
+      // Default: black icon, clickable
+      let messageIcon = "/assets/MessageBlackSVG.svg";
+      let messageTitle = "";
+      let messageOnClick = () => {
+        navigate(`/MessageCreationB/${experiment.ID}`, {
+          state: { answerID: answer.ID, answerText: answer.text }
+        });
+      };
+
+      // If NOT creator
+      if (!isCreator) {
+        messageIcon = "/assets/MessageGraySVG.svg";
+        messageTitle = "Messages can only be linked by the creator of the experiment before it goes live";
+        messageOnClick = () => {}; // No action
+      } 
+      // Else if it IS creator, but experiment is not upcoming
+      else if (status !== "Upcoming") {
+        messageIcon = "/assets/MessageGraySVG.svg";
+        messageTitle = "Messages can only be linked before the experiment goes live";
+        messageOnClick = () => {}; // No action
+      }
+
+      return (
+        <div key={idx} className="answer-option">
+          <div className="answer-left">
+            <div className="answer-letter text-style">
+              {indexToLetterMap[answer.index]}.
+            </div>
+            <div className="answer-text text-style">{answer.text}</div>
+          </div>
+          <div className="message-button-container">
+            <img
+              src={messageIcon}
+              alt="Add Message"
+              className="message-button-svg"
+              onClick={messageOnClick}
+              title={messageTitle}
+            />
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
 
               {/* Regex Group */}
               {hasOpenResponse && (

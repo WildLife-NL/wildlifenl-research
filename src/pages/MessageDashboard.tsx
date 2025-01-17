@@ -5,6 +5,7 @@ import '../styles/MessageDashboard.css';
 import { getMessagesByExperimentID } from '../services/messageService';
 import { Message } from '../types/message';
 import { Experiment } from '../types/experiment';
+import { User } from '../types/user'; // Import User
 
 interface TriggerType {
   ID: string;
@@ -29,6 +30,7 @@ const MessageDashboard: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const location = useLocation();
   const experiment = location.state?.experiment as Experiment | null;
+  const loggedInUser: User | undefined = location.state?.user; // Add loggedInUser
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [selectedTriggerType, setSelectedInteractionType] = useState<string>('All');
   const [selectedSpecies, setSelectedSpecies] = useState<string>('All');
@@ -39,6 +41,26 @@ const MessageDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSpeciesDropdownOpen, setIsSpeciesDropdownOpen] = useState(false);
+
+  const isCreator = loggedInUser?.ID === experiment?.user.ID; // Define isCreator
+
+  // Define status based on experiment dates
+  const getStatus = (startDate: string, endDate?: string | null): string => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    if (start > today) {
+      return 'Upcoming';
+    } else if (end && end < today) {
+      return 'Completed';
+    } else {
+      return 'Live';
+    }
+  };
+
+  const status = experiment
+    ? getStatus(experiment.start, experiment.end)
+    : 'Unknown';
 
   // Fetch messages and extract unique species and triggers
   useEffect(() => {
@@ -176,7 +198,7 @@ const MessageDashboard: React.FC = () => {
 
   // Handle navigation to message details page
   const handleMessageClick = (message: Message) => {
-    navigate(`/message/${id}`, { state: { message } });
+    navigate(`/message/${id}`, { state: { message, user: loggedInUser } });
   };
 
   // Function to truncate text to a specified length
@@ -422,10 +444,25 @@ const MessageDashboard: React.FC = () => {
           {/* Add Message Button */}
           <button
             className="add-message-button"
-            onClick={navigateToCreateMessage}
+            onClick={isCreator && status === 'Upcoming' ? navigateToCreateMessage : undefined}
+            disabled={!isCreator || status !== 'Upcoming'}
+            title={
+              !isCreator
+                ? 'Messages can only be created by the creator of the experiment before it goes live'
+                : status !== 'Upcoming'
+                ? 'Messages can only be created before the experiment goes live'
+                : ''
+            }
             data-testid="add-message-button"
           >
-            <img src="/assets/AddButtonSVG.svg" alt="Add Message" />
+            <img
+              src={
+                isCreator && status === 'Upcoming'
+                  ? "/assets/AddButtonSVG.svg"
+                  : "/assets/GrayAddButtonSVG.svg"
+              }
+              alt="Add Message"
+            />
           </button>
         </>
       )}

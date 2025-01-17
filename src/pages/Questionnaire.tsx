@@ -9,10 +9,14 @@ import { Questionnaire as QuestionnaireType, UpdatedQuestionnaire } from '../typ
 import { getQuestionnaireByID, DeleteQuestionnaireByID, updateQuestionnaireByID } from '../services/questionnaireService'; // Import update function
 import { InteractionType } from '../types/interactiontype'; // Import InteractionType
 import { getAllInteractions } from '../services/interactionTypeService'; // Import interaction types service
+import { User } from '../types/user'; // Import User
 
 const Questionnaire: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  const loggedInUser: User | undefined = location.state?.user; // Add loggedInUser
+
   const [questionnaire, setQuestionnaire] = useState<QuestionnaireType | null>(
     location.state?.questionnaire || null
   );
@@ -169,7 +173,9 @@ const Questionnaire: React.FC = () => {
 
   const status = questionnaire?.experiment.start ? getStatus(questionnaire.experiment.start, questionnaire.experiment.end) : 'Unknown';
 
-  
+  // Determine if the logged-in user is the creator of the experiment
+  const isCreator = loggedInUser?.ID === questionnaire?.experiment.user.ID;
+
   if (!questionnaire) {
     return (
       <>
@@ -252,20 +258,32 @@ const Questionnaire: React.FC = () => {
     {/* Container for Delete and Edit Buttons */}
     <div className="questionnaire-buttons-container2">
       <button
-        className={`questionnaire-button ${status === 'Upcoming' ? 'red-button' : 'gray-button'}`}
-        onClick={status === 'Upcoming' ? handleDeleteQuestionnaire : undefined}
-        disabled={status !== 'Upcoming'}
-        title={status === 'Upcoming' ? '' : 'Questionnaires can only be deleted before the experiment goes live'}
+        className={`questionnaire-button ${status === 'Upcoming' && isCreator ? 'red-button' : 'gray-button'}`} // Updated className
+        onClick={status === 'Upcoming' && isCreator ? handleDeleteQuestionnaire : undefined}
+        disabled={status !== 'Upcoming' || !isCreator}
+        title={
+          !isCreator
+            ? 'A questionnaire can only be deleted by the creator.'
+            : status !== 'Upcoming'
+            ? 'Questionnaires can only be deleted before the experiment goes live.'
+            : ''
+        }
         data-testid="delete-questionnaire-button"
       >
         <span>Delete Questionnaire</span>
         <img src="/assets/TrashSVG.svg" alt="Delete Questionnaire" />
       </button>
       <button
-        className={`questionnaire-button ${status === 'Upcoming' ? 'blue-button' : 'gray-button'}`}
-        onClick={status === 'Upcoming' ? handleEditQuestionnaire : undefined}
-        disabled={status !== 'Upcoming'}
-        title={status === 'Upcoming' ? '' : 'Questionnaires can only be edited before the experiment goes live'}
+        className={`questionnaire-button ${status === 'Upcoming' && isCreator ? 'blue-button' : 'gray-button'}`} // Updated className
+        onClick={status === 'Upcoming' && isCreator ? handleEditQuestionnaire : undefined}
+        disabled={status !== 'Upcoming' || !isCreator}
+        title={
+          !isCreator
+            ? 'A questionnaire can only be edited by the creator.'
+            : status !== 'Upcoming'
+            ? 'Questionnaires can only be edited before the experiment goes live.'
+            : ''
+        }
         data-testid="edit-questionnaire-button"
       >
         <span>Edit Questionnaire</span>
@@ -275,7 +293,7 @@ const Questionnaire: React.FC = () => {
 
     {/* QuestionView Component */}
     <div className="questionnaire-view-questions">
-      <QuestionView fields={questionnaire.questions || []} experiment={questionnaire.experiment} />
+    <QuestionView fields={questionnaire.questions || []} experiment={questionnaire.experiment} loggedInUser={loggedInUser} />
     </div>
   </div>
   {/* Conditionally render Add or Edit Questions Button */}
@@ -283,25 +301,37 @@ const Questionnaire: React.FC = () => {
           <button
             className="edit-questions-button"
             onClick={status === 'Upcoming' ? navigateToEditQuestions : undefined}
-            disabled={status !== 'Upcoming'}
-            title={status !== 'Upcoming' ? 'Questions can only be edited before the experiment goes live' : ''}
+            disabled={status !== 'Upcoming' || !isCreator}
+            title={
+              !isCreator
+                ? 'Questions can only be edited by the creator of the experiment before it goes live'
+                : status !== 'Upcoming'
+                ? 'Questions can only be edited before the experiment goes live'
+                : ''
+            }
             data-testid="edit-questions-button"
           >
             <img
-              src={status === 'Upcoming' ? "/assets/EditButtonSVG.svg" : "/assets/GrayEditButtonSVG.svg"}
+              src={status === 'Upcoming' && isCreator ? "/assets/EditButtonSVG.svg" : "/assets/GrayEditButtonSVG.svg"}
               alt="Edit Questions"
             />
           </button>
         ) : (
           <button
             className="add-questions-button"
-            onClick={status === 'Upcoming' ? navigateToCreateQuestions : undefined}
-            disabled={status !== 'Upcoming'}
-            title={status !== 'Upcoming' ? 'Questions can only be created before the experiment goes live' : ''}
+            onClick={status === 'Upcoming' && isCreator ? navigateToCreateQuestions : undefined}
+            disabled={status !== 'Upcoming' || !isCreator}
+            title={
+              !isCreator
+                ? 'Questions can only be created by the creator of the experiment before it goes live'
+                : status !== 'Upcoming'
+                ? 'Questions can only be created before the experiment goes live'
+                : ''
+            }
             data-testid="add-questions-button"
           >
             <img
-              src={status === 'Upcoming' ? "/assets/AddButtonSVG.svg" : "/assets/GrayAddButtonSVG.svg"}
+              src={status === 'Upcoming' && isCreator ? "/assets/AddButtonSVG.svg" : "/assets/GrayAddButtonSVG.svg"}
               alt="Add Questions"
             />
           </button>

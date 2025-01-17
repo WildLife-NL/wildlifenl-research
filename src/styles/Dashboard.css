@@ -185,6 +185,24 @@
   pointer-events: none;
 }
 
+/* Show All Experiments Filter */
+.show-all-experiments-filter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.show-all-experiments-filter .filter-label {
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.show-all-experiments-filter input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
 /* Table Container */
 .table-container {
   margin-top: 20px;
@@ -359,4 +377,13 @@
     width: 90px;
     height: 90px;
   }
+}
+
+.dashboard-qst-toggle-btn {
+  width: 35px;
+  height: 35px;
+  background: none;
+  border: none;
+  cursor: pointer;
+ 
 }

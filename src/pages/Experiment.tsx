@@ -4,14 +4,19 @@ import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
 import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
-import { EndExperimentByID, DeleteExperimentByID, updateExperiment, getMyExperiments } from '../services/experimentService';
+import { EndExperimentByID, DeleteExperimentByID, updateExperiment, getExperiments } from '../services/experimentService';
 import { getAllLivingLabs } from '../services/livingLabService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { LivingLab } from '../types/livinglab';
+import { User } from '../types/user'; // Added import
 
 const Experiment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Extract loggedInUser from navigation state
+  const loggedInUser: User | undefined = location.state?.user;
+
   const [currentExperiment, setCurrentExperiment] = useState<ExperimentType | null>(null);
   
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
@@ -57,7 +62,7 @@ const Experiment: React.FC = () => {
   useEffect(() => {
     if (location.state?.experiment?.ID) {
       (async () => {
-        const allExperiments = await getMyExperiments();
+        const allExperiments = await getExperiments();
         const fresh = allExperiments.find(exp => exp.ID === location.state.experiment.ID);
         setCurrentExperiment(fresh || null);
       })();
@@ -100,17 +105,18 @@ const Experiment: React.FC = () => {
     { name: 'Responses on Questionnaires', value: currentExperiment.questionnaireActivity?.toString() || '0' },
     { name: 'Number of Messages', value: currentExperiment.numberOfMessages?.toString() || '0' },
     { name: 'Messages Sent', value: currentExperiment.messageActivity?.toString() || '0' },
+    { name: 'Creator of the experiment', value: currentExperiment.user?.name || 'N/A' },
   ];
   
   // Navigation handlers
   const handleQuestionnaireOverviewClick = () => {
-    navigate(`/questionnairedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment } });
+    navigate(`/questionnairedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment, user: loggedInUser} });
   };
 
   const handleMessageOverviewClick = async () => {
     if (!currentExperiment) return;
     try {
-      navigate(`/messagedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment } });
+      navigate(`/messagedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment, user: loggedInUser } });
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -266,7 +272,7 @@ const Experiment: React.FC = () => {
     };
     try {
       await updateExperiment(currentExperiment.ID, payload); 
-      const allExperiments = await getMyExperiments();
+      const allExperiments = await getExperiments();
       const updatedExperiment = allExperiments.find(exp => exp.ID === currentExperiment.ID);
       if (updatedExperiment) {
         // Replace the experiment in state
@@ -298,6 +304,9 @@ const Experiment: React.FC = () => {
   };
 
   const status = getStatus(currentExperiment.start, currentExperiment.end);
+
+  // Determine if the logged-in user is the creator of the experiment
+  const isCreator = loggedInUser?.ID === currentExperiment.user?.ID;
 
   return (
     <>
@@ -341,18 +350,22 @@ const Experiment: React.FC = () => {
             />
           </button>
 
-          {/* Stop Experiment (red if Live, else gray) */}
+          {/* Stop Experiment (red if Live and creator, else gray) */}
           <button
             className={`experiment-button ${
-              status === 'Live' && !isStopping ? 'red-button' : 'gray-button'
+              status === 'Live' && isCreator && !isStopping ? 'red-button' : 'gray-button'
             }`}
             title={
-              status === 'Live' && !isStopping
-                ? ''
-                : 'An experiment can only be stopped when it is live'
+              !isCreator
+                ? 'An experiment can only be stopped by the creator when it is live'
+                : status !== 'Live'
+                ? 'An experiment can only be stopped when it is live'
+                : ''
             }
-            onClick={status === 'Live' && !isStopping ? handleStopExperiment : undefined}
-            disabled={status !== 'Live' || isStopping}
+            onClick={
+              status === 'Live' && isCreator && !isStopping ? handleStopExperiment : undefined
+            }
+            disabled={status !== 'Live' || !isCreator || isStopping}
           >
             <span>{isStopping ? 'Stopping...' : 'Stop Experiment'}</span>
             <img
@@ -362,18 +375,22 @@ const Experiment: React.FC = () => {
             />
           </button>
 
-          {/* Delete Experiment (red if not live, else gray) */}
+          {/* Delete Experiment (red if deletable and creator, else gray) */}
           <button
             className={`experiment-button ${
-              status === 'Live' || status === 'Completed' ? 'gray-button' : 'red-button'
+              isCreator && status !== 'Live' && status !== 'Completed' ? 'red-button' : 'gray-button'
             }`}
             title={
-              status === 'Live' || status === 'Completed'
-                ? 'An experiment cannot be deleted while it is live or completed'
+              !isCreator
+                ? 'An experiment can only be deleted by the creator before being live'
+                : status === 'Live' || status === 'Completed'
+                ? 'An experiment can only be deleted while it is not live or completed'
                 : ''
             }
-            onClick={status === 'Live' || status === 'Completed' ? undefined : handleDeleteExperiment}
-            disabled={status === 'Live' || status === 'Completed'}
+            onClick={
+              isCreator && status !== 'Live' && status !== 'Completed' ? handleDeleteExperiment : undefined
+            }
+            disabled={!isCreator || status === 'Live' || status === 'Completed'}
           >
             <span>Delete Experiment</span>
             <img
@@ -383,18 +400,22 @@ const Experiment: React.FC = () => {
             />
           </button>
 
-          {/* Edit Experiment (blue if Upcoming, else gray) */}
+          {/* Edit Experiment (blue if Upcoming and creator, else gray) */}
           <button
             className={`experiment-button ${
-              status === 'Upcoming' ? 'blue-button' : 'gray-button'
+              status === 'Upcoming' && isCreator ? 'blue-button' : 'gray-button'
             }`}
             title={
-              status === 'Upcoming'
-                ? ''
-                : 'An experiment can only be edited before being live'
+              !isCreator
+                ? 'An experiment can only be edited by the creator before being live'
+                : status !== 'Upcoming'
+                ? 'An experiment can only be edited before being live'
+                : ''
             }
-            onClick={status === 'Upcoming' ? handleEditExperimentButton : undefined}
-            disabled={status !== 'Upcoming'}
+            onClick={
+              status === 'Upcoming' && isCreator ? handleEditExperimentButton : undefined
+            }
+            disabled={status !== 'Upcoming' || !isCreator}
           >
             <span>Edit Experiment</span>
             <img
