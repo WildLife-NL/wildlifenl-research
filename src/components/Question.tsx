@@ -110,11 +110,6 @@ const sortedInitialAnswers = isMultipleChoice
     }
   }, [isMultipleChoice, allowOpenAnswers]);
 
-  // Update parent with current question text
-  useEffect(() => {
-    onQuestionTextChange(localId, questionText);
-  }, [questionText, localId, onQuestionTextChange]);
-
   const sortedQuestions = [...allQuestions].sort((a, b) => a.indexValue - b.indexValue);
   const currentQuestionIndexInSorted = sortedQuestions.findIndex(q => q.localId === localId);
   const possibleFollowUps = sortedQuestions.slice(currentQuestionIndexInSorted + 1);
@@ -132,7 +127,12 @@ const sortedInitialAnswers = isMultipleChoice
       }
       return answer;
     });
-    setAnswers(updatedAnswers);
+
+    // Only update if there are changes to prevent infinite loop
+    const isDifferent = JSON.stringify(updatedAnswers) !== JSON.stringify(answers);
+    if (isDifferent) {
+      setAnswers(updatedAnswers);
+    }
   }, [allQuestions, indexValue, answers]);
 
   // Use a ref to store the last sent data to avoid infinite loops
@@ -258,6 +258,12 @@ const sortedInitialAnswers = isMultipleChoice
 
   const containerClass = `qst-question-container ${isMultipleChoice ? 'multiple-choice' : ''} ${allowOpenAnswers ? 'open-answer-enabled' : ''}`;
 
+  const handleQuestionTextInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newText = e.target.value;
+    setQuestionText(newText);
+    onQuestionTextChange(localId, newText);
+  };
+
   return (
     <div className={containerClass}>
       <div className="qst-header">
@@ -283,7 +289,7 @@ const sortedInitialAnswers = isMultipleChoice
           type="text"
           placeholder="Enter question..."
           value={questionText}
-          onChange={(e) => setQuestionText(e.target.value)}
+          onChange={handleQuestionTextInput}
         />
       </div>
 
@@ -330,9 +336,13 @@ const sortedInitialAnswers = isMultipleChoice
                 </div>
 
                 <div className="qst-follow-up-container">
-                  <button className="qst-follow-up-btn" onClick={() => toggleFollowUp(index)}>
+                  <button
+                    className={`qst-follow-up-btn ${answer.followUpQuestionId ? 'qst-follow-up-btn-active' : ''}`} // Changed to activate button based on followUpQuestionId
+                    onClick={() => toggleFollowUp(index)}
+                  >
                     <img src={`../assets/${followUpIcon}`} alt="Follow Up" />
                   </button>
+
                   {isFollowUpOpen && (
                     possibleFollowUps.length > 0 ? (
                       <div className="qst-follow-up-dropdown">
