@@ -1,5 +1,5 @@
-const RESPONSE_EXPERIMENT_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/responses/experiment/';
-const RESPONSE_QUESTIONNAIRE_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/responses/questionnaire/';
+const RESPONSE_EXPERIMENT_API_URL = `${process.env.REACT_APP_BASE_URL}/responses/experiment/`;
+const RESPONSE_QUESTIONNAIRE_API_URL = `${process.env.REACT_APP_BASE_URL}/responses/questionnaire/`;
 
 
 const getAuthToken = (): string | null => {

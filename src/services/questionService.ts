@@ -1,6 +1,6 @@
 import { Question } from "../types/question";
 
-const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/question/';
+const API_URL = `${process.env.REACT_APP_BASE_URL}/question/`;
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
 };

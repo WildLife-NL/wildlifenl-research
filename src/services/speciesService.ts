@@ -1,5 +1,5 @@
 import { Species } from "../types/species";
-const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/species/';
+const API_URL = `${process.env.REACT_APP_BASE_URL}/species/`;
 
 
 const getAuthToken = (): string | null => {

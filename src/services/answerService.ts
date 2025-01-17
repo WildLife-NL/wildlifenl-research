@@ -1,6 +1,6 @@
 import { AddAnswer } from "../types/answer";
 
-const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/answer/';
+const API_URL = `${process.env.REACT_APP_BASE_URL}/answer/`;
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
 };

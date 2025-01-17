@@ -1,4 +1,4 @@
-const API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/schemas/Message.json';
+const API_URL = `${process.env.REACT_APP_BASE_URL}/schemas/Message.json`;
 
 
 export const getAllTriggerTypes = async (): Promise<string[]> => {
