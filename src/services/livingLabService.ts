@@ -1,6 +1,12 @@
 import { LivingLab } from '../types/livinglab';
 
-const API_URL = `${process.env.REACT_APP_BASE_URL}/livinglabs`;
+const TEST_BASE_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl';
+const BASE_URL = process.env.NODE_ENV === 'test'
+  ? TEST_BASE_URL
+  : process.env.REACT_APP_BASE_URL;
+
+
+const API_URL = `${BASE_URL}/livinglabs`;
 
 // Function to get the auth token from local storage
 const getAuthToken = (): string | null => {

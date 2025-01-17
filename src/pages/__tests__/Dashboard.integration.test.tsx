@@ -25,6 +25,10 @@ describe('Dashboard Integration Tests', () => {
   const existingLivingLabId = '9c7dbce1-6c4f-46b6-b0c6-ec5d2c2b48c1';
   const existingLivingLabName = 'Living Lab Eindhoven';
 
+  beforeAll(() => {
+    process.env.NODE_ENV = 'test';
+  });
+  
   beforeAll(async () => {
     // Insert authentication token into localStorage
     const authToken = process.env.AUTH_TOKEN;
