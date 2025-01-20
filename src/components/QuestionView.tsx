@@ -85,7 +85,6 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
   <div className="multiple-choice-group">
     {question.answers.map((answer, idx) => {
       // Decide if this user can link messages
-      const canLinkMessage = isCreator && status === 'Upcoming';
 
       // Default: black icon, clickable
       let messageIcon = "/assets/MessageBlackSVG.svg";

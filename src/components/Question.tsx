@@ -264,6 +264,34 @@ const sortedInitialAnswers = isMultipleChoice
     onQuestionTextChange(localId, newText);
   };
 
+  // New state for popup
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupInput, setPopupInput] = useState('');
+  const [popupResult, setPopupResult] = useState<string | null>(null);
+
+  // New handler to open popup
+  const handleVerifyRegex = () => {
+    setIsPopupOpen(true);
+    setPopupInput('');
+    setPopupResult(null);
+  };
+
+  // New handler to close popup
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  // New handler to check regex
+  const handleCheckRegex = () => {
+    try {
+      const regex = new RegExp(regexValue);
+      const isValid = regex.test(popupInput);
+      setPopupResult(isValid ? 'Approved!' : 'Rejected.');
+    } catch (error) {
+      setPopupResult('Invalid regex.');
+    }
+  };
+
   return (
     <div className={containerClass}>
       <div className="qst-header">
@@ -426,6 +454,17 @@ const sortedInitialAnswers = isMultipleChoice
                   onChange={(e) => setRegexValue(e.target.value)}
                 />
               </div>
+               <button
+                    className="check-regex-button"
+                    onClick={handleVerifyRegex}
+                  >
+                    <span>Verify Regex</span>
+                    <img
+                      src="/assets/LabSVG.svg"
+                      alt="Check Regex Icon"
+                      className="check-regex-button-button-icon"
+                    />
+                  </button>
             </div>
           )}
         </>
@@ -442,9 +481,65 @@ const sortedInitialAnswers = isMultipleChoice
               value={regexValue}
               onChange={(e) => setRegexValue(e.target.value)}
             />
-          </div>
-        </div>
+              </div>
+                  <button
+                    className="check-regex-button"
+                    onClick={handleVerifyRegex}
+                  >
+                    <span>Verify Regex</span>
+                    <img
+                      src="/assets/LabSVG.svg"
+                      alt="Check Regex Icon"
+                      className="check-regex-button-button-icon"
+                    />
+                  </button>
+                </div>
       )}
+{isPopupOpen && (
+  <div className="regex-popup">
+    <div className="regex-popup-content">
+      {/* Close button with an image */}
+      <button className="close-popup-button" onClick={handleClosePopup}>
+        <img src={'../assets/XCloseSVG.svg'} alt="Close" />
+      </button>  
+
+      <h2>Regex Validation</h2>
+
+      <label htmlFor="popup-input" className="popup-label">
+        Enter text to validate:
+      </label>
+      <input
+        id="popup-input"
+        type="text"
+        placeholder="Enter text..."
+        value={popupInput}
+        onChange={(e) => setPopupInput(e.target.value)}
+      />
+
+      {/* Button + result container */}
+      
+      <div className="popup-action-row">
+        <div className="regex-popup-content-check">
+        <button onClick={handleCheckRegex}>Check</button>
+        </div>
+        {popupResult && (
+          <div
+            className={`popup-result ${
+              popupResult === 'Approved!'
+                ? 'approved'
+                : popupResult === 'Rejected.'
+                ? 'rejected'
+                : 'invalid'
+            }`}
+          >
+            {popupResult}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
