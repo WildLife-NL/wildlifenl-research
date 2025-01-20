@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "node check-env.js && react-scripts build",
     "test": "jest",
     "test:unit": "jest --config=jest.config.js --runTestsByPath \"**/*.unit.test.tsx\"",
     "test:integration": "jest --config=jest.config.js --runTestsByPath \"**/*.integration.test.tsx\"",

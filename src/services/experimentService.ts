@@ -1,10 +1,9 @@
 import { Experiment, UpdateExperiment } from '../types/experiment';
-import { getBaseUrl } from '../config';
 
 const TEST_BASE_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl';
 const BASE_URL = process.env.NODE_ENV === 'test'
   ? TEST_BASE_URL
-  : getBaseUrl();
+  : process.env.REACT_APP_BASE_URL;
 
 const EXPERIMENT_API_URL = `${BASE_URL}/experiment/`;
 const EXPERIMENTS_API_URL = `${BASE_URL}/experiments/`;
