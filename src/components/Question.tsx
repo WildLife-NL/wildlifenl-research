@@ -110,11 +110,6 @@ const sortedInitialAnswers = isMultipleChoice
     }
   }, [isMultipleChoice, allowOpenAnswers]);
 
-  // Update parent with current question text
-  useEffect(() => {
-    onQuestionTextChange(localId, questionText);
-  }, [questionText, localId, onQuestionTextChange]);
-
   const sortedQuestions = [...allQuestions].sort((a, b) => a.indexValue - b.indexValue);
   const currentQuestionIndexInSorted = sortedQuestions.findIndex(q => q.localId === localId);
   const possibleFollowUps = sortedQuestions.slice(currentQuestionIndexInSorted + 1);
@@ -132,7 +127,12 @@ const sortedInitialAnswers = isMultipleChoice
       }
       return answer;
     });
-    setAnswers(updatedAnswers);
+
+    // Only update if there are changes to prevent infinite loop
+    const isDifferent = JSON.stringify(updatedAnswers) !== JSON.stringify(answers);
+    if (isDifferent) {
+      setAnswers(updatedAnswers);
+    }
   }, [allQuestions, indexValue, answers]);
 
   // Use a ref to store the last sent data to avoid infinite loops
@@ -258,6 +258,40 @@ const sortedInitialAnswers = isMultipleChoice
 
   const containerClass = `qst-question-container ${isMultipleChoice ? 'multiple-choice' : ''} ${allowOpenAnswers ? 'open-answer-enabled' : ''}`;
 
+  const handleQuestionTextInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newText = e.target.value;
+    setQuestionText(newText);
+    onQuestionTextChange(localId, newText);
+  };
+
+  // New state for popup
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupInput, setPopupInput] = useState('');
+  const [popupResult, setPopupResult] = useState<string | null>(null);
+
+  // New handler to open popup
+  const handleVerifyRegex = () => {
+    setIsPopupOpen(true);
+    setPopupInput('');
+    setPopupResult(null);
+  };
+
+  // New handler to close popup
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  // New handler to check regex
+  const handleCheckRegex = () => {
+    try {
+      const regex = new RegExp(regexValue);
+      const isValid = regex.test(popupInput);
+      setPopupResult(isValid ? 'Approved!' : 'Rejected.');
+    } catch (error) {
+      setPopupResult('Invalid regex.');
+    }
+  };
+
   return (
     <div className={containerClass}>
       <div className="qst-header">
@@ -283,7 +317,7 @@ const sortedInitialAnswers = isMultipleChoice
           type="text"
           placeholder="Enter question..."
           value={questionText}
-          onChange={(e) => setQuestionText(e.target.value)}
+          onChange={handleQuestionTextInput}
         />
       </div>
 
@@ -330,9 +364,13 @@ const sortedInitialAnswers = isMultipleChoice
                 </div>
 
                 <div className="qst-follow-up-container">
-                  <button className="qst-follow-up-btn" onClick={() => toggleFollowUp(index)}>
+                  <button
+                    className={`qst-follow-up-btn ${answer.followUpQuestionId ? 'qst-follow-up-btn-active' : ''}`} // Changed to activate button based on followUpQuestionId
+                    onClick={() => toggleFollowUp(index)}
+                  >
                     <img src={`../assets/${followUpIcon}`} alt="Follow Up" />
                   </button>
+
                   {isFollowUpOpen && (
                     possibleFollowUps.length > 0 ? (
                       <div className="qst-follow-up-dropdown">
@@ -416,6 +454,17 @@ const sortedInitialAnswers = isMultipleChoice
                   onChange={(e) => setRegexValue(e.target.value)}
                 />
               </div>
+               <button
+                    className="check-regex-button"
+                    onClick={handleVerifyRegex}
+                  >
+                    <span>Verify Regex</span>
+                    <img
+                      src="/assets/LabSVG.svg"
+                      alt="Check Regex Icon"
+                      className="check-regex-button-button-icon"
+                    />
+                  </button>
             </div>
           )}
         </>
@@ -432,9 +481,65 @@ const sortedInitialAnswers = isMultipleChoice
               value={regexValue}
               onChange={(e) => setRegexValue(e.target.value)}
             />
-          </div>
-        </div>
+              </div>
+                  <button
+                    className="check-regex-button"
+                    onClick={handleVerifyRegex}
+                  >
+                    <span>Verify Regex</span>
+                    <img
+                      src="/assets/LabSVG.svg"
+                      alt="Check Regex Icon"
+                      className="check-regex-button-button-icon"
+                    />
+                  </button>
+                </div>
       )}
+{isPopupOpen && (
+  <div className="regex-popup">
+    <div className="regex-popup-content">
+      {/* Close button with an image */}
+      <button className="close-popup-button" onClick={handleClosePopup}>
+        <img src={'../assets/XCloseSVG.svg'} alt="Close" />
+      </button>  
+
+      <h2>Regex Validation</h2>
+
+      <label htmlFor="popup-input" className="popup-label">
+        Enter text to validate:
+      </label>
+      <input
+        id="popup-input"
+        type="text"
+        placeholder="Enter text..."
+        value={popupInput}
+        onChange={(e) => setPopupInput(e.target.value)}
+      />
+
+      {/* Button + result container */}
+      
+      <div className="popup-action-row">
+        <div className="regex-popup-content-check">
+        <button onClick={handleCheckRegex}>Check</button>
+        </div>
+        {popupResult && (
+          <div
+            className={`popup-result ${
+              popupResult === 'Approved!'
+                ? 'approved'
+                : popupResult === 'Rejected.'
+                ? 'rejected'
+                : 'invalid'
+            }`}
+          >
+            {popupResult}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

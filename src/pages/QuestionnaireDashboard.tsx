@@ -7,6 +7,7 @@ import { getQuestionnaireByExperimentID } from '../services/questionnaireService
 import { Experiment } from '../types/experiment';
 import { getAllInteractions } from '../services/interactionTypeService';
 import { InteractionType } from '../types/interactiontype';
+import { User } from '../types/user';
 
 const QuestionnaireDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,12 @@ const QuestionnaireDashboard: React.FC = () => {
   // Sorting State
   type SortKey = keyof Questionnaire | 'numberOfQuestions';
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: string } | null>(null);
+
+  // Add retrieval of loggedInUser from location state
+  const loggedInUser = location.state?.user as User | undefined;
+
+  // Determine if the logged-in user is the creator of the experiment
+  const isCreator = loggedInUser?.ID === experiment?.user?.ID;
 
   useEffect(() => {
     const fetchQuestionnaires = async () => {
@@ -133,12 +140,14 @@ const QuestionnaireDashboard: React.FC = () => {
     return '';
   };
 
+  // Update the navigateToCreateQuestionnaire function to pass loggedInUser
   const navigateToCreateQuestionnaire = () => {
-    navigate(`/questionnairecreation/${id}`);
+    navigate(`/questionnairecreation/${id}`, { state: { experiment, user: loggedInUser } });
   };
 
+  // Update the handleQuestionnaireClick function to pass loggedInUser
   const handleQuestionnaireClick = (questionnaire: Questionnaire) => {
-    navigate(`/questionnaire/${id}`, { state: { questionnaire } });
+    navigate(`/questionnaire/${id}`, { state: { questionnaire, user: loggedInUser } });
   };
 
   const truncateText = (text: string, maxLength: number): string => {
@@ -301,13 +310,23 @@ const QuestionnaireDashboard: React.FC = () => {
           {/* Add Questionnaire Button */}
           <button
             className="add-questionnaire-button"
-            onClick={status === 'Upcoming' ? navigateToCreateQuestionnaire : undefined}
-            disabled={status !== 'Upcoming'}
-            title={status !== 'Upcoming' ? 'Questionnaires can only be created before the experiment goes live' : 'Add Questionnaire'}
+            onClick={isCreator && status === 'Upcoming' ? navigateToCreateQuestionnaire : undefined}
+            disabled={!isCreator || status !== 'Upcoming'}
+            title={
+              !isCreator
+                ? 'A questionnaire can only be created by the creator of the experiment before it goes live.'
+                : status !== 'Upcoming'
+                ? 'Questionnaires can only be created before the experiment goes live'
+                : 'Add Questionnaire'
+            }
             data-testid="add-questionnaire-button"
           >
             <img
-              src={status === 'Upcoming' ? "/assets/AddButtonSVG.svg" : "/assets/GrayAddButtonSVG.svg"}
+              src={
+                isCreator && status === 'Upcoming'
+                  ? "/assets/AddButtonSVG.svg"
+                  : "/assets/GrayAddButtonSVG.svg"
+              }
               alt="Add Questionnaire"
             />
           </button>

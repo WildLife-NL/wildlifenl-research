@@ -6,11 +6,13 @@ import { Message as MessageType } from '../types/message';
 import { DeleteMessageByID } from '../services/messageService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { useState } from 'react';
+import { User } from '../types/user'; // Import User
 
 const Message: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const message = location.state?.message as MessageType | null;
+  const loggedInUser: User | undefined = location.state?.user; // Add loggedInUser
 
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -99,6 +101,8 @@ const Message: React.FC = () => {
     ? getStatus(message.experiment.start, message.experiment.end)
     : 'Unknown';
 
+  const isCreator = loggedInUser?.ID === message?.experiment?.user.ID; // Define isCreator
+
   // Show confirmation popup
   const handleDeleteMessage = () => {
     setConfirmationMessage('Are you sure you want to delete this message?');
@@ -141,14 +145,16 @@ const Message: React.FC = () => {
         {/* Delete Button */}
         <button
           className={`delete-message-button ${
-            status === 'Upcoming' ? 'delete-message-red-button' : 'delete-message-gray-button'
+            status === 'Upcoming' && isCreator ? 'delete-message-red-button' : 'delete-message-gray-button'
           }`}
-          onClick={status === 'Upcoming' ? handleDeleteMessage : undefined}
-          disabled={status !== 'Upcoming'}
+          onClick={status === 'Upcoming' && isCreator ? handleDeleteMessage : undefined}
+          disabled={status !== 'Upcoming' || !isCreator}
           title={
-            status === 'Upcoming'
-              ? ''
-              : 'Messages can only be deleted before the experiment goes live'
+            !isCreator
+              ? 'Messages can only be deleted by the creator of the experiment before it goes live'
+              : status !== 'Upcoming'
+              ? 'Messages can only be deleted before the experiment goes live'
+              : ''
           }
           data-testid="delete-message-button"
         >

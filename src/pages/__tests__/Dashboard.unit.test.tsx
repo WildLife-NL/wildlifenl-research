@@ -118,6 +118,10 @@ describe('Dashboard Component - Unit Tests', () => {
     },
   ];
 
+  beforeAll(() => {
+    process.env.NODE_ENV = 'test';
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -127,7 +131,7 @@ describe('Dashboard Component - Unit Tests', () => {
     // Mock API calls
     jest.spyOn(livingLabService, 'getAllLivingLabs').mockResolvedValue(mockLivingLabs);
 
-    jest.spyOn(experimentService, 'getMyExperiments').mockResolvedValue(mockExperiments);
+    jest.spyOn(experimentService, 'getExperiments').mockResolvedValue(mockExperiments);
   });
 
   // CATEGORY 1: FILTERS DROPDOWN

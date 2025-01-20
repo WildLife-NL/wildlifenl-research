@@ -5,8 +5,9 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../Dashboard';
 import {getAllLivingLabs} from '../../services/livingLabService';
-import { addExperiment, getMyExperiments } from '../../services/experimentService';
+import { addExperiment, getExperiments } from '../../services/experimentService';
 import dotenv from 'dotenv';
+
 
 // Load environment variables
 dotenv.config();
@@ -25,6 +26,10 @@ describe('Dashboard Integration Tests', () => {
   const existingLivingLabId = '9c7dbce1-6c4f-46b6-b0c6-ec5d2c2b48c1';
   const existingLivingLabName = 'Living Lab Eindhoven';
 
+  beforeAll(() => {
+    process.env.NODE_ENV = 'test';
+  });
+  
   beforeAll(async () => {
     // Insert authentication token into localStorage
     const authToken = process.env.AUTH_TOKEN;
@@ -70,7 +75,7 @@ describe('Dashboard Integration Tests', () => {
   test('FETCH LIVINGLABS AND EXPERIMENTS ON MOUNT', async () => {
     // Fetch data directly
     const livingLabs = await getAllLivingLabs();
-    const myExperiments = await getMyExperiments();
+    const myExperiments = await getExperiments();
 
     render(
       <MemoryRouter>
@@ -116,7 +121,7 @@ describe('Dashboard Integration Tests', () => {
 
   test('RENDER EXPERIMENTS TABLE AFTER FETCH', async () => {
     // Fetch experiments
-    const myExperiments = await getMyExperiments();
+    const myExperiments = await getExperiments();
 
     render(
       <MemoryRouter>
@@ -140,7 +145,7 @@ describe('Dashboard Integration Tests', () => {
 
   test('SORTING APPLIES AFTER FILTERING', async () => {
     // Fetch experiments
-    const myExperiments = await getMyExperiments();
+    const myExperiments = await getExperiments();
 
     render(
       <MemoryRouter>
@@ -177,7 +182,7 @@ describe('Dashboard Integration Tests', () => {
 
   test('FILTERING UPDATES SORTED LIST', async () => {
     // Fetch experiments
-    const myExperiments = await getMyExperiments();
+    const myExperiments = await getExperiments();
 
     render(
       <MemoryRouter>
@@ -233,7 +238,7 @@ describe('Dashboard Integration Tests', () => {
 
   test('ALTERNATING ROW COLORS', async () => {
     // Fetch experiments
-    const myExperiments = await getMyExperiments();
+    const myExperiments = await getExperiments();
 
     render(
       <MemoryRouter>
@@ -255,7 +260,7 @@ describe('Dashboard Integration Tests', () => {
 
   test('USEEFFECT DEPENDENCIES TRIGGER CORRECTLY', async () => {
     // Fetch experiments
-    const myExperiments = await getMyExperiments();
+    const myExperiments = await getExperiments();
 
     render(
       <MemoryRouter>

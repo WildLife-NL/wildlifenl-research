@@ -267,7 +267,6 @@
   position: relative;
   top: 2vh;
   margin-bottom: 4vh;
-  left: 5vw; /* Align to the right */
 }
 
 /* Search Input Container */
@@ -442,4 +441,47 @@
 /* Specific style for Close button in 'No responses found' popup */
 .close-button-no-responses {
   margin-top: 1px; /* Lower the button by 2vh */
+}
+
+.filters-container {
+  display: flex;
+
+  align-items: center;
+}
+
+/* New Creator Header */
+.export-creator-header {
+  width: 200px; /* Adjust as needed */
+  text-align: left;
+  background: #D9D9D9;
+  border: 1px solid #000;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  position: sticky;
+  top: 0;
+}
+
+/* New Creator Cell */
+.export-creator-cell {
+  width: 200px; /* Ensure consistency with header */
+  text-align: left;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.45px;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px; /* Adjust if needed */
+}
+
+
+/* Responsive Adjustments for Creator Column */
+@media (max-width: 768px) {
+  .export-creator-header,
+  .export-creator-cell {
+    width: 150px; /* Adjust for smaller screens */
+    font-size: 16px;
+  }
 }

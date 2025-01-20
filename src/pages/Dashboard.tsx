@@ -5,11 +5,13 @@ import '../styles/Dashboard.css';
 
 // Import API functions
 import { getAllLivingLabs } from '../services/livingLabService';
-import { getMyExperiments } from '../services/experimentService';
+import { getExperiments} from '../services/experimentService';
+import { getMyProfile } from '../services/profileService';
 
 // Import types
 import { Experiment } from '../types/experiment';
 import { LivingLab } from '../types/livinglab';
+import { User } from '../types/user';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ const Dashboard: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Experiment; direction: string } | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+  const [allExperimentsChecked, setAllExperimentsChecked] = useState<boolean>(false);
 
   // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -36,7 +40,8 @@ const Dashboard: React.FC = () => {
         setIsLoading(true); // Start loading
 
         // Fetch Living Labs and Experiments in parallel
-        const [labs, exps] = await Promise.all([getAllLivingLabs(), getMyExperiments()]);
+        const [labs, exps, myProfile] = await Promise.all([getAllLivingLabs(), getExperiments(), getMyProfile()]);
+        setLoggedInUser(myProfile);
 
         // Include 'All LivingLabs' as default option
         const allLivingLabsOption: LivingLab = {
@@ -90,6 +95,11 @@ const Dashboard: React.FC = () => {
       );
     }
 
+    // Filter by user
+    if (!allExperimentsChecked && loggedInUser) {
+      filtered = filtered.filter((exp) => exp.user?.ID === loggedInUser.ID);
+    }
+
     // Apply sorting
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
@@ -131,7 +141,7 @@ const Dashboard: React.FC = () => {
     }
 
     setFilteredExperiments(filtered);
-  }, [selectedLivingLab, startDate, endDate, searchQuery, sortConfig, experiments]);
+  }, [selectedLivingLab, startDate, endDate, searchQuery, sortConfig, experiments, allExperimentsChecked, loggedInUser]);
 
   // Handle sorting
   const requestSort = (key: keyof Experiment) => {
@@ -157,7 +167,7 @@ const Dashboard: React.FC = () => {
 
   // Handle navigation to experiment details page
   const handleExperimentClick = (experiment: Experiment) => {
-    navigate(`/experiment/${experiment.ID}`, { state: { experiment } });
+    navigate(`/experiment/${experiment.ID}`, { state: { experiment, user: loggedInUser } });
   };
 
   const truncateText = (text: string, maxLength: number): string => {
@@ -235,6 +245,25 @@ const Dashboard: React.FC = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Show All Experiments Filter */}
+        <div className="filter show-all-experiments-filter">
+          <label className="filter-label">All Experiments:</label>
+        
+            <button
+              className="dashboard-qst-toggle-btn"
+              onClick={() => setAllExperimentsChecked(!allExperimentsChecked)}
+            >
+              <img
+                src={
+                  allExperimentsChecked
+                    ? '../assets/RadioBoxFilledInSVG.svg'
+                    : '../assets/RadioBoxNotFilledSVG.svg'
+                }
+                alt="Toggle multiple answers"
+              />
+            </button>
         </div>
 
         {/* Search Filter */}
@@ -316,6 +345,11 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('responses')}`}
                     />
                   </th>
+                  {allExperimentsChecked && (
+                    <th>
+                      Creator
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -350,6 +384,11 @@ const Dashboard: React.FC = () => {
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.responses}
                       </td>
+                      {allExperimentsChecked && (
+                        <td>
+                          {exp.user?.name}
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

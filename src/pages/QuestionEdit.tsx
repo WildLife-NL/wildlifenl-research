@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from "../components/Navbar";
 import AddQuestion from "../components/AddQuestion";
 import { Questionnaire as QuestionnaireType } from '../types/questionnaire';
@@ -47,12 +47,13 @@ const QuestionEdit: React.FC = () => {
   const [originalAnswerIDs, setOriginalAnswerIDs] = useState<string[]>([]);
 
   useEffect(() => {
+    //BRRRRRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAKPPPPPPOIIIIINTS
     if (questionnaire && Array.isArray(questionnaire.questions)) {
       const questionIDs: string[] = [];
       const answerIDs: string[] = [];
 
       const converted = questionnaire.questions.map((q: OriginalQuestion) => {
-        const localId = crypto.randomUUID();
+        const localId = q.ID || crypto.randomUUID(); 
         const hasAnswers = Array.isArray(q.answers) && q.answers.length > 0;
         const type: 'multiple' | 'single' = hasAnswers ? 'multiple' : 'single';
 
@@ -139,15 +140,23 @@ const QuestionEdit: React.FC = () => {
     });
   };
 
-  const handleQuestionTextChange = (questionLocalId: string, newText: string) => {
-    setQuestions(prev => prev.map(q =>
-      q.localId === questionLocalId ? { ...q, questionText: newText } : q
-    ));
-  };
+  const handleQuestionTextChange = useCallback((questionLocalId: string, newText: string) => {
+    setQuestions(prev => {
+      let changed = false;
+      const updated = prev.map(q => {
+        if (q.localId === questionLocalId && q.questionText !== newText) {
+          changed = true;
+          return { ...q, questionText: newText };
+        }
+        return q;
+      });
+      return changed ? updated : prev;
+    });
+  }, []);
 
-  const handleQuestionDataChange = (localId: string, data: FullQuestionData) => {
+  const handleQuestionDataChange = useCallback((localId: string, data: FullQuestionData) => {
     setFullQuestions(prev => ({ ...prev, [localId]: data }));
-  };
+  }, []);
 
   const questionData = questions.map(q => ({
     localId: q.localId,
@@ -192,6 +201,7 @@ const QuestionEdit: React.FC = () => {
 
   const saveQuestionsAndAnswers = async () => {
     try {
+      //BRRRRRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAKPPPPPPOIIIIINTS
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
       const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
 
@@ -273,7 +283,7 @@ const QuestionEdit: React.FC = () => {
                   answerIndexValue: ans.index,
                   text: ans.text,
                   followUpQuestionId: ans.nextQuestionID,
-                  followUpOpen: false,
+                  followUpOpen: ans.nextQuestionID ? true : false, // Set followUpOpen based on followUpQuestionId
                 }))
               : [];
 

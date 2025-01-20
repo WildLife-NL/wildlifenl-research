@@ -1,6 +1,10 @@
 import { Message } from '../types/message';
-const MESSAGE_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/message/';
-const MESSAGES_API_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl/messages/experiment/';
+const TEST_BASE_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl';
+const BASE_URL = process.env.NODE_ENV === 'test'
+  ? TEST_BASE_URL
+  : process.env.REACT_APP_BASE_URL;
+const MESSAGE_API_URL = `${BASE_URL}/message/`;
+const MESSAGES_API_URL = `${BASE_URL}/messages/experiment/`;
 
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
