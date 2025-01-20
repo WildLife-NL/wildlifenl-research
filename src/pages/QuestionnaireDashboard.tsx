@@ -314,7 +314,7 @@ const QuestionnaireDashboard: React.FC = () => {
             disabled={!isCreator || status !== 'Upcoming'}
             title={
               !isCreator
-                ? 'A questionnaire can only be created by the creator of the experiment before it goes live.'
+                ? 'A questionnaire can only be created by the owner of the experiment before it goes live.'
                 : status !== 'Upcoming'
                 ? 'Questionnaires can only be created before the experiment goes live'
                 : 'Add Questionnaire'
