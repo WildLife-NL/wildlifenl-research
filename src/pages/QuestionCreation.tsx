@@ -137,6 +137,15 @@ const QuestionCreation: React.FC = () => {
           }
         }
       }
+
+      if (fq.allowOpenResponse && fq.openResponseFormat?.trim()) {
+        try {
+          new RegExp(fq.openResponseFormat);
+        } catch {
+          alert(`Question "${fq.indexValue}" has an invalid regex: ${fq.openResponseFormat}`);
+          return false;
+        }
+      }
     }
     return true;
   };
