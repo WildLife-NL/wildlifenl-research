@@ -47,7 +47,6 @@ const QuestionEdit: React.FC = () => {
   const [originalAnswerIDs, setOriginalAnswerIDs] = useState<string[]>([]);
 
   useEffect(() => {
-    //BRRRRRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAKPPPPPPOIIIIINTS
     if (questionnaire && Array.isArray(questionnaire.questions)) {
       const questionIDs: string[] = [];
       const answerIDs: string[] = [];
@@ -195,13 +194,21 @@ const QuestionEdit: React.FC = () => {
           }
         }
       }
+
+      if (fq.allowOpenResponse && fq.openResponseFormat?.trim()) {
+        try {
+          new RegExp(fq.openResponseFormat);
+        } catch {
+          alert(`Question "${fq.indexValue}" has an invalid regex: ${fq.openResponseFormat}`);
+          return false;
+        }
+      }
     }
     return true;
   };
 
   const saveQuestionsAndAnswers = async () => {
     try {
-      //BRRRRRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAKPPPPPPOIIIIINTS
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
       const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
 

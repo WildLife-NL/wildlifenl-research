@@ -151,7 +151,7 @@ const Message: React.FC = () => {
           disabled={status !== 'Upcoming' || !isCreator}
           title={
             !isCreator
-              ? 'Messages can only be deleted by the creator of the experiment before it goes live'
+              ? 'Messages can only be deleted by the owner of the experiment before it goes live'
               : status !== 'Upcoming'
               ? 'Messages can only be deleted before the experiment goes live'
               : ''

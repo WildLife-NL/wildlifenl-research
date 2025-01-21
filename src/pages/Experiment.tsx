@@ -105,7 +105,7 @@ const Experiment: React.FC = () => {
     { name: 'Responses on Questionnaires', value: currentExperiment.questionnaireActivity?.toString() || '0' },
     { name: 'Number of Messages', value: currentExperiment.numberOfMessages?.toString() || '0' },
     { name: 'Messages Sent', value: currentExperiment.messageActivity?.toString() || '0' },
-    { name: 'Creator of the experiment', value: currentExperiment.user?.name || 'N/A' },
+    { name: 'Owner of the experiment', value: currentExperiment.user?.name || 'N/A' },
   ];
   
   // Navigation handlers
@@ -357,7 +357,7 @@ const Experiment: React.FC = () => {
             }`}
             title={
               !isCreator
-                ? 'An experiment can only be stopped by the creator when it is live'
+                ? 'An experiment can only be stopped by the owner when it is live'
                 : status !== 'Live'
                 ? 'An experiment can only be stopped when it is live'
                 : ''
@@ -375,14 +375,14 @@ const Experiment: React.FC = () => {
             />
           </button>
 
-          {/* Delete Experiment (red if deletable and creator, else gray) */}
+          {/* Delete Experiment (red if deletable and owner, else gray) */}
           <button
             className={`experiment-button ${
               isCreator && status !== 'Live' && status !== 'Completed' ? 'red-button' : 'gray-button'
             }`}
             title={
               !isCreator
-                ? 'An experiment can only be deleted by the creator before being live'
+                ? 'An experiment can only be deleted by the owner before being live'
                 : status === 'Live' || status === 'Completed'
                 ? 'An experiment can only be deleted while it is not live or completed'
                 : ''
@@ -400,14 +400,14 @@ const Experiment: React.FC = () => {
             />
           </button>
 
-          {/* Edit Experiment (blue if Upcoming and creator, else gray) */}
+          {/* Edit Experiment (blue if Upcoming and owner, else gray) */}
           <button
             className={`experiment-button ${
               status === 'Upcoming' && isCreator ? 'blue-button' : 'gray-button'
             }`}
             title={
               !isCreator
-                ? 'An experiment can only be edited by the creator before being live'
+                ? 'An experiment can only be edited by the owner before being live'
                 : status !== 'Upcoming'
                 ? 'An experiment can only be edited before being live'
                 : ''

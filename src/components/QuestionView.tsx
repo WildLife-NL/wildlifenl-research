@@ -98,7 +98,7 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
       // If NOT creator
       if (!isCreator) {
         messageIcon = "/assets/MessageGraySVG.svg";
-        messageTitle = "Messages can only be linked by the creator of the experiment before it goes live";
+        messageTitle = "Messages can only be linked by the owner of the experiment before it goes live";
         messageOnClick = () => {}; // No action
       } 
       // Else if it IS creator, but experiment is not upcoming

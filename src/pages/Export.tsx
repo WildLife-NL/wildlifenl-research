@@ -498,7 +498,7 @@ const Export: React.FC = () => {
                 />
               </th>
               {allExperimentsChecked && (
-                <th className="export-creator-header">Creator</th>
+                <th className="export-creator-header">Owner</th>
               )}
               <th className="export-actions-header">Export Options</th>
             </tr>

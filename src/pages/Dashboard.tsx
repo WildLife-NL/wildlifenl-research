@@ -347,7 +347,7 @@ const Dashboard: React.FC = () => {
                   </th>
                   {allExperimentsChecked && (
                     <th>
-                      Creator
+                      Owner
                     </th>
                   )}
                 </tr>

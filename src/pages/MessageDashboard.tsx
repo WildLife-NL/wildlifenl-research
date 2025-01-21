@@ -448,7 +448,7 @@ const MessageDashboard: React.FC = () => {
             disabled={!isCreator || status !== 'Upcoming'}
             title={
               !isCreator
-                ? 'Messages can only be created by the creator of the experiment before it goes live'
+                ? 'Messages can only be created by the owner of the experiment before it goes live'
                 : status !== 'Upcoming'
                 ? 'Messages can only be created before the experiment goes live'
                 : ''

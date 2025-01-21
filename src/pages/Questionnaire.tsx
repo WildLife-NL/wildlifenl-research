@@ -263,7 +263,7 @@ const Questionnaire: React.FC = () => {
         disabled={status !== 'Upcoming' || !isCreator}
         title={
           !isCreator
-            ? 'A questionnaire can only be deleted by the creator.'
+            ? 'A questionnaire can only be deleted by the owner.'
             : status !== 'Upcoming'
             ? 'Questionnaires can only be deleted before the experiment goes live.'
             : ''
@@ -279,7 +279,7 @@ const Questionnaire: React.FC = () => {
         disabled={status !== 'Upcoming' || !isCreator}
         title={
           !isCreator
-            ? 'A questionnaire can only be edited by the creator.'
+            ? 'A questionnaire can only be edited by the owner.'
             : status !== 'Upcoming'
             ? 'Questionnaires can only be edited before the experiment goes live.'
             : ''
@@ -304,7 +304,7 @@ const Questionnaire: React.FC = () => {
             disabled={status !== 'Upcoming' || !isCreator}
             title={
               !isCreator
-                ? 'Questions can only be edited by the creator of the experiment before it goes live'
+                ? 'Questions can only be edited by the owner of the experiment before it goes live'
                 : status !== 'Upcoming'
                 ? 'Questions can only be edited before the experiment goes live'
                 : ''
@@ -323,7 +323,7 @@ const Questionnaire: React.FC = () => {
             disabled={status !== 'Upcoming' || !isCreator}
             title={
               !isCreator
-                ? 'Questions can only be created by the creator of the experiment before it goes live'
+                ? 'Questions can only be created by the owner of the experiment before it goes live'
                 : status !== 'Upcoming'
                 ? 'Questions can only be created before the experiment goes live'
                 : ''
