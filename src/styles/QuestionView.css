@@ -34,14 +34,18 @@
 }
 
 .question-index {
-  margin-bottom: 10px; /* Space between index and title */
+  margin-bottom: 10px;
+  font-weight: 600 !important; /* Space between index and title */
 }
 
 .question-title {
   word-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
+  font-weight: 500 !important;
 }
+
+
 
 /* View Question Button */
 .view-question-button {

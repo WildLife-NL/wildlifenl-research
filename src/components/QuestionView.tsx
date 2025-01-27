@@ -41,7 +41,7 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
 
         let answeringMethodology = '';
         if (hasAnswers) {
-          answeringMethodology = question.allowMultipleResponse ? 'M' : 'S';
+          answeringMethodology = question.allowMultipleResponse ? 'Multiple responses allowed' : 'Single response allowed';
         }
 
         // Map indices to letters
@@ -78,6 +78,9 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
               <div className="question-title-group">
                 <div className="question-index text-style">{questionIndexText}</div>
                 <div className="question-title text-style">{question.text}</div>
+                {question.description && (
+                  <div className="question-description text-style">{question.description}</div>
+                )}
               </div>
 
               {/* Multiple Choice Group */}
