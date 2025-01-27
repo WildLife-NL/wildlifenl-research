@@ -346,6 +346,7 @@ const QuestionEdit: React.FC = () => {
         className="save-questions-button"
         onClick={saveQuestionsAndAnswers}
         data-testid="save-questions-button"
+        title = "Save edited questions and answers"
       >
         <img src="/assets/saveSVG.svg" alt="Save" />
       </button>

@@ -317,7 +317,7 @@ const QuestionnaireDashboard: React.FC = () => {
                 ? 'A questionnaire can only be created by the owner of the experiment before it goes live.'
                 : status !== 'Upcoming'
                 ? 'Questionnaires can only be created before the experiment goes live'
-                : 'Add Questionnaire'
+                : 'Add a new questionnaire'
             }
             data-testid="add-questionnaire-button"
           >

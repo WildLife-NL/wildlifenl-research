@@ -164,6 +164,7 @@ const QuestionnaireCreation: React.FC = () => {
           <button
             type="submit"
             className="questionnaire-creation-submit-button"
+            title = "Submit questionnaire"
           >
             <img src="/assets/saveSVG.svg" alt="Submit Questionnaire" />
           </button>
