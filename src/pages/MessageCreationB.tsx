@@ -159,6 +159,7 @@ const MessageCreationB: React.FC = () => {
             type="submit"
             className="message-creationb-submit-button"
             data-testid="submit-message-button"
+            title = "Submit message"
           >
             <img src="/assets/saveSVG.svg" alt="Submit Message" />
           </button>

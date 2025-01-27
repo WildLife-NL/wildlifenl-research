@@ -154,7 +154,7 @@ const Message: React.FC = () => {
               ? 'Messages can only be deleted by the owner of the experiment before it goes live'
               : status !== 'Upcoming'
               ? 'Messages can only be deleted before the experiment goes live'
-              : ''
+              : 'Delete this message permanently'
           }
           data-testid="delete-message-button"
         >

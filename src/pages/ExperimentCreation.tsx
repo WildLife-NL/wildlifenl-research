@@ -257,6 +257,7 @@ const ExperimentCreation: React.FC = () => {
             type="submit"
             className="experiment-creation-submit-button"
             data-testid="submit-experiment-button"
+            title="Submit experiment"
           >
             <img src="/assets/saveSVG.svg" alt="Submit Experiment" />
           </button>

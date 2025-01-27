@@ -91,6 +91,7 @@ const sortedInitialAnswers = isMultipleChoice
     isMultipleChoice ? initialAllowOpen ?? false : true
   );
   const [regexValue, setRegexValue] = useState(initialOpenResponseFormat);
+  const [includePattern, setIncludePattern] = useState(initialOpenResponseFormat !== '');
   
   // Compute unique sorted indices without using Set
   const uniqueIndices = answers
@@ -174,7 +175,11 @@ const sortedInitialAnswers = isMultipleChoice
     onQuestionDataChange
   ]);
 
-  
+  useEffect(() => {
+    if (!includePattern) {
+      setRegexValue('');
+    }
+  }, [includePattern]);
 
   const handleRemoveQuestion = () => {
     onRemoveQuestion(localId);
@@ -439,10 +444,30 @@ const sortedInitialAnswers = isMultipleChoice
                 />
               </button>
               <div className="qst-toggle-label">Allow open answers</div>
+
+              {allowOpenAnswers && (
+                <>
+                  <button
+                    className="qst-toggle-btn"
+                    style={{ marginLeft: '20px' }}
+                    onClick={() => setIncludePattern(!includePattern)}
+                  >
+                    <img
+                      src={
+                        includePattern
+                          ? '../assets/RadioBoxFilledInSVG.svg'
+                          : '../assets/RadioBoxNotFilledSVG.svg'
+                      }
+                      alt="Toggle include pattern"
+                    />
+                  </button>
+                  <div className="qst-toggle-label">Include pattern</div>
+                </>
+              )}
             </div>
           </div>
 
-          {allowOpenAnswers && (
+          {allowOpenAnswers && includePattern && (
             <div className="qst-regex-row">
               <div className="qst-regex-label">Input validation.</div>
               <div className="qst-input-container qst-regex-input-container">
@@ -471,29 +496,51 @@ const sortedInitialAnswers = isMultipleChoice
       )}
 
       {!isMultipleChoice && (
-        <div className="qst-regex-row">
-          <div className="qst-regex-label">Input validation.</div>
-          <div className="qst-input-container qst-regex-input-container">
-            <input
-              className="qst-text-input qst-regex-text"
-              type="text"
-              placeholder="Enter regex when needed..."
-              value={regexValue}
-              onChange={(e) => setRegexValue(e.target.value)}
-            />
+        <>
+          <div className="qst-toggle-row">
+            <button
+              className="qst-toggle-btn"
+              style={{ marginLeft: '20px' }}
+              onClick={() => setIncludePattern(!includePattern)}
+            >
+              <img
+                src={
+                  includePattern
+                    ? '../assets/RadioBoxFilledInSVG.svg'
+                    : '../assets/RadioBoxNotFilledSVG.svg'
+                }
+                alt="Toggle include pattern"
+              />
+            </button>
+            <div className="qst-toggle-label">Include pattern</div>
+          </div>
+
+          {includePattern && (
+            <div className="qst-regex-row">
+              <div className="qst-regex-label">Input validation.</div>
+              <div className="qst-input-container qst-regex-input-container">
+                <input
+                  className="qst-text-input qst-regex-text"
+                  type="text"
+                  placeholder="Enter regex when needed..."
+                  value={regexValue}
+                  onChange={(e) => setRegexValue(e.target.value)}
+                />
               </div>
-                  <button
-                    className="check-regex-button"
-                    onClick={handleVerifyRegex}
-                  >
-                    <span>Verify Regex</span>
-                    <img
-                      src="/assets/LabSVG.svg"
-                      alt="Check Regex Icon"
-                      className="check-regex-button-button-icon"
-                    />
-                  </button>
-                </div>
+              <button
+                className="check-regex-button"
+                onClick={handleVerifyRegex}
+              >
+                <span>Verify Regex</span>
+                <img
+                  src="/assets/LabSVG.svg"
+                  alt="Check Regex Icon"
+                  className="check-regex-button-button-icon"
+                />
+              </button>
+            </div>
+          )}
+        </>
       )}
 {isPopupOpen && (
   <div className="regex-popup">

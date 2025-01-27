@@ -328,6 +328,7 @@ const Experiment: React.FC = () => {
           <button
             className={`experiment-button green-button`}
             onClick={handleQuestionnaireOverviewClick}
+            title="View all questionnaires for this experiment"
           >
             <span>View Questionnaires</span>
             <img
@@ -341,6 +342,7 @@ const Experiment: React.FC = () => {
           <button
             className="experiment-button green-button"
             onClick={handleMessageOverviewClick}
+            title="View all messages for this experiment"
           >
             <span>View Messages</span>
             <img
@@ -360,7 +362,7 @@ const Experiment: React.FC = () => {
                 ? 'An experiment can only be stopped by the owner when it is live'
                 : status !== 'Live'
                 ? 'An experiment can only be stopped when it is live'
-                : ''
+                : 'Stop this experiment permanently'
             }
             onClick={
               status === 'Live' && isCreator && !isStopping ? handleStopExperiment : undefined
@@ -385,7 +387,7 @@ const Experiment: React.FC = () => {
                 ? 'An experiment can only be deleted by the owner before being live'
                 : status === 'Live' || status === 'Completed'
                 ? 'An experiment can only be deleted while it is not live or completed'
-                : ''
+                : 'Delete this experiment permanently'
             }
             onClick={
               isCreator && status !== 'Live' && status !== 'Completed' ? handleDeleteExperiment : undefined
@@ -410,7 +412,7 @@ const Experiment: React.FC = () => {
                 ? 'An experiment can only be edited by the owner before being live'
                 : status !== 'Upcoming'
                 ? 'An experiment can only be edited before being live'
-                : ''
+                : 'Edit the experiment details'
             }
             onClick={
               status === 'Upcoming' && isCreator ? handleEditExperimentButton : undefined

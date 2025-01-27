@@ -266,7 +266,7 @@ const Questionnaire: React.FC = () => {
             ? 'A questionnaire can only be deleted by the owner.'
             : status !== 'Upcoming'
             ? 'Questionnaires can only be deleted before the experiment goes live.'
-            : ''
+            : 'Delete this questionnaire and all included questions permanently'
         }
         data-testid="delete-questionnaire-button"
       >
@@ -282,7 +282,7 @@ const Questionnaire: React.FC = () => {
             ? 'A questionnaire can only be edited by the owner.'
             : status !== 'Upcoming'
             ? 'Questionnaires can only be edited before the experiment goes live.'
-            : ''
+            : 'Edit the details of this questionnaire'
         }
         data-testid="edit-questionnaire-button"
       >
@@ -307,7 +307,7 @@ const Questionnaire: React.FC = () => {
                 ? 'Questions can only be edited by the owner of the experiment before it goes live'
                 : status !== 'Upcoming'
                 ? 'Questions can only be edited before the experiment goes live'
-                : ''
+                : 'Edit the questions of this questionnaire'
             }
             data-testid="edit-questions-button"
           >
@@ -326,7 +326,7 @@ const Questionnaire: React.FC = () => {
                 ? 'Questions can only be created by the owner of the experiment before it goes live'
                 : status !== 'Upcoming'
                 ? 'Questions can only be created before the experiment goes live'
-                : ''
+                : 'Add new questions to this questionnaire'
             }
             data-testid="add-questions-button"
           >

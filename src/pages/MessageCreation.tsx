@@ -378,7 +378,8 @@ const MessageCreation: React.FC = () => {
               type="button"
               className="message-creation-submit-button"
               data-testid="submit-message-button"
-              onClick={handleSubmitMessage} // Updated onClick handler
+              onClick={handleSubmitMessage}
+              title = "Submit message"
             >
               <img src="/assets/saveSVG.svg" alt="Submit Message" />
           </button>

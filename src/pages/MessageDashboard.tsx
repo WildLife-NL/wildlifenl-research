@@ -451,7 +451,7 @@ const MessageDashboard: React.FC = () => {
                 ? 'Messages can only be created by the owner of the experiment before it goes live'
                 : status !== 'Upcoming'
                 ? 'Messages can only be created before the experiment goes live'
-                : ''
+                : 'Create new message'
             }
             data-testid="add-message-button"
           >

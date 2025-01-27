@@ -397,13 +397,14 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Add Experiment Button */}
-          <button
+            <button
             className="add-experiment-button"
             onClick={navigateToCreateExperiment}
             data-testid="add-experiment-button"
-          >
+            title="Create new experiment"
+            >
             <img src="/assets/AddButtonSVG.svg" alt="Add Experiment" />
-          </button>
+            </button>
         </>
       )}
     </div>

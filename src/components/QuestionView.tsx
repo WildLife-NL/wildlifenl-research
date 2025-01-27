@@ -28,11 +28,17 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
   const status = getStatus(experiment.start, experiment.end);
   const isCreator = loggedInUser ? experiment.user.ID === loggedInUser.ID : false; // Determine if user is creator
 
+  // Identify duplicate indices
+  const indexCount: { [key: number]: number } = {};
+  fields.forEach(question => {
+    indexCount[question.index] = (indexCount[question.index] || 0) + 1;
+  });
+
   return (
     <div className="questionnaire">
-      {fields.map((question, idx) => {
-        const isLastQuestion = idx === fields.length - 1;
-        const questionIndexText = isLastQuestion
+      {fields.map((question) => {
+        const isDuplicate = indexCount[question.index] > 1;
+        const questionIndexText = isDuplicate
           ? `Question ${question.index}*.`
           : `Question ${question.index}.`;
 
@@ -41,7 +47,7 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
 
         let answeringMethodology = '';
         if (hasAnswers) {
-          answeringMethodology = question.allowMultipleResponse ? 'M' : 'S';
+          answeringMethodology = question.allowMultipleResponse ? 'Multiple responses allowed' : 'Single response allowed';
         }
 
         // Map indices to letters
@@ -78,6 +84,9 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
               <div className="question-title-group">
                 <div className="question-index text-style">{questionIndexText}</div>
                 <div className="question-title text-style">{question.text}</div>
+                {question.description && (
+                  <div className="question-description text-style">{question.description}</div>
+                )}
               </div>
 
               {/* Multiple Choice Group */}
@@ -88,7 +97,7 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedI
 
       // Default: black icon, clickable
       let messageIcon = "/assets/MessageBlackSVG.svg";
-      let messageTitle = "";
+      let messageTitle = "Create a message that is linked to this answer";
       let messageOnClick = () => {
         navigate(`/MessageCreationB/${experiment.ID}`, {
           state: { answerID: answer.ID, answerText: answer.text }
