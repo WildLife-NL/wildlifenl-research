@@ -24,8 +24,8 @@
   justify-content: space-between; /* Spread filters evenly */
   align-items: center;
   margin-top: 20px;
-  margin-left: 5%;
-  margin-right: 5%; /* Align with left margin */
+  margin-left: 3%;
+  margin-right: 3%; /* Align with left margin */
   flex-shrink: 0; /* Prevent shrinking */
 }
 
@@ -33,13 +33,14 @@
 .filter {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  margin-right: 10px;
 }
 
 /* Filter Labels */
 .filter-label {
   color: #000;
-  font-size: 20px;
+  font-size: 19px !important;
   font-weight: 500;
   margin-right: 10px; /* Space between label and input */
   user-select: none;
@@ -189,7 +190,7 @@
 .show-all-experiments-filter {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .show-all-experiments-filter .filter-label {
