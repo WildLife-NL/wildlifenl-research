@@ -91,7 +91,7 @@ const sortedInitialAnswers = isMultipleChoice
     isMultipleChoice ? initialAllowOpen ?? false : true
   );
   const [regexValue, setRegexValue] = useState(initialOpenResponseFormat);
-  const [includePattern, setIncludePattern] = useState(false);
+  const [includePattern, setIncludePattern] = useState(initialOpenResponseFormat !== '');
   
   // Compute unique sorted indices without using Set
   const uniqueIndices = answers
@@ -175,7 +175,11 @@ const sortedInitialAnswers = isMultipleChoice
     onQuestionDataChange
   ]);
 
-  
+  useEffect(() => {
+    if (!includePattern) {
+      setRegexValue('');
+    }
+  }, [includePattern]);
 
   const handleRemoveQuestion = () => {
     onRemoveQuestion(localId);
