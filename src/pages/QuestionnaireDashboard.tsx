@@ -297,8 +297,8 @@ const QuestionnaireDashboard: React.FC = () => {
                     onClick={() => handleQuestionnaireClick(questionnaire)}
                     data-testid={`questionnaire-row-${index}`}
                   >
-                    <td>{truncateText(questionnaire.name, 35)}</td>
-                    <td>{questionnaire.identifier}</td>
+                    <td>{truncateText(questionnaire.name, 60)}</td>
+                    <td>{truncateText(questionnaire.identifier, 60)}</td>
                     <td>{questionnaire.interactionType?.name || 'N/A'}</td>
                     <td>{questionnaire.questions ? questionnaire.questions.length : 0}</td>
                   </tr>
