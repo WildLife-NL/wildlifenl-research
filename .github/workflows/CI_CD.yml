@@ -17,9 +17,16 @@ jobs:
 
       - name: Setup Node.js Environment
         uses: ./.github/actions/setup-node
+        with:
+          auth_token: ${{ secrets.AUTH_TOKEN }}
+          base_url: ${{ secrets.REACT_APP_BASE_URL }}
 
       - name: Build project
-        run: npm run build
+        env:
+          REACT_APP_BASE_URL: ${{ secrets.REACT_APP_BASE_URL }}
+        run: |
+          echo "REACT_APP_BASE_URL=$REACT_APP_BASE_URL" >> $GITHUB_ENV
+          npm run build
 
   unit-tests:
     name: Run Unit Tests
