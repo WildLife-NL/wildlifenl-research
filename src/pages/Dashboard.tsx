@@ -252,6 +252,7 @@ const Dashboard: React.FC = () => {
           <label className="filter-label">All Experiments:</label>
         
             <button
+              data-testid="all-experiments-toggle"
               className="dashboard-qst-toggle-btn"
               onClick={() => setAllExperimentsChecked(!allExperimentsChecked)}
             >

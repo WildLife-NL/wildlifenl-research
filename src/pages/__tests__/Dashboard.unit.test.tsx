@@ -1,9 +1,8 @@
-// Dashboard.unit.test.tsx
-
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import * as livingLabService from '../../services/livingLabService';
 import * as experimentService from '../../services/experimentService';
+import * as profileService from '../../services/profileService'; // <-- Added import
 import { BrowserRouter } from 'react-router-dom';
 import { LivingLab } from '../../types/livinglab';
 import { Experiment } from '../../types/experiment';
@@ -55,6 +54,7 @@ describe('Dashboard Component - Unit Tests', () => {
   const liveStartDate = new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000); // 10 days ago
   const liveEndDate = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000); // In 10 days
 
+  // Adjust mockExperiments so that the Past Experiment’s responses sum to 5 (e.g. 2 + 3)
   const mockExperiments: Experiment[] = [
     {
       ID: '1',
@@ -70,10 +70,10 @@ describe('Dashboard Component - Unit Tests', () => {
         $schema: '',
       } as User,
       livingLab: mockLivingLabs[1],
-      responses: 8,
+      responses: 8, // (this value is overwritten in the component)
       numberOfQuestionnaires: 2,
       numberOfMessages: 10,
-      messageActivity: 5,      
+      messageActivity: 2, // changed from 5 to 2 (2+3 = 5)
       questionnaireActivity: 3,
     },
     {
@@ -93,7 +93,7 @@ describe('Dashboard Component - Unit Tests', () => {
       responses: 15,
       numberOfQuestionnaires: 5,
       numberOfMessages: 20,
-      messageActivity: 10,       
+      messageActivity: 10,
       questionnaireActivity: 5,
     },
     {
@@ -113,10 +113,18 @@ describe('Dashboard Component - Unit Tests', () => {
       responses: 8,
       numberOfQuestionnaires: 3,
       numberOfMessages: 15,
-      messageActivity: 5,      
+      messageActivity: 5,
       questionnaireActivity: 3,
     },
   ];
+
+  // Define a mock logged-in user (ID 'user1')
+  const mockUser: User = {
+    ID: 'user1',
+    name: 'User One',
+    email: 'user1@example.com',
+    roles: [],
+  };
 
   beforeAll(() => {
     process.env.NODE_ENV = 'test';
@@ -130,8 +138,8 @@ describe('Dashboard Component - Unit Tests', () => {
 
     // Mock API calls
     jest.spyOn(livingLabService, 'getAllLivingLabs').mockResolvedValue(mockLivingLabs);
-
     jest.spyOn(experimentService, 'getExperiments').mockResolvedValue(mockExperiments);
+    jest.spyOn(profileService, 'getMyProfile').mockResolvedValue(mockUser);
   });
 
   // CATEGORY 1: FILTERS DROPDOWN
@@ -167,6 +175,9 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
+      // Toggle "All Experiments" so that all experiments are visible
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       // Wait for the search input to be in the document
       await waitFor(() => expect(screen.getByTestId('search-input')).toBeInTheDocument());
 
@@ -181,7 +192,10 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for the search input to be in the document
+      // Toggle "All Experiments"
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
+      // Wait for the search input
       await waitFor(() => expect(screen.getByTestId('search-input')).toBeInTheDocument());
 
       // Type into the search input
@@ -198,10 +212,15 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for experiments to be displayed
-      await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
+      // Toggle "All Experiments" so that all experiments are visible
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
 
-      // Type into the search input
+      // Wait for all experiments to be displayed
+      await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('Future Experiment')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('Live Experiment')).toBeInTheDocument());
+
+      // Type into the search input to filter to 'Live Experiment'
       fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'Live Experiment' } });
 
       // Wait for the filtered results
@@ -222,7 +241,8 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for the start date input to be in the document
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByTestId('start-date-input')).toBeInTheDocument());
     });
 
@@ -233,7 +253,8 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for the end date input to be in the document
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByTestId('end-date-input')).toBeInTheDocument());
     });
 
@@ -244,15 +265,14 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for date inputs to be in the document
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByTestId('start-date-input')).toBeInTheDocument());
       await waitFor(() => expect(screen.getByTestId('end-date-input')).toBeInTheDocument());
 
-      // Set start and end dates
       fireEvent.change(screen.getByTestId('start-date-input'), { target: { value: '2023-01-01' } });
       fireEvent.change(screen.getByTestId('end-date-input'), { target: { value: '2023-12-31' } });
 
-      // The values should be updated
       expect(screen.getByTestId('start-date-input')).toHaveValue('2023-01-01');
       expect(screen.getByTestId('end-date-input')).toHaveValue('2023-12-31');
     });
@@ -264,14 +284,13 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for experiments to be displayed
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
 
-      // Set date range that only includes 'Live Experiment'
       fireEvent.change(screen.getByTestId('start-date-input'), { target: { value: formatDate(liveStartDate) } });
       fireEvent.change(screen.getByTestId('end-date-input'), { target: { value: formatDate(liveEndDate) } });
 
-      // Wait for the filtered results
       await waitFor(() => {
         expect(screen.queryByText('Past Experiment')).not.toBeInTheDocument();
         expect(screen.queryByText('Future Experiment')).not.toBeInTheDocument();
@@ -281,46 +300,37 @@ describe('Dashboard Component - Unit Tests', () => {
   });
 
   // CATEGORY 4: SORTING FUNCTIONALITY
-  
   test('REQUEST SORT UPDATES SORT CONFIG', async () => {
-      // Since we cannot directly access the component's state, we infer it from UI changes
-      render(
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
-      );
+    render(
+      <BrowserRouter>
+        <Dashboard />
+      </BrowserRouter>
+    );
 
-      // Wait for the component to finish loading
-      await waitFor(() => expect(screen.getByText('Responses')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('all-experiments-toggle'));
 
-      const responsesHeader = screen.getByText('Responses');
+    await waitFor(() => expect(screen.getByText('Responses')).toBeInTheDocument());
 
-      // Click to sort ascending
-      fireEvent.click(responsesHeader);
+    const responsesHeader = screen.getByText('Responses');
 
-      // Wait for the component to re-render and get the updated experiment rows
-      await waitFor(() => {
-        const table = screen.getByTestId('experiments-table');
-        const experimentRows = within(table).getAllByTestId(/experiment-row-/);
+    // Click to sort ascending
+    fireEvent.click(responsesHeader);
 
-        // First row should be 'Past Experiment' (responses: 5) after ascending sort
-        expect(within(experimentRows[0]).getByText('Past Experiment')).toBeInTheDocument();
-      });
-
-      // Click again to sort descending
-      fireEvent.click(responsesHeader);
-
-      // Wait for the component to re-render and get the updated experiment rows
-      await waitFor(() => {
-        screen.debug();
-        const table = screen.getByTestId('experiments-table');
-        const experimentRows = within(table).getAllByTestId(/experiment-row-/);
-
-        // First row should be 'Future Experiment' (responses: 15) after descending sort
-        expect(within(experimentRows[0]).getByText('Future Experiment')).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      const table = screen.getByTestId('experiments-table');
+      const experimentRows = within(table).getAllByTestId(/experiment-row-/);
+      expect(within(experimentRows[0]).getByText('Past Experiment')).toBeInTheDocument();
     });
 
+    // Click again to sort descending
+    fireEvent.click(responsesHeader);
+
+    await waitFor(() => {
+      const table = screen.getByTestId('experiments-table');
+      const experimentRows = within(table).getAllByTestId(/experiment-row-/);
+      expect(within(experimentRows[0]).getByText('Future Experiment')).toBeInTheDocument();
+    });
+  });
 
   // CATEGORY 5: GETSTATUS FUNCTION
   describe('CATEGORY 5: GETSTATUS FUNCTION', () => {
@@ -331,13 +341,11 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for experiments to load
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByText('Future Experiment')).toBeInTheDocument());
 
-      // Find the row for 'Future Experiment'
       const experimentRow = screen.getByTestId('experiment-row-2');
-
-      // Check that the status cell contains 'Upcoming'
       const statusCell = within(experimentRow).getByText('Upcoming');
       expect(statusCell).toBeInTheDocument();
     });
@@ -349,13 +357,11 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for experiments to load
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
 
-      // Find the row for 'Past Experiment'
       const experimentRow = screen.getByTestId('experiment-row-1');
-
-      // Check that the status cell contains 'Completed'
       const statusCell = within(experimentRow).getByText('Completed');
       expect(statusCell).toBeInTheDocument();
     });
@@ -367,13 +373,11 @@ describe('Dashboard Component - Unit Tests', () => {
         </BrowserRouter>
       );
 
-      // Wait for experiments to load
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
       await waitFor(() => expect(screen.getByText('Live Experiment')).toBeInTheDocument());
 
-      // Find the row for 'Live Experiment'
       const experimentRow = screen.getByTestId('experiment-row-3');
-
-      // Check that the status cell contains 'Live'
       expect(within(experimentRow).getByText('Live')).toBeInTheDocument();
     });
   });
