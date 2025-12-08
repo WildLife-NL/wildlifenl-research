@@ -152,7 +152,9 @@ const OTPPopup: React.FC<OTPPopupProps> = ({ email, onClose }) => {
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={index === 0 ? handlePaste : undefined}
-              ref={(el) => (inputRefs.current[index] = el)}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
               className={
                 value
                   ? 'filled'
