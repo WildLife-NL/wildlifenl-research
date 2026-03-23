@@ -1,6 +1,6 @@
 import { Question } from "../types/question";
 
-const TEST_BASE_URL = 'https://wildlifenl-uu-michi011.apps.cl01.cp.its.uu.nl';
+const TEST_BASE_URL = 'https://test-api-wildlifenl.uu.nl';
 const BASE_URL = process.env.NODE_ENV === 'test'
   ? TEST_BASE_URL
   : process.env.REACT_APP_BASE_URL;
