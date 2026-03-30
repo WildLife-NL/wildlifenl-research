@@ -1,9 +1,7 @@
 import { User } from '../types/user';
-const TEST_BASE_URL = 'https://test-api-wildlifenl.uu.nl';
-const BASE_URL = process.env.NODE_ENV === 'test'
-  ? TEST_BASE_URL
-  : process.env.REACT_APP_BASE_URL;
-const API_URL = `${BASE_URL}/profile/me/`;
+import { API_BASE_URL } from '../apiBaseUrl';
+
+const API_URL = `${API_BASE_URL}/profile/me/`;
 
 
 const getAuthToken = (): string | null => {
