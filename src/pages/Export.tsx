@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { getExperiments } from '../services/experimentService';
 import { getMyProfile } from '../services/profileService';
 import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
-import { getResponsesByExperimentID, getResponsesByQuestionnaireID } from '../services/responseService';
+import { getResponsesByExperimentID, getResponsesByQuestionnaireID, getResponseCountByExperimentID } from '../services/responseService';
 import { getConveyancesByExperimentID } from '../services/conveyanceService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
@@ -46,9 +46,12 @@ const Export: React.FC = () => {
         getMyProfile()
       ]);
       setLoggedInUser(user);
-      const expsWithResponses = exps.map(exp => ({
+      const responseCounts = await Promise.all(
+        exps.map(exp => getResponseCountByExperimentID(exp.ID).catch(() => 0))
+      );
+      const expsWithResponses = exps.map((exp, index) => ({
         ...exp,
-        responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
+        responses: responseCounts[index],
       }));
       setExperiments(expsWithResponses);
     })();

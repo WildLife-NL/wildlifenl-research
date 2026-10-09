@@ -1,5 +1,6 @@
 import { AddAnswer } from "../types/answer";
 import { API_BASE_URL } from '../apiBaseUrl';
+import { getProblemMessage } from './problemDetails';
 
 const API_URL = `${API_BASE_URL}/answer/`;
 
@@ -31,9 +32,9 @@ export const addAnswer = async (answerData: any): Promise<AddAnswer> => {
       const data = await response.json();
       return data;
     } else {
-      const errorData = await response.json();
-      console.error('Failed to add answer:', errorData);
-      throw new Error('Failed to add answer');
+      const errorMessage = await getProblemMessage(response, 'Failed to add answer');
+      console.error('Failed to add answer:', errorMessage);
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error('Add Answer error:', error);

@@ -10,6 +10,7 @@ import QuestionSelectionPopup from '../components/QuestionSelectionPopup';
 import Question from '../components/Question';
 import { addQuestion, deleteQuestion } from '../services/questionService';
 import { addAnswer, deleteAnswer } from '../services/answerService';
+import { getMinLength } from '../services/schemaService';
 
 interface CreatedQuestion {
   localId: string;
@@ -165,7 +166,7 @@ const QuestionEdit: React.FC = () => {
   }));
 
   // Validation function similar to what was done in QuestionCreation
-  const validateData = (finalQuestions: FullQuestionData[]): boolean => {
+  const validateData = (finalQuestions: FullQuestionData[], answerMinLength?: number): boolean => {
     for (const fq of finalQuestions) {
       // Validate question-level fields
       if (!fq.text || fq.text.trim() === '') {
@@ -186,6 +187,10 @@ const QuestionEdit: React.FC = () => {
         for (const ans of fq.answers) {
           if (!ans.text || ans.text.trim() === '') {
             alert(`Question "${fq.text}" has an answer with empty text.`);
+            return false;
+          }
+          if (answerMinLength && ans.text.length < answerMinLength) {
+            alert(`Question "${fq.text}" has an answer "${ans.text}" that is shorter than ${answerMinLength} characters.`);
             return false;
           }
           if (!ans.index || ans.index <= 0) {
@@ -217,8 +222,10 @@ const QuestionEdit: React.FC = () => {
         return;
       }
 
+      const answerMinLength = await getMinLength('Answer', 'text');
+
       // Validate before saving
-      if (!validateData(finalQuestions)) {
+      if (!validateData(finalQuestions, answerMinLength)) {
         return; // Stop if validation fails
       }
 
@@ -265,7 +272,7 @@ const QuestionEdit: React.FC = () => {
       window.history.back();
     } catch (error) {
       console.error('Error updating questions and answers:', error);
-      alert('Failed to update. Please try again.');
+      alert(`Failed to update: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
 

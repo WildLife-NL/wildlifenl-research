@@ -1,5 +1,6 @@
 import {AddQuestionnaire, UpdatedQuestionnaire, Questionnaire} from '../types/questionnaire'
 import { API_BASE_URL } from '../apiBaseUrl';
+import { getProblemMessage } from './problemDetails';
 
 const QUESTIONNAIRE_API_URL = `${API_BASE_URL}/questionnaire/`;
 const QUESTIONNAIRES_API_URL = `${API_BASE_URL}/questionnaires/experiment/`;
@@ -32,9 +33,9 @@ export const addQuestionnaire = async (questionnaireData: AddQuestionnaire): Pro
       const data = await response.json();
       return data;
     } else {
-      const errorData = await response.json();
-      console.error('Failed to add experiment:', errorData);
-      throw new Error('Failed to add experiment');
+      const errorMessage = await getProblemMessage(response, 'Failed to add questionnaire');
+      console.error('Failed to add questionnaire:', errorMessage);
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error('Add Experiment error:', error);

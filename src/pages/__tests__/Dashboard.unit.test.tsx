@@ -3,6 +3,7 @@ import Dashboard from '../Dashboard';
 import * as livingLabService from '../../services/livingLabService';
 import * as experimentService from '../../services/experimentService';
 import * as profileService from '../../services/profileService'; // <-- Added import
+import * as responseService from '../../services/responseService';
 import { BrowserRouter } from 'react-router-dom';
 import { LivingLab } from '../../types/livinglab';
 import { Experiment } from '../../types/experiment';
@@ -140,6 +141,8 @@ describe('Dashboard Component - Unit Tests', () => {
     jest.spyOn(livingLabService, 'getAllLivingLabs').mockResolvedValue(mockLivingLabs);
     jest.spyOn(experimentService, 'getExperiments').mockResolvedValue(mockExperiments);
     jest.spyOn(profileService, 'getMyProfile').mockResolvedValue(mockUser);
+    const mockResponseCounts: Record<string, number> = { '1': 5, '2': 15, '3': 8 };
+    jest.spyOn(responseService, 'getResponseCountByExperimentID').mockImplementation(async (id) => mockResponseCounts[id]);
   });
 
   // CATEGORY 1: FILTERS DROPDOWN

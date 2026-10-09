@@ -6,6 +6,7 @@ import '../styles/Experiment.css';
 import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
 import { EndExperimentByID, DeleteExperimentByID, updateExperiment, getExperiments } from '../services/experimentService';
 import { getAllLivingLabs } from '../services/livingLabService';
+import { getResponseCountByExperimentID } from '../services/responseService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { LivingLab } from '../types/livinglab';
 import { User } from '../types/user'; // Added import
@@ -64,7 +65,12 @@ const Experiment: React.FC = () => {
       (async () => {
         const allExperiments = await getExperiments();
         const fresh = allExperiments.find(exp => exp.ID === location.state.experiment.ID);
-        setCurrentExperiment(fresh || null);
+        if (!fresh) {
+          setCurrentExperiment(null);
+          return;
+        }
+        const responses = await getResponseCountByExperimentID(fresh.ID).catch(() => 0);
+        setCurrentExperiment({ ...fresh, responses });
       })();
     }
   }, [location.state]);
@@ -102,7 +108,7 @@ const Experiment: React.FC = () => {
     },
     { name: 'Specified LivingLab', value: currentExperiment.livingLab?.name || 'N/A' },
     { name: 'Number of Questionnaires', value: currentExperiment.numberOfQuestionnaires?.toString() || '0' },
-    { name: 'Responses on Questionnaires', value: currentExperiment.questionnaireActivity?.toString() || '0' },
+    { name: 'Responses on Questionnaires', value: currentExperiment.responses?.toString() || '0' },
     { name: 'Number of Messages', value: currentExperiment.numberOfMessages?.toString() || '0' },
     { name: 'Messages Sent', value: currentExperiment.messageActivity?.toString() || '0' },
     { name: 'Owner of the experiment', value: currentExperiment.user?.name || 'N/A' },
@@ -276,7 +282,7 @@ const Experiment: React.FC = () => {
       const updatedExperiment = allExperiments.find(exp => exp.ID === currentExperiment.ID);
       if (updatedExperiment) {
         // Replace the experiment in state
-        setCurrentExperiment(updatedExperiment);
+        setCurrentExperiment({ ...updatedExperiment, responses: currentExperiment.responses });
       }
       setIsEditPopupVisible(false);
     } catch (error) {

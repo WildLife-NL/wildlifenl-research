@@ -9,6 +9,7 @@ import Question from '../components/Question';
 
 import { addQuestion } from '../services/questionService';
 import { addAnswer } from '../services/answerService';
+import { getMinLength } from '../services/schemaService';
 
 interface CreatedQuestion {
   localId: string; // Unique local identifier for the question
@@ -108,7 +109,7 @@ const QuestionCreation: React.FC = () => {
     questionText: q.questionText
   }));
 
-  const validateData = (finalQuestions: FullQuestionData[]): boolean => {
+  const validateData = (finalQuestions: FullQuestionData[], answerMinLength?: number): boolean => {
     for (const fq of finalQuestions) {
       // Check question-level validation
       if (!fq.text || fq.text.trim() === '') {
@@ -129,6 +130,10 @@ const QuestionCreation: React.FC = () => {
         for (const ans of fq.answers) {
           if (!ans.text || ans.text.trim() === '') {
             alert(`Question "${fq.text}" has an answer with empty text.`);
+            return false;
+          }
+          if (answerMinLength && ans.text.length < answerMinLength) {
+            alert(`Question "${fq.text}" has an answer "${ans.text}" that is shorter than ${answerMinLength} characters.`);
             return false;
           }
           if (!ans.index || ans.index <= 0) {
@@ -160,8 +165,10 @@ const QuestionCreation: React.FC = () => {
         return;
       }
 
+      const answerMinLength = await getMinLength('Answer', 'text');
+
       // Validate data before saving
-      if (!validateData(finalQuestions)) {
+      if (!validateData(finalQuestions, answerMinLength)) {
         return; // If validation fails, do not proceed
       }
 
@@ -200,7 +207,7 @@ const QuestionCreation: React.FC = () => {
       window.history.back();
     } catch (error) {
       console.error('Error saving questions and answers:', error);
-      alert('Failed to save. Please try again.');
+      alert(`Failed to save: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
 
