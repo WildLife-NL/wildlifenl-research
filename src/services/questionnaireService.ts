@@ -1,6 +1,8 @@
 import {AddQuestionnaire, UpdatedQuestionnaire, Questionnaire} from '../types/questionnaire'
 import { API_BASE_URL } from '../apiBaseUrl';
 import { getProblemMessage } from './problemDetails';
+import { deleteQuestion } from './questionService';
+import { deleteAnswer } from './answerService';
 
 const QUESTIONNAIRE_API_URL = `${API_BASE_URL}/questionnaire/`;
 const QUESTIONNAIRES_API_URL = `${API_BASE_URL}/questionnaires/experiment/`;
@@ -151,8 +153,8 @@ export const DeleteQuestionnaireByID = async (id: string): Promise<Questionnaire
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to delete questionnaire: ${errorText}`);
+      const errorMessage = await getProblemMessage(response, 'Failed to delete questionnaire');
+      throw new Error(errorMessage);
     }
 
     // If the response is 204 No Content, there's no JSON to parse
@@ -168,4 +170,21 @@ export const DeleteQuestionnaireByID = async (id: string): Promise<Questionnaire
     console.error('Error deleting questionnaire:', error);
     throw error;
   }
+};
+
+// Delete Questionnaire including its answers and questions
+export const deleteQuestionnaireWithChildren = async (id: string): Promise<void> => {
+  const questionnaire = await getQuestionnaireByID(id);
+
+  for (const question of questionnaire.questions || []) {
+    for (const answer of question.answers || []) {
+      await deleteAnswer(answer.ID);
+    }
+  }
+
+  for (const question of questionnaire.questions || []) {
+    await deleteQuestion(question.ID);
+  }
+
+  await DeleteQuestionnaireByID(id);
 };

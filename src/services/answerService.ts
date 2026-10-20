@@ -59,8 +59,8 @@ export const deleteAnswer = async (id: string): Promise<void> => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to delete answer: ${errorText}`);
+      const errorMessage = await getProblemMessage(response, 'Failed to delete answer');
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error('Error deleting answer:', error);

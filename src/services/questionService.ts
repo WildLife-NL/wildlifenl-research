@@ -1,5 +1,6 @@
 import { Question } from "../types/question";
 import { API_BASE_URL } from '../apiBaseUrl';
+import { getProblemMessage } from './problemDetails';
 
 const API_URL = `${API_BASE_URL}/question/`;
 const getAuthToken = (): string | null => {
@@ -86,8 +87,8 @@ export const deleteQuestion = async (id: string): Promise<void> => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to delete question: ${errorText}`);
+      const errorMessage = await getProblemMessage(response, 'Failed to delete question');
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error('Error deleting question:', error);

@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
 import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
-import { EndExperimentByID, DeleteExperimentByID, updateExperiment, getExperiments } from '../services/experimentService';
+import { EndExperimentByID, deleteExperimentWithChildren, updateExperiment, getExperiments } from '../services/experimentService';
 import { getAllLivingLabs } from '../services/livingLabService';
 import { getResponseCountByExperimentID } from '../services/responseService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
@@ -24,6 +24,7 @@ const Experiment: React.FC = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
   const [isStopping, setIsStopping] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
 
   // For editing
@@ -152,16 +153,16 @@ const Experiment: React.FC = () => {
 
     if (!currentExperiment) return;
 
+    setIsDeleting(true);
     try {
-      
-      DeleteExperimentByID(currentExperiment.ID);
-      
+      await deleteExperimentWithChildren(currentExperiment.ID);
       navigate('/dashboard');
     } catch (error) {
       console.error('Error deleting experiment:', error);
-      alert('Failed to delete the experiment. Please try again.');
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      alert(`Failed to delete the experiment.\n${message}`);
     } finally {
-      setIsStopping(false);
+      setIsDeleting(false);
     }
   };
 
@@ -386,21 +387,21 @@ const Experiment: React.FC = () => {
           {/* Delete Experiment (red if deletable and owner, else gray) */}
           <button
             className={`experiment-button ${
-              isCreator && status !== 'Live' && status !== 'Completed' ? 'red-button' : 'gray-button'
+              isCreator && status !== 'Live' && status !== 'Completed' && !isDeleting ? 'red-button' : 'gray-button'
             }`}
             title={
               !isCreator
                 ? 'An experiment can only be deleted by the owner before being live'
                 : status === 'Live' || status === 'Completed'
                 ? 'An experiment can only be deleted while it is not live or completed'
-                : 'Delete this experiment permanently'
+                : 'Delete this experiment, its questionnaires and its messages permanently'
             }
             onClick={
-              isCreator && status !== 'Live' && status !== 'Completed' ? handleDeleteExperiment : undefined
+              isCreator && status !== 'Live' && status !== 'Completed' && !isDeleting ? handleDeleteExperiment : undefined
             }
-            disabled={!isCreator || status === 'Live' || status === 'Completed'}
+            disabled={!isCreator || status === 'Live' || status === 'Completed' || isDeleting}
           >
-            <span>Delete Experiment</span>
+            <span>{isDeleting ? 'Deleting...' : 'Delete Experiment'}</span>
             <img
               src="/assets/TrashSVG.svg"
               alt="Delete Icon"
