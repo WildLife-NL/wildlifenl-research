@@ -16,7 +16,6 @@ const QuestionnaireCreation: React.FC = () => {
   const [interactionTypeID, setInteractionTypeID] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [interactionTypeError, setInteractionTypeError] = useState('');
-  const [nameMinLength, setNameMinLength] = useState<number | undefined>(undefined);
   const [nameError, setNameError] = useState('');
 
   const navigate = useNavigate();
@@ -32,7 +31,6 @@ const QuestionnaireCreation: React.FC = () => {
       }
     };
     fetchInteractionTypes();
-    getMinLength('Questionnaire', 'name').then(setNameMinLength);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +41,14 @@ const QuestionnaireCreation: React.FC = () => {
     // Reset custom error messages
     setInteractionTypeError('');
     setNameError('');
+
+    let nameMinLength: number | undefined;
+    try {
+      nameMinLength = await getMinLength('Questionnaire', 'name');
+    } catch (error) {
+      alert(`Failed to create questionnaire: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      return;
+    }
 
     if (name && nameMinLength && name.length < nameMinLength) {
       setNameError(`Name must be at least ${nameMinLength} characters long.`);

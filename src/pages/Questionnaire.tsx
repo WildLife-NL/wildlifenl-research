@@ -173,7 +173,13 @@ const Questionnaire: React.FC = () => {
   const saveClonedQuestionnaire = async () => {
     if (!questionnaire) return;
 
-    const nameMinLength = await getMinLength('Questionnaire', 'name');
+    let nameMinLength: number | undefined;
+    try {
+      nameMinLength = await getMinLength('Questionnaire', 'name');
+    } catch (error) {
+      setCloneError(error instanceof Error ? error.message : 'Could not load the validation rules. Please try again.');
+      return;
+    }
     if (!cloneExperimentID) {
       setCloneError('Please select an experiment.');
       return;
