@@ -289,7 +289,7 @@ const sortedInitialAnswers = isMultipleChoice
   // New handler to check regex
   const handleCheckRegex = () => {
     try {
-      const regex = new RegExp(`^(?:${regexValue})$`);
+      const regex = new RegExp(regexValue);
       const isValid = regex.test(popupInput);
       setPopupResult(isValid ? 'Approved!' : 'Rejected.');
     } catch (error) {

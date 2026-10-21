@@ -43,18 +43,6 @@
   user-select: none;
 }
 
-.navbar-version {
-  align-self: flex-end;
-  margin: 0 0 12px 12px;
-  color: #FFF;
-  opacity: 0.8;
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  white-space: nowrap;
-  user-select: text;
-  pointer-events: auto;
-}
-
 /* Actions Container */
 .navbar-actions {
   display: flex;

@@ -5,7 +5,6 @@ import '../styles/QuestionnaireCreation.css';
 import { AddQuestionnaire } from '../types/questionnaire';
 import { addQuestionnaire } from '../services/questionnaireService';
 import { getAllInteractions } from '../services/interactionTypeService';
-import { getMinLength } from '../services/schemaService';
 import { InteractionType } from '../types/interactiontype';
 
 const QuestionnaireCreation: React.FC = () => {
@@ -16,9 +15,7 @@ const QuestionnaireCreation: React.FC = () => {
   const [interactionTypeID, setInteractionTypeID] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [interactionTypeError, setInteractionTypeError] = useState('');
-  const [nameMinLength, setNameMinLength] = useState<number | undefined>(undefined);
-  const [nameError, setNameError] = useState('');
-
+  
   const navigate = useNavigate();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -32,7 +29,6 @@ const QuestionnaireCreation: React.FC = () => {
       }
     };
     fetchInteractionTypes();
-    getMinLength('Questionnaire', 'name').then(setNameMinLength);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,12 +38,6 @@ const QuestionnaireCreation: React.FC = () => {
 
     // Reset custom error messages
     setInteractionTypeError('');
-    setNameError('');
-
-    if (name && nameMinLength && name.length < nameMinLength) {
-      setNameError(`Name must be at least ${nameMinLength} characters long.`);
-      isValid = false;
-    }
 
     // Validate Interaction Type
     if (!interactionTypeID) {
@@ -79,7 +69,6 @@ const QuestionnaireCreation: React.FC = () => {
       navigate(-1);
     } catch (error) {
       console.error('Error adding questionnaire:', error);
-      alert(`Failed to create questionnaire: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
 
@@ -109,15 +98,9 @@ const QuestionnaireCreation: React.FC = () => {
             className="questionnaire-creation-text-input"
             placeholder="Enter questionnaire name..."
             value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setNameError('');
-            }}
+            onChange={(e) => setName(e.target.value)}
             required
           />
-          {nameError && (
-            <div className="error-message">{nameError}</div>
-          )}
 
           {/* Identifier */}
           <label className="questionnaire-creation-section-label">

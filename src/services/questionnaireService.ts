@@ -1,8 +1,5 @@
 import {AddQuestionnaire, UpdatedQuestionnaire, Questionnaire} from '../types/questionnaire'
 import { API_BASE_URL } from '../apiBaseUrl';
-import { getProblemMessage } from './problemDetails';
-import { addQuestionsWithAnswers, deleteQuestion } from './questionService';
-import { deleteAnswer } from './answerService';
 
 const QUESTIONNAIRE_API_URL = `${API_BASE_URL}/questionnaire/`;
 const QUESTIONNAIRES_API_URL = `${API_BASE_URL}/questionnaires/experiment/`;
@@ -35,9 +32,9 @@ export const addQuestionnaire = async (questionnaireData: AddQuestionnaire): Pro
       const data = await response.json();
       return data;
     } else {
-      const errorMessage = await getProblemMessage(response, 'Failed to add questionnaire');
-      console.error('Failed to add questionnaire:', errorMessage);
-      throw new Error(errorMessage);
+      const errorData = await response.json();
+      console.error('Failed to add experiment:', errorData);
+      throw new Error('Failed to add experiment');
     }
   } catch (error) {
     console.error('Add Experiment error:', error);
@@ -153,8 +150,8 @@ export const DeleteQuestionnaireByID = async (id: string): Promise<Questionnaire
     });
 
     if (!response.ok) {
-      const errorMessage = await getProblemMessage(response, 'Failed to delete questionnaire');
-      throw new Error(errorMessage);
+      const errorText = await response.text();
+      throw new Error(`Failed to delete questionnaire: ${errorText}`);
     }
 
     // If the response is 204 No Content, there's no JSON to parse
@@ -170,52 +167,4 @@ export const DeleteQuestionnaireByID = async (id: string): Promise<Questionnaire
     console.error('Error deleting questionnaire:', error);
     throw error;
   }
-};
-
-// Delete Questionnaire including its answers and questions
-export const deleteQuestionnaireWithChildren = async (id: string): Promise<void> => {
-  const questionnaire = await getQuestionnaireByID(id);
-
-  for (const question of questionnaire.questions || []) {
-    for (const answer of question.answers || []) {
-      await deleteAnswer(answer.ID);
-    }
-  }
-
-  for (const question of questionnaire.questions || []) {
-    await deleteQuestion(question.ID);
-  }
-
-  await DeleteQuestionnaireByID(id);
-};
-
-// Clone Questionnaire including its questions and answers into a new questionnaire
-export const cloneQuestionnaire = async (sourceID: string, questionnaireData: AddQuestionnaire): Promise<Questionnaire> => {
-  const source = await getQuestionnaireByID(sourceID);
-  const clone = await addQuestionnaire(questionnaireData);
-
-  try {
-    await addQuestionsWithAnswers(
-      clone.ID,
-      (source.questions || []).map((question) => ({
-        localId: question.ID,
-        allowMultipleResponse: question.allowMultipleResponse,
-        allowOpenResponse: question.allowOpenResponse,
-        description: question.description,
-        index: question.index,
-        openResponseFormat: question.openResponseFormat,
-        text: question.text,
-        answers: (question.answers || []).map((answer) => ({
-          index: answer.index,
-          text: answer.text,
-          nextQuestionID: answer.nextQuestionID || null,
-        })),
-      }))
-    );
-  } catch (error) {
-    await DeleteQuestionnaireByID(clone.ID).catch(() => undefined);
-    throw error;
-  }
-
-  return clone;
 };

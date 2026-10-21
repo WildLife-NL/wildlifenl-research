@@ -2,11 +2,12 @@ import { Question } from "../types/question";
 import { useNavigate } from 'react-router-dom';
 import '../styles/QuestionView.css';
 import { Experiment } from '../types/experiment';
+import { User } from '../types/user'; // Import User
 
 interface QuestionViewProps {
   fields: Question[];
-  experiment?: Experiment;
-  isCreator: boolean;
+  experiment: Experiment; // Changed from experimentID: string
+  loggedInUser?: User; // Added loggedInUser prop
 }
 
 const getStatus = (startDate: string, endDate?: string | null): string => {
@@ -22,9 +23,10 @@ const getStatus = (startDate: string, endDate?: string | null): string => {
   }
 };
 
-const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, isCreator }) => { // Updated props
+const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, loggedInUser }) => { // Updated props
   const navigate = useNavigate();
-  const status = experiment?.start ? getStatus(experiment.start, experiment.end) : 'Unknown';
+  const status = getStatus(experiment.start, experiment.end);
+  const isCreator = loggedInUser ? experiment.user.ID === loggedInUser.ID : false; // Determine if user is creator
 
   // Identify duplicate indices
   const indexCount: { [key: number]: number } = {};
@@ -97,7 +99,7 @@ const QuestionView: React.FC<QuestionViewProps> = ({ fields, experiment, isCreat
       let messageIcon = "/assets/MessageBlackSVG.svg";
       let messageTitle = "Create a message that is linked to this answer";
       let messageOnClick = () => {
-        navigate(`/MessageCreationB/${experiment?.ID}`, {
+        navigate(`/MessageCreationB/${experiment.ID}`, {
           state: { answerID: answer.ID, answerText: answer.text }
         });
       };
