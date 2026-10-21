@@ -7,6 +7,7 @@ import '../styles/Dashboard.css';
 import { getAllLivingLabs } from '../services/livingLabService';
 import { getExperiments} from '../services/experimentService';
 import { getMyProfile } from '../services/profileService';
+import { getResponseCountByExperimentID } from '../services/responseService';
 
 // Import types
 import { Experiment } from '../types/experiment';
@@ -52,10 +53,12 @@ const Dashboard: React.FC = () => {
         };
         setLivingLabs([allLivingLabsOption, ...labs]);
 
-         // Calculate responses for each experiment
-        const experimentsWithResponses = exps.map((exp) => ({
+        const responseCounts = await Promise.all(
+          exps.map((exp) => getResponseCountByExperimentID(exp.ID).catch(() => 0))
+        );
+        const experimentsWithResponses = exps.map((exp, index) => ({
           ...exp,
-          responses: (exp.messageActivity ?? 0) + (exp.questionnaireActivity ?? 0),
+          responses: responseCounts[index],
         }));
 
         // Set experiments and filtered experiments
@@ -117,11 +120,12 @@ const Dashboard: React.FC = () => {
             bValue = new Date(b[sortConfig.key]).getTime() || 0;
             break;
           case 'responses':
-            aValue = (a.messageActivity ?? 0) + (a.questionnaireActivity ?? 0);
-            bValue = (b.messageActivity ?? 0) + (b.questionnaireActivity ?? 0);
+            aValue = a.responses ?? 0;
+            bValue = b.responses ?? 0;
             break;
           case 'numberOfQuestionnaires':
           case 'numberOfMessages':
+          case 'messageActivity':
             aValue = a[sortConfig.key] ?? 0;
             bValue = b[sortConfig.key] ?? 0;
             break;
@@ -346,6 +350,14 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('responses')}`}
                     />
                   </th>
+                  <th onClick={() => requestSort('messageActivity')}>
+                    Messages Sent
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('messageActivity')}`}
+                    />
+                  </th>
                   {allExperimentsChecked && (
                     <th>
                       Owner
@@ -384,6 +396,9 @@ const Dashboard: React.FC = () => {
                       <td onClick={() => handleExperimentClick(exp)}>{status}</td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.responses}
+                      </td>
+                      <td onClick={() => handleExperimentClick(exp)}>
+                        {exp.messageActivity ?? 0}
                       </td>
                       {allExperimentsChecked && (
                         <td>
