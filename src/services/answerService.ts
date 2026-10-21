@@ -1,4 +1,4 @@
-import { AddAnswer } from "../types/answer";
+import { Answer } from "../types/answer";
 import { API_BASE_URL } from '../apiBaseUrl';
 import { getProblemMessage } from './problemDetails';
 
@@ -9,7 +9,7 @@ const getAuthToken = (): string | null => {
 };
 
 // Add Answer
-export const addAnswer = async (answerData: any): Promise<AddAnswer> => {
+export const addAnswer = async (answerData: any): Promise<Answer> => {
   try {
     const token = getAuthToken();
     if (!token) {

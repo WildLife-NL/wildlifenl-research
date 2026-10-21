@@ -1,7 +1,7 @@
 import {AddQuestionnaire, UpdatedQuestionnaire, Questionnaire} from '../types/questionnaire'
 import { API_BASE_URL } from '../apiBaseUrl';
 import { getProblemMessage } from './problemDetails';
-import { deleteQuestion } from './questionService';
+import { addQuestionsWithAnswers, deleteQuestion } from './questionService';
 import { deleteAnswer } from './answerService';
 
 const QUESTIONNAIRE_API_URL = `${API_BASE_URL}/questionnaire/`;
@@ -187,4 +187,35 @@ export const deleteQuestionnaireWithChildren = async (id: string): Promise<void>
   }
 
   await DeleteQuestionnaireByID(id);
+};
+
+// Clone Questionnaire including its questions and answers into a new questionnaire
+export const cloneQuestionnaire = async (sourceID: string, questionnaireData: AddQuestionnaire): Promise<Questionnaire> => {
+  const source = await getQuestionnaireByID(sourceID);
+  const clone = await addQuestionnaire(questionnaireData);
+
+  try {
+    await addQuestionsWithAnswers(
+      clone.ID,
+      (source.questions || []).map((question) => ({
+        localId: question.ID,
+        allowMultipleResponse: question.allowMultipleResponse,
+        allowOpenResponse: question.allowOpenResponse,
+        description: question.description,
+        index: question.index,
+        openResponseFormat: question.openResponseFormat,
+        text: question.text,
+        answers: (question.answers || []).map((answer) => ({
+          index: answer.index,
+          text: answer.text,
+          nextQuestionID: answer.nextQuestionID || null,
+        })),
+      }))
+    );
+  } catch (error) {
+    await DeleteQuestionnaireByID(clone.ID).catch(() => undefined);
+    throw error;
+  }
+
+  return clone;
 };

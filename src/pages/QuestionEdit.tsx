@@ -8,8 +8,8 @@ import '../styles/QuestionCreation.css';
 import { useLocation } from 'react-router-dom';
 import QuestionSelectionPopup from '../components/QuestionSelectionPopup';
 import Question from '../components/Question';
-import { addQuestion, deleteQuestion } from '../services/questionService';
-import { addAnswer, deleteAnswer } from '../services/answerService';
+import { addQuestionsWithAnswers, deleteQuestion } from '../services/questionService';
+import { deleteAnswer } from '../services/answerService';
 import { getMinLength } from '../services/schemaService';
 
 interface CreatedQuestion {
@@ -166,11 +166,15 @@ const QuestionEdit: React.FC = () => {
   }));
 
   // Validation function similar to what was done in QuestionCreation
-  const validateData = (finalQuestions: FullQuestionData[], answerMinLength?: number): boolean => {
+  const validateData = (finalQuestions: FullQuestionData[], questionMinLength?: number, answerMinLength?: number): boolean => {
     for (const fq of finalQuestions) {
       // Validate question-level fields
       if (!fq.text || fq.text.trim() === '') {
         alert(`Question at index ${fq.indexValue} has no title.`);
+        return false;
+      }
+      if (questionMinLength && fq.text.length < questionMinLength) {
+        alert(`Question "${fq.text}" (index ${fq.indexValue}) is shorter than ${questionMinLength} characters.`);
         return false;
       }
       if (!fq.description || fq.description.trim() === '') {
@@ -214,6 +218,11 @@ const QuestionEdit: React.FC = () => {
 
   const saveQuestionsAndAnswers = async () => {
     try {
+      if (!questionnaire) {
+        alert('Questionnaire data is missing.');
+        return;
+      }
+
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
       const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
 
@@ -222,10 +231,13 @@ const QuestionEdit: React.FC = () => {
         return;
       }
 
-      const answerMinLength = await getMinLength('Answer', 'text');
+      const [questionMinLength, answerMinLength] = await Promise.all([
+        getMinLength('Question', 'text'),
+        getMinLength('Answer', 'text'),
+      ]);
 
       // Validate before saving
-      if (!validateData(finalQuestions, answerMinLength)) {
+      if (!validateData(finalQuestions, questionMinLength, answerMinLength)) {
         return; // Stop if validation fails
       }
 
@@ -239,35 +251,19 @@ const QuestionEdit: React.FC = () => {
         await deleteQuestion(qID);
       }
 
-      const localIdToRealId: Record<string, string> = {};
-      // Add new questions
-      for (const fq of finalQuestions) {
-        const questionPayload = {
+      await addQuestionsWithAnswers(
+        questionnaire.ID,
+        finalQuestions.map(fq => ({
+          localId: fq.localId,
           allowMultipleResponse: fq.allowMultipleResponse,
           allowOpenResponse: fq.allowOpenResponse,
           description: fq.description,
           index: fq.indexValue,
           openResponseFormat: fq.openResponseFormat,
           text: fq.text,
-          questionnaireID: questionnaire?.ID
-        };
-
-        const createdQuestion = await addQuestion(questionPayload);
-        localIdToRealId[fq.localId] = createdQuestion.ID;
-      }
-
-      // Add new answers
-      for (const fq of finalQuestions) {
-        for (const ans of fq.answers) {
-          const answerPayload = {
-            index: ans.index,
-            questionID: localIdToRealId[fq.localId],
-            text: ans.text,
-            nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null
-          };
-          await addAnswer(answerPayload);
-        }
-      }
+          answers: fq.answers,
+        }))
+      );
       alert('Questions and answers updated successfully!');
       window.history.back();
     } catch (error) {

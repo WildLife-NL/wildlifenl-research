@@ -6,10 +6,22 @@ import { getMyProfile } from '../services/profileService';
 import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
 import { getResponsesByExperimentID, getResponsesByQuestionnaireID, getResponseCountByExperimentID } from '../services/responseService';
 import { getConveyancesByExperimentID } from '../services/conveyanceService';
+import { getAllLivingLabs } from '../services/livingLabService';
+import { getAnimalLocationsInLivingLab } from '../services/animalService';
+import { getDetectionsInLivingLab } from '../services/detectionService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
 import { User } from '../types/user';
+import { LivingLab } from '../types/livinglab';
 import '../styles/Export.css';
+
+interface AnimalDataExport {
+  title: string;
+  fileName: string;
+  data: any[];
+  headers: string[];
+  rows: string[][];
+}
 
 const Export: React.FC = () => {
 
@@ -34,6 +46,13 @@ const Export: React.FC = () => {
   const [questionnaireTableRows, setQuestionnaireTableRows] = useState<string[][]>([]);
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
   const [allExperimentsChecked, setAllExperimentsChecked] = useState<boolean>(false);
+  const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
+  const [selectedLivingLab, setSelectedLivingLab] = useState<LivingLab | null>(null);
+  const [isLivingLabDropdownOpen, setIsLivingLabDropdownOpen] = useState<boolean>(false);
+  const [animalDataStartDate, setAnimalDataStartDate] = useState<string>('');
+  const [animalDataEndDate, setAnimalDataEndDate] = useState<string>('');
+  const [animalDataLoading, setAnimalDataLoading] = useState<'locations' | 'detections' | null>(null);
+  const [animalDataExport, setAnimalDataExport] = useState<AnimalDataExport | null>(null);
 
   const truncateText = (text: string, maxLength: number = 100): string => {
     return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
@@ -55,6 +74,12 @@ const Export: React.FC = () => {
       }));
       setExperiments(expsWithResponses);
     })();
+  }, []);
+
+  useEffect(() => {
+    getAllLivingLabs()
+      .then(setLivingLabs)
+      .catch((error) => console.error('Error fetching living labs:', error));
   }, []);
 
   useEffect(() => {
@@ -149,14 +174,20 @@ const Export: React.FC = () => {
     return { headers, rows };
   }
 
+  // Quote values containing commas, quotes or line breaks so they stay in their own column
+  const escapeCSVValue = (value: any): string => {
+    const text = String(value ?? '');
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+
   function convertToCSV(data: any[]) {
     if (!data || data.length === 0) return '';
     const { headers, rows } = buildTableData(data);
 
     const csvLines = [];
-    csvLines.push(headers.join(','));
+    csvLines.push(headers.map(escapeCSVValue).join(','));
     rows.forEach(row => {
-      csvLines.push(row.join(','));
+      csvLines.push(row.map(escapeCSVValue).join(','));
     });
     return csvLines.join('\n');
   }
@@ -263,6 +294,97 @@ const Export: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const getAnimalDataPeriod = (): { start: string; end: string } | null => {
+    if (!selectedLivingLab || !animalDataStartDate || !animalDataEndDate) {
+      alert('Please select a LivingLab and a period.');
+      return null;
+    }
+    const start = new Date(`${animalDataStartDate}T00:00:00`);
+    const end = new Date(`${animalDataEndDate}T23:59:59.999`);
+    if (start > end) {
+      alert('The start date must be before the end date.');
+      return null;
+    }
+    return { start: start.toISOString(), end: end.toISOString() };
+  };
+
+  const showAnimalDataExport = (title: string, filePrefix: string, data: any[]) => {
+    const { headers, rows } = buildTableData(data);
+    setAnimalDataExport({
+      title,
+      fileName: `${filePrefix}_${selectedLivingLab?.name}_${animalDataStartDate}_${animalDataEndDate}.csv`,
+      data,
+      headers,
+      rows: rows.slice(0, 10), // show first 10 rows
+    });
+  };
+
+  const handleShowAnimalLocations = async () => {
+    const period = getAnimalDataPeriod();
+    if (!period || !selectedLivingLab) return;
+    setAnimalDataLoading('locations');
+    try {
+      const data = await getAnimalLocationsInLivingLab(selectedLivingLab, period.start, period.end);
+      showAnimalDataExport('animal locations', 'AnimalLocations', data);
+    } catch (error) {
+      console.error('Error fetching animal locations:', error);
+      alert(`Failed to fetch animal locations.\n${error instanceof Error ? error.message : 'Please try again.'}`);
+    } finally {
+      setAnimalDataLoading(null);
+    }
+  };
+
+  const handleShowDetections = async () => {
+    const period = getAnimalDataPeriod();
+    if (!period || !selectedLivingLab) return;
+    setAnimalDataLoading('detections');
+    try {
+      const detections = await getDetectionsInLivingLab(selectedLivingLab, period.start, period.end);
+      // One row per detected animal, the detection columns are repeated for every animal
+      const data = detections.flatMap((detection) => {
+        const animals = detection.animals?.length ? detection.animals : [{}];
+        return animals.map((animal) => ({
+          detectionID: detection.ID,
+          start: detection.start,
+          end: detection.end,
+          latitude: detection.location?.latitude,
+          longitude: detection.location?.longitude,
+          species: detection.species?.name,
+          commonName: detection.species?.commonName,
+          sensorType: detection.sensorType ?? '',
+          deploymentID: detection.deploymentID,
+          owner: detection.user?.name,
+          uri: detection.uri,
+          sex: animal.sex,
+          lifeStage: animal.lifeStage,
+          condition: animal.condition,
+          behaviour: animal.behaviour,
+          confidence: animal.confidence,
+          description: animal.description,
+        }));
+      });
+      showAnimalDataExport('detections', 'Detections', data);
+    } catch (error) {
+      console.error('Error fetching detections:', error);
+      alert(`Failed to fetch detections.\n${error instanceof Error ? error.message : 'Please try again.'}`);
+    } finally {
+      setAnimalDataLoading(null);
+    }
+  };
+
+  const downloadCSVAnimalData = () => {
+    if (!animalDataExport) return;
+    const csv = convertToCSV(animalDataExport.data);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', animalDataExport.fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       {/* Navbar */}
@@ -299,6 +421,130 @@ const Export: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Animal data export for a LivingLab and period */}
+      <div className="filters-container export-animal-data-container" data-testid="animal-data-export">
+        <div className="filter">
+          <label className="filter-label">Animal data in LivingLab:</label>
+          <div className={`dropdown ${isLivingLabDropdownOpen ? 'open' : ''}`}>
+            <button
+              className="dropdown-button"
+              onClick={() => setIsLivingLabDropdownOpen(!isLivingLabDropdownOpen)}
+              data-testid="export-livinglab-dropdown-button"
+            >
+              {selectedLivingLab ? truncateText(selectedLivingLab.name, 18) : 'Select LivingLab'}
+              <img
+                src="/assets/vsvg.svg"
+                alt="Dropdown Icon"
+                className={`dropdown-icon ${isLivingLabDropdownOpen ? 'dropdown-icon-hover' : ''}`}
+              />
+            </button>
+            <div className="dropdown-content">
+              {livingLabs.map((lab) => (
+                <div
+                  key={lab.ID}
+                  className="dropdown-item"
+                  data-testid={`export-livinglab-option-${lab.ID}`}
+                  onClick={() => {
+                    setSelectedLivingLab(lab);
+                    setIsLivingLabDropdownOpen(false);
+                  }}
+                >
+                  {lab.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="filter">
+          <label className="filter-label">Period:</label>
+          <div className="date-inputs">
+            <div className="date-input">
+              <input
+                type="date"
+                value={animalDataStartDate}
+                onChange={(e) => setAnimalDataStartDate(e.target.value)}
+                data-testid="export-start-date-input"
+              />
+            </div>
+            <span className="date-separator">-</span>
+            <div className="date-input">
+              <input
+                type="date"
+                value={animalDataEndDate}
+                onChange={(e) => setAnimalDataEndDate(e.target.value)}
+                data-testid="export-end-date-input"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="filter export-animal-data-actions">
+          <button
+            onClick={handleShowAnimalLocations}
+            disabled={animalDataLoading !== null}
+            title="Export the location timeseries of the animals in this LivingLab during this period"
+            data-testid="export-animal-locations-button"
+          >
+            {animalDataLoading === 'locations' ? 'Loading...' : 'Animal Locations'}
+          </button>
+          <button
+            onClick={handleShowDetections}
+            disabled={animalDataLoading !== null}
+            title="Export the detections in this LivingLab during this period"
+            data-testid="export-detections-button"
+          >
+            {animalDataLoading === 'detections' ? 'Loading...' : 'Detections'}
+          </button>
+        </div>
+      </div>
+
+      {animalDataExport && (
+        <div className="popup-overlay show" onClick={() => setAnimalDataExport(null)}>
+          <div className={`popup-content ${animalDataExport.rows.length === 0 ? 'popup-content-small' : ''}`} onClick={(e) => e.stopPropagation()}>
+            {animalDataExport.rows.length === 0 ? (
+              <div className="no-responses-container">
+                <div className="no-responses-message">
+                  No {animalDataExport.title} found for this LivingLab and period.
+                </div>
+                <div className="popup-actions">
+                  <button className="close-button close-button-no-responses" onClick={() => setAnimalDataExport(null)}>Close</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="popup-preview-box">
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        {animalDataExport.headers.map((header, idx) => (
+                          <th key={`ah-${idx}`} style={{ border: '1px solid #ccc', padding: '8px' }}>
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {animalDataExport.rows.map((row, i) => (
+                        <tr key={`ar-${i}`}>
+                          {row.map((cell, j) => (
+                            <td key={`ac-${i}-${j}`} style={{ border: '1px solid #ccc', padding: '8px' }}>
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="popup-actions">
+                  <button className="close-button" onClick={() => setAnimalDataExport(null)}>Close</button>
+                  <button className="download-csv-button" onClick={downloadCSVAnimalData}>Download CSV</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {showPopup && (
         <div className={`popup-overlay show`} onClick={() => setShowPopup(false)}>

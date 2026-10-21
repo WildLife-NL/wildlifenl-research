@@ -125,6 +125,7 @@ const Dashboard: React.FC = () => {
             break;
           case 'numberOfQuestionnaires':
           case 'numberOfMessages':
+          case 'messageActivity':
             aValue = a[sortConfig.key] ?? 0;
             bValue = b[sortConfig.key] ?? 0;
             break;
@@ -349,6 +350,14 @@ const Dashboard: React.FC = () => {
                       className={`sort-icon ${getSortIconClass('responses')}`}
                     />
                   </th>
+                  <th onClick={() => requestSort('messageActivity')}>
+                    Messages Sent
+                    <img
+                      src="/assets/vblacksvg.svg"
+                      alt="Sort Icon"
+                      className={`sort-icon ${getSortIconClass('messageActivity')}`}
+                    />
+                  </th>
                   {allExperimentsChecked && (
                     <th>
                       Owner
@@ -387,6 +396,9 @@ const Dashboard: React.FC = () => {
                       <td onClick={() => handleExperimentClick(exp)}>{status}</td>
                       <td onClick={() => handleExperimentClick(exp)}>
                         {exp.responses}
+                      </td>
+                      <td onClick={() => handleExperimentClick(exp)}>
+                        {exp.messageActivity ?? 0}
                       </td>
                       {allExperimentsChecked && (
                         <td>
