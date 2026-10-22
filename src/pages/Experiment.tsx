@@ -4,9 +4,8 @@ import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
 import '../styles/Experiment.css';
 import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
-import { EndExperimentByID, deleteExperimentWithChildren, updateExperiment, getExperiments } from '../services/experimentService';
+import { EndExperimentByID, DeleteExperimentByID, updateExperiment, getExperiments } from '../services/experimentService';
 import { getAllLivingLabs } from '../services/livingLabService';
-import { getResponseCountByExperimentID } from '../services/responseService';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { LivingLab } from '../types/livinglab';
 import { User } from '../types/user'; // Added import
@@ -24,7 +23,6 @@ const Experiment: React.FC = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
   const [isStopping, setIsStopping] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
 
   // For editing
@@ -66,12 +64,7 @@ const Experiment: React.FC = () => {
       (async () => {
         const allExperiments = await getExperiments();
         const fresh = allExperiments.find(exp => exp.ID === location.state.experiment.ID);
-        if (!fresh) {
-          setCurrentExperiment(null);
-          return;
-        }
-        const responses = await getResponseCountByExperimentID(fresh.ID).catch(() => 0);
-        setCurrentExperiment({ ...fresh, responses });
+        setCurrentExperiment(fresh || null);
       })();
     }
   }, [location.state]);
@@ -109,7 +102,7 @@ const Experiment: React.FC = () => {
     },
     { name: 'Specified LivingLab', value: currentExperiment.livingLab?.name || 'N/A' },
     { name: 'Number of Questionnaires', value: currentExperiment.numberOfQuestionnaires?.toString() || '0' },
-    { name: 'Responses on Questionnaires', value: currentExperiment.responses?.toString() || '0' },
+    { name: 'Responses on Questionnaires', value: currentExperiment.questionnaireActivity?.toString() || '0' },
     { name: 'Number of Messages', value: currentExperiment.numberOfMessages?.toString() || '0' },
     { name: 'Messages Sent', value: currentExperiment.messageActivity?.toString() || '0' },
     { name: 'Owner of the experiment', value: currentExperiment.user?.name || 'N/A' },
@@ -153,16 +146,16 @@ const Experiment: React.FC = () => {
 
     if (!currentExperiment) return;
 
-    setIsDeleting(true);
     try {
-      await deleteExperimentWithChildren(currentExperiment.ID);
+      
+      DeleteExperimentByID(currentExperiment.ID);
+      
       navigate('/dashboard');
     } catch (error) {
       console.error('Error deleting experiment:', error);
-      const message = error instanceof Error ? error.message : 'Please try again.';
-      alert(`Failed to delete the experiment.\n${message}`);
+      alert('Failed to delete the experiment. Please try again.');
     } finally {
-      setIsDeleting(false);
+      setIsStopping(false);
     }
   };
 
@@ -283,7 +276,7 @@ const Experiment: React.FC = () => {
       const updatedExperiment = allExperiments.find(exp => exp.ID === currentExperiment.ID);
       if (updatedExperiment) {
         // Replace the experiment in state
-        setCurrentExperiment({ ...updatedExperiment, responses: currentExperiment.responses });
+        setCurrentExperiment(updatedExperiment);
       }
       setIsEditPopupVisible(false);
     } catch (error) {
@@ -387,21 +380,21 @@ const Experiment: React.FC = () => {
           {/* Delete Experiment (red if deletable and owner, else gray) */}
           <button
             className={`experiment-button ${
-              isCreator && status !== 'Live' && status !== 'Completed' && !isDeleting ? 'red-button' : 'gray-button'
+              isCreator && status !== 'Live' && status !== 'Completed' ? 'red-button' : 'gray-button'
             }`}
             title={
               !isCreator
                 ? 'An experiment can only be deleted by the owner before being live'
                 : status === 'Live' || status === 'Completed'
                 ? 'An experiment can only be deleted while it is not live or completed'
-                : 'Delete this experiment, its questionnaires and its messages permanently'
+                : 'Delete this experiment permanently'
             }
             onClick={
-              isCreator && status !== 'Live' && status !== 'Completed' && !isDeleting ? handleDeleteExperiment : undefined
+              isCreator && status !== 'Live' && status !== 'Completed' ? handleDeleteExperiment : undefined
             }
-            disabled={!isCreator || status === 'Live' || status === 'Completed' || isDeleting}
+            disabled={!isCreator || status === 'Live' || status === 'Completed'}
           >
-            <span>{isDeleting ? 'Deleting...' : 'Delete Experiment'}</span>
+            <span>Delete Experiment</span>
             <img
               src="/assets/TrashSVG.svg"
               alt="Delete Icon"

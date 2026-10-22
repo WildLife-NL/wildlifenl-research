@@ -1,6 +1,5 @@
-import { Answer } from "../types/answer";
+import { AddAnswer } from "../types/answer";
 import { API_BASE_URL } from '../apiBaseUrl';
-import { getProblemMessage } from './problemDetails';
 
 const API_URL = `${API_BASE_URL}/answer/`;
 
@@ -9,7 +8,7 @@ const getAuthToken = (): string | null => {
 };
 
 // Add Answer
-export const addAnswer = async (answerData: any): Promise<Answer> => {
+export const addAnswer = async (answerData: any): Promise<AddAnswer> => {
   try {
     const token = getAuthToken();
     if (!token) {
@@ -32,9 +31,9 @@ export const addAnswer = async (answerData: any): Promise<Answer> => {
       const data = await response.json();
       return data;
     } else {
-      const errorMessage = await getProblemMessage(response, 'Failed to add answer');
-      console.error('Failed to add answer:', errorMessage);
-      throw new Error(errorMessage);
+      const errorData = await response.json();
+      console.error('Failed to add answer:', errorData);
+      throw new Error('Failed to add answer');
     }
   } catch (error) {
     console.error('Add Answer error:', error);
@@ -59,8 +58,8 @@ export const deleteAnswer = async (id: string): Promise<void> => {
     });
 
     if (!response.ok) {
-      const errorMessage = await getProblemMessage(response, 'Failed to delete answer');
-      throw new Error(errorMessage);
+      const errorText = await response.text();
+      throw new Error(`Failed to delete answer: ${errorText}`);
     }
   } catch (error) {
     console.error('Error deleting answer:', error);

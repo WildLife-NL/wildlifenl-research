@@ -1,8 +1,5 @@
 import { Experiment, UpdateExperiment } from '../types/experiment';
 import { API_BASE_URL } from '../apiBaseUrl';
-import { getProblemMessage } from './problemDetails';
-import { getMessagesByExperimentID, DeleteMessageByID } from './messageService';
-import { getQuestionnaireByExperimentID, deleteQuestionnaireWithChildren } from './questionnaireService';
 
 const EXPERIMENT_API_URL = `${API_BASE_URL}/experiment/`;
 const EXPERIMENTS_API_URL = `${API_BASE_URL}/experiments/`;
@@ -191,8 +188,8 @@ export const DeleteExperimentByID = async (id: string): Promise<Experiment | voi
     });
 
     if (!response.ok) {
-      const errorMessage = await getProblemMessage(response, 'Failed to delete experiment');
-      throw new Error(errorMessage);
+      const errorText = await response.text();
+      throw new Error(`Failed to delete experiment: ${errorText}`);
     }
 
     // If the response is 204 No Content, there's no JSON to parse
@@ -208,20 +205,4 @@ export const DeleteExperimentByID = async (id: string): Promise<Experiment | voi
     console.error('Error deleting experiment:', error);
     throw error;
   }
-};
-
-// Delete Experiment including its messages and questionnaires.
-// Messages go first because a message can be linked to an answer of a questionnaire.
-export const deleteExperimentWithChildren = async (id: string): Promise<void> => {
-  const messages = (await getMessagesByExperimentID(id)) ?? [];
-  for (const message of messages) {
-    await DeleteMessageByID(message.ID);
-  }
-
-  const questionnaires = (await getQuestionnaireByExperimentID(id)) ?? [];
-  for (const questionnaire of questionnaires) {
-    await deleteQuestionnaireWithChildren(questionnaire.ID);
-  }
-
-  await DeleteExperimentByID(id);
 };

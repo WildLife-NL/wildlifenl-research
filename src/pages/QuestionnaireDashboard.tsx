@@ -147,7 +147,7 @@ const QuestionnaireDashboard: React.FC = () => {
 
   // Update the handleQuestionnaireClick function to pass loggedInUser
   const handleQuestionnaireClick = (questionnaire: Questionnaire) => {
-    navigate(`/questionnaire/${questionnaire.ID}`, { state: { questionnaire, experiment, user: loggedInUser } });
+    navigate(`/questionnaire/${id}`, { state: { questionnaire, user: loggedInUser } });
   };
 
   const truncateText = (text: string, maxLength: number): string => {
@@ -280,7 +280,7 @@ const QuestionnaireDashboard: React.FC = () => {
                     />
                   </th>
                   <th onClick={() => requestSort('numberOfQuestions')}>
-                    Number of Questions
+                    Amount of Questions
                     <img
                       src="/assets/vblacksvg.svg"
                       alt="Sort Icon"

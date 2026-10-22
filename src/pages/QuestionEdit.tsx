@@ -8,9 +8,8 @@ import '../styles/QuestionCreation.css';
 import { useLocation } from 'react-router-dom';
 import QuestionSelectionPopup from '../components/QuestionSelectionPopup';
 import Question from '../components/Question';
-import { addQuestionsWithAnswers, deleteQuestion } from '../services/questionService';
-import { deleteAnswer } from '../services/answerService';
-import { getMinLength } from '../services/schemaService';
+import { addQuestion, deleteQuestion } from '../services/questionService';
+import { addAnswer, deleteAnswer } from '../services/answerService';
 
 interface CreatedQuestion {
   localId: string;
@@ -166,15 +165,11 @@ const QuestionEdit: React.FC = () => {
   }));
 
   // Validation function similar to what was done in QuestionCreation
-  const validateData = (finalQuestions: FullQuestionData[], questionMinLength?: number, answerMinLength?: number): boolean => {
+  const validateData = (finalQuestions: FullQuestionData[]): boolean => {
     for (const fq of finalQuestions) {
       // Validate question-level fields
       if (!fq.text || fq.text.trim() === '') {
         alert(`Question at index ${fq.indexValue} has no title.`);
-        return false;
-      }
-      if (questionMinLength && fq.text.length < questionMinLength) {
-        alert(`Question "${fq.text}" (index ${fq.indexValue}) is shorter than ${questionMinLength} characters.`);
         return false;
       }
       if (!fq.description || fq.description.trim() === '') {
@@ -191,10 +186,6 @@ const QuestionEdit: React.FC = () => {
         for (const ans of fq.answers) {
           if (!ans.text || ans.text.trim() === '') {
             alert(`Question "${fq.text}" has an answer with empty text.`);
-            return false;
-          }
-          if (answerMinLength && ans.text.length < answerMinLength) {
-            alert(`Question "${fq.text}" has an answer "${ans.text}" that is shorter than ${answerMinLength} characters.`);
             return false;
           }
           if (!ans.index || ans.index <= 0) {
@@ -218,11 +209,6 @@ const QuestionEdit: React.FC = () => {
 
   const saveQuestionsAndAnswers = async () => {
     try {
-      if (!questionnaire) {
-        alert('Questionnaire data is missing.');
-        return;
-      }
-
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
       const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
 
@@ -231,13 +217,8 @@ const QuestionEdit: React.FC = () => {
         return;
       }
 
-      const [questionMinLength, answerMinLength] = await Promise.all([
-        getMinLength('Question', 'text'),
-        getMinLength('Answer', 'text'),
-      ]);
-
       // Validate before saving
-      if (!validateData(finalQuestions, questionMinLength, answerMinLength)) {
+      if (!validateData(finalQuestions)) {
         return; // Stop if validation fails
       }
 
@@ -251,24 +232,40 @@ const QuestionEdit: React.FC = () => {
         await deleteQuestion(qID);
       }
 
-      await addQuestionsWithAnswers(
-        questionnaire.ID,
-        finalQuestions.map(fq => ({
-          localId: fq.localId,
+      const localIdToRealId: Record<string, string> = {};
+      // Add new questions
+      for (const fq of finalQuestions) {
+        const questionPayload = {
           allowMultipleResponse: fq.allowMultipleResponse,
           allowOpenResponse: fq.allowOpenResponse,
           description: fq.description,
           index: fq.indexValue,
           openResponseFormat: fq.openResponseFormat,
           text: fq.text,
-          answers: fq.answers,
-        }))
-      );
+          questionnaireID: questionnaire?.ID
+        };
+
+        const createdQuestion = await addQuestion(questionPayload);
+        localIdToRealId[fq.localId] = createdQuestion.ID;
+      }
+
+      // Add new answers
+      for (const fq of finalQuestions) {
+        for (const ans of fq.answers) {
+          const answerPayload = {
+            index: ans.index,
+            questionID: localIdToRealId[fq.localId],
+            text: ans.text,
+            nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null
+          };
+          await addAnswer(answerPayload);
+        }
+      }
       alert('Questions and answers updated successfully!');
       window.history.back();
     } catch (error) {
       console.error('Error updating questions and answers:', error);
-      alert(`Failed to update: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      alert('Failed to update. Please try again.');
     }
   };
 
