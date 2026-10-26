@@ -7,8 +7,8 @@ import { useLocation } from 'react-router-dom';
 import QuestionSelectionPopup from '../components/QuestionSelectionPopup';
 import Question from '../components/Question';
 
-import { addQuestion } from '../services/questionService';
-import { addAnswer } from '../services/answerService';
+import { addQuestionsWithAnswers } from '../services/questionService';
+import { getMinLength } from '../services/schemaService';
 
 interface CreatedQuestion {
   localId: string; // Unique local identifier for the question
@@ -108,11 +108,15 @@ const QuestionCreation: React.FC = () => {
     questionText: q.questionText
   }));
 
-  const validateData = (finalQuestions: FullQuestionData[]): boolean => {
+  const validateData = (finalQuestions: FullQuestionData[], questionMinLength?: number, answerMinLength?: number): boolean => {
     for (const fq of finalQuestions) {
       // Check question-level validation
       if (!fq.text || fq.text.trim() === '') {
         alert(`Question at index ${fq.indexValue} has no title.`);
+        return false;
+      }
+      if (questionMinLength && fq.text.length < questionMinLength) {
+        alert(`Question "${fq.text}" (index ${fq.indexValue}) is shorter than ${questionMinLength} characters.`);
         return false;
       }
       if (!fq.description || fq.description.trim() === '') {
@@ -129,6 +133,10 @@ const QuestionCreation: React.FC = () => {
         for (const ans of fq.answers) {
           if (!ans.text || ans.text.trim() === '') {
             alert(`Question "${fq.text}" has an answer with empty text.`);
+            return false;
+          }
+          if (answerMinLength && ans.text.length < answerMinLength) {
+            alert(`Question "${fq.text}" has an answer "${ans.text}" that is shorter than ${answerMinLength} characters.`);
             return false;
           }
           if (!ans.index || ans.index <= 0) {
@@ -152,6 +160,11 @@ const QuestionCreation: React.FC = () => {
 
   const saveQuestionsAndAnswers = async () => {
     try {
+      if (!questionnaire) {
+        alert('Questionnaire data is missing.');
+        return;
+      }
+
       const sortedQuestions = [...questions].sort((a, b) => a.indexValue - b.indexValue);
       const finalQuestions = sortedQuestions.map(q => fullQuestions[q.localId]).filter(Boolean);
 
@@ -160,47 +173,35 @@ const QuestionCreation: React.FC = () => {
         return;
       }
 
+      const [questionMinLength, answerMinLength] = await Promise.all([
+        getMinLength('Question', 'text'),
+        getMinLength('Answer', 'text'),
+      ]);
+
       // Validate data before saving
-      if (!validateData(finalQuestions)) {
+      if (!validateData(finalQuestions, questionMinLength, answerMinLength)) {
         return; // If validation fails, do not proceed
       }
 
-      const localIdToRealId: Record<string, string> = {};
-
-      // Add all questions
-      for (const fq of finalQuestions) {
-        const questionPayload = {
+      await addQuestionsWithAnswers(
+        questionnaire.ID,
+        finalQuestions.map(fq => ({
+          localId: fq.localId,
           allowMultipleResponse: fq.allowMultipleResponse,
           allowOpenResponse: fq.allowOpenResponse,
           description: fq.description,
           index: fq.indexValue,
           openResponseFormat: fq.openResponseFormat,
           text: fq.text,
-          questionnaireID: questionnaire?.ID
-        };
-
-        const createdQuestion = await addQuestion(questionPayload);
-        localIdToRealId[fq.localId] = createdQuestion.ID;
-      }
-
-      // Add answers
-      for (const fq of finalQuestions) {
-        for (const ans of fq.answers) {
-          const answerPayload = {
-            index: ans.index,
-            questionID: localIdToRealId[fq.localId],
-            nextQuestionID: ans.nextQuestionID ? localIdToRealId[ans.nextQuestionID] : null,
-            text: ans.text
-          };
-          await addAnswer(answerPayload);
-        }
-      }
+          answers: fq.answers,
+        }))
+      );
 
       alert('Questions and answers saved successfully!');
       window.history.back();
     } catch (error) {
       console.error('Error saving questions and answers:', error);
-      alert('Failed to save. Please try again.');
+      alert(`Failed to save: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
 
