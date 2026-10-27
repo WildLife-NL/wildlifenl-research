@@ -30,7 +30,7 @@ export const getResponsesByExperimentID = async (id: string): Promise<any[]> => 
 
     // Return raw JSON for dynamic fields
     const data = await response.json();
-    return Array.isArray(data) ? data : [data];
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Error fetching responses:', error);
     throw error;
@@ -59,9 +59,14 @@ export const getResponsesByQuestionnaireID = async (id: string): Promise<any[]> 
 
     // Return raw JSON for dynamic fields
     const data = await response.json();
-    return Array.isArray(data) ? data : [data];
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Error fetching responses:', error);
     throw error;
   }
+};
+
+export const getResponseCountByExperimentID = async (id: string): Promise<number> => {
+  const responses = await getResponsesByExperimentID(id);
+  return responses.length;
 };

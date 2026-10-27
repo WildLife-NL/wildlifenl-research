@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react'; // Import useCallback
 import Navbar from '../components/Navbar';
 import DynamicView from '../components/DynamicView';
@@ -6,23 +6,34 @@ import QuestionView from '../components/QuestionView';
 import ConfirmationPopup from '../components/ConfirmationPopup'; // Import ConfirmationPopup
 import '../styles/Questionnaire.css';
 import { Questionnaire as QuestionnaireType, UpdatedQuestionnaire } from '../types/questionnaire';
-import { getQuestionnaireByID, DeleteQuestionnaireByID, updateQuestionnaireByID } from '../services/questionnaireService'; // Import update function
+import { getQuestionnaireByID, deleteQuestionnaireWithChildren, updateQuestionnaireByID, cloneQuestionnaire } from '../services/questionnaireService'; // Import update function
+import { getMyExperiments } from '../services/experimentService';
+import { getMinLength } from '../services/schemaService';
 import { InteractionType } from '../types/interactiontype'; // Import InteractionType
 import { getAllInteractions } from '../services/interactionTypeService'; // Import interaction types service
 import { User } from '../types/user'; // Import User
+import { Experiment } from '../types/experiment';
 
 const Questionnaire: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+  const { id } = useParams<{ id: string }>();
+
   const loggedInUser: User | undefined = location.state?.user; // Add loggedInUser
+  const stateExperiment: Experiment | undefined = location.state?.experiment;
+  const stateQuestionnaire: QuestionnaireType | undefined = location.state?.questionnaire;
+  const questionnaireID = stateQuestionnaire?.ID ?? id;
+  const hasStateQuestionnaire = !!stateQuestionnaire;
 
   const [questionnaire, setQuestionnaire] = useState<QuestionnaireType | null>(
-    location.state?.questionnaire || null
+    stateQuestionnaire || null
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
+  const experiment: Experiment | undefined = questionnaire?.experiment ?? stateExperiment;
+  const ownerID = experiment?.user?.ID ?? stateExperiment?.user?.ID;
+
   // Add state variables for confirmation popup
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -40,15 +51,29 @@ const Questionnaire: React.FC = () => {
   // Add state variables for error messages
   const [errorName, setErrorName] = useState('');
 
+  // Add state variables for clone popup
+  const [isClonePopupVisible, setIsClonePopupVisible] = useState(false);
+  const [cloneTargets, setCloneTargets] = useState<Experiment[] | null>(null);
+  const [cloneExperimentID, setCloneExperimentID] = useState<string | null>(null);
+  const [cloneName, setCloneName] = useState('');
+  const [cloneIdentifier, setCloneIdentifier] = useState('');
+  const [cloneInteractionTypeID, setCloneInteractionTypeID] = useState<string | null>(null);
+  const [isCloneExperimentDropdownOpen, setIsCloneExperimentDropdownOpen] = useState(false);
+  const [isCloneInteractionDropdownOpen, setIsCloneInteractionDropdownOpen] = useState(false);
+  const [cloneError, setCloneError] = useState('');
+  const [isCloning, setIsCloning] = useState(false);
+
   // Memoize the confirmDeleteQuestionnaire function
   const confirmDeleteQuestionnaire = useCallback(async () => {
+    setIsConfirmationVisible(false);
     if (!questionnaire) return;
     try {
-      await DeleteQuestionnaireByID(questionnaire.ID.toString());
+      await deleteQuestionnaireWithChildren(questionnaire.ID.toString());
       navigate(-1);
     } catch (error) {
       console.error('Error deleting questionnaire:', error);
-      alert('Failed to delete the questionnaire. Please try again.');
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      alert(`Failed to delete the questionnaire.\n${message}`);
     }
   }, [questionnaire, navigate]);
 
@@ -71,11 +96,11 @@ const Questionnaire: React.FC = () => {
     if (questionnaire) {
       setEditName(questionnaire.name);
       setEditIdentifier(questionnaire.identifier || '');
-      setEditExperimentID(questionnaire.experiment.ID.toString());
+      setEditExperimentID(experiment?.ID.toString() ?? '');
       setEditInteractionTypeID(questionnaire.interactionType?.ID || null);
       setIsEditPopupVisible(true);
     }
-  }, [questionnaire]);
+  }, [questionnaire, experiment]);
 
   // Handler to save the edited questionnaire
   const saveEditedQuestionnaire = async () => {
@@ -111,6 +136,7 @@ const Questionnaire: React.FC = () => {
       setIsEditPopupVisible(false);
       // Refresh questionnaire data
       const refreshedQuestionnaire = await getQuestionnaireByID(questionnaire.ID.toString());
+      refreshedQuestionnaire.questions = refreshedQuestionnaire.questions || [];
       setQuestionnaire(refreshedQuestionnaire);
     } catch (error) {
       console.error('Error updating questionnaire:', error);
@@ -122,6 +148,80 @@ const Questionnaire: React.FC = () => {
   const cancelEdit = useCallback(() => {
     setIsEditPopupVisible(false);
   }, []);
+
+  // Handler to open the clone popup, only upcoming experiments of the user can receive the clone
+  const handleCloneQuestionnaire = async () => {
+    if (!questionnaire) return;
+    setCloneName(`Copy of ${questionnaire.name}`);
+    setCloneIdentifier(questionnaire.identifier || '');
+    setCloneInteractionTypeID(questionnaire.interactionType?.ID || null);
+    setCloneExperimentID(null);
+    setCloneError('');
+    setCloneTargets(null);
+    setIsClonePopupVisible(true);
+    try {
+      const myExperiments = await getMyExperiments();
+      setCloneTargets((myExperiments || []).filter((exp) => getStatus(exp.start, exp.end) === 'Upcoming'));
+    } catch (error) {
+      console.error('Error fetching experiments:', error);
+      setCloneTargets([]);
+      setCloneError('Failed to fetch your experiments. Please try again.');
+    }
+  };
+
+  // Handler to clone the questionnaire into the selected experiment
+  const saveClonedQuestionnaire = async () => {
+    if (!questionnaire) return;
+
+    let nameMinLength: number | undefined;
+    try {
+      nameMinLength = await getMinLength('Questionnaire', 'name');
+    } catch (error) {
+      setCloneError(error instanceof Error ? error.message : 'Could not load the validation rules. Please try again.');
+      return;
+    }
+    if (!cloneExperimentID) {
+      setCloneError('Please select an experiment.');
+      return;
+    }
+    if (!cloneName) {
+      setCloneError('Name is required.');
+      return;
+    }
+    if (nameMinLength && cloneName.length < nameMinLength) {
+      setCloneError(`Name must be at least ${nameMinLength} characters long.`);
+      return;
+    }
+    if (!cloneInteractionTypeID) {
+      setCloneError('Please select an interaction type.');
+      return;
+    }
+
+    setCloneError('');
+    setIsCloning(true);
+    try {
+      const clone = await cloneQuestionnaire(questionnaire.ID.toString(), {
+        experimentID: cloneExperimentID,
+        name: cloneName,
+        identifier: cloneIdentifier,
+        interactionTypeID: cloneInteractionTypeID,
+      });
+      setIsClonePopupVisible(false);
+      navigate(`/questionnaire/${clone.ID}`, {
+        state: {
+          questionnaire: clone,
+          experiment: cloneTargets?.find((exp) => exp.ID === cloneExperimentID),
+          user: loggedInUser,
+        },
+      });
+    } catch (error) {
+      console.error('Error cloning questionnaire:', error);
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      alert(`Failed to clone the questionnaire.\n${message}`);
+    } finally {
+      setIsCloning(false);
+    }
+  };
 
   // Fetch interaction types
   useEffect(() => {
@@ -136,27 +236,36 @@ const Questionnaire: React.FC = () => {
     fetchInteractionTypes();
   }, []);
 
+  // Depending on the questionnaire state itself would refetch forever, since every fetch replaces that state.
   useEffect(() => {
+    let cancelled = false;
     const fetchQuestionnaire = async () => {
-      if (questionnaire && questionnaire.ID) {
-        try {
-          const fetchedQuestionnaire = await getQuestionnaireByID(questionnaire.ID.toString());
-          // Ensure questions is an array
-          fetchedQuestionnaire.questions = fetchedQuestionnaire.questions || [];
-          setQuestionnaire(fetchedQuestionnaire);
-        } catch (err: any) {
-          console.error('Error fetching questionnaire:', err);
-          setError('Failed to fetch questionnaire.');
-        } finally {
-          setLoading(false);
-        }
-      } else {
+      if (!questionnaireID) {
         setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const fetchedQuestionnaire = await getQuestionnaireByID(questionnaireID.toString());
+        if (cancelled) return;
+        // Ensure questions is an array
+        fetchedQuestionnaire.questions = fetchedQuestionnaire.questions || [];
+        setQuestionnaire(fetchedQuestionnaire);
+      } catch (err: any) {
+        console.error('Error fetching questionnaire:', err);
+        if (!cancelled && !hasStateQuestionnaire) {
+          setError('Failed to fetch questionnaire.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
-  
+
     fetchQuestionnaire();
-  }, [questionnaire]);
+    return () => {
+      cancelled = true;
+    };
+  }, [questionnaireID, hasStateQuestionnaire]);
 
   const getStatus = (startDate: string, endDate?: string | null): string => {
     const today = new Date();
@@ -171,21 +280,10 @@ const Questionnaire: React.FC = () => {
     }
   };
 
-  const status = questionnaire?.experiment.start ? getStatus(questionnaire.experiment.start, questionnaire.experiment.end) : 'Unknown';
+  const status = experiment?.start ? getStatus(experiment.start, experiment.end) : 'Unknown';
 
   // Determine if the logged-in user is the creator of the experiment
-  const isCreator = loggedInUser?.ID === questionnaire?.experiment.user.ID;
-
-  if (!questionnaire) {
-    return (
-      <>
-        <Navbar />
-        <div className="questionnaire-view-not-found">
-          <p>Questionnaire not found.</p>
-        </div>
-      </>
-    );
-  }
+  const isCreator = !!loggedInUser && !!ownerID && loggedInUser.ID === ownerID;
 
   if (loading) {
     return (
@@ -204,6 +302,17 @@ const Questionnaire: React.FC = () => {
         <Navbar />
         <div className="error">
           <p>{error}</p>
+        </div>
+      </>
+    );
+  }
+
+  if (!questionnaire) {
+    return (
+      <>
+        <Navbar />
+        <div className="questionnaire-view-not-found">
+          <p>Questionnaire not found.</p>
         </div>
       </>
     );
@@ -229,7 +338,7 @@ const Questionnaire: React.FC = () => {
     },
     {
       name: 'Experiment',
-      value: questionnaire.experiment?.name || 'N/A',
+      value: experiment?.name || 'N/A',
     },
     {
       name: 'Number of Questions',
@@ -289,11 +398,20 @@ const Questionnaire: React.FC = () => {
         <span>Edit Questionnaire</span>
         <img src="/assets/EditSVG.svg" alt="Edit Questionnaire" />
       </button>
+      <button
+        className="questionnaire-button green-button"
+        onClick={handleCloneQuestionnaire}
+        title="Copy this questionnaire with all its questions and answers into one of your upcoming experiments"
+        data-testid="clone-questionnaire-button"
+      >
+        <span>Clone Questionnaire</span>
+        <img src="/assets/questionnaireSVG.svg" alt="Clone Questionnaire" className="questionnaire-clone-icon" />
+      </button>
     </div>
 
     {/* QuestionView Component */}
     <div className="questionnaire-view-questions">
-    <QuestionView fields={questionnaire.questions || []} experiment={questionnaire.experiment} loggedInUser={loggedInUser} />
+    <QuestionView fields={questionnaire.questions || []} experiment={experiment} isCreator={isCreator} />
     </div>
   </div>
   {/* Conditionally render Add or Edit Questions Button */}
@@ -408,6 +526,122 @@ const Questionnaire: React.FC = () => {
               <div className="edit-questionnaire-popup-buttons"> {/* Updated class name */}
                 <button onClick={saveEditedQuestionnaire}>Save</button>
                 <button onClick={cancelEdit}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Clone Popup */}
+        {isClonePopupVisible && (
+          <div className="edit-questionnaire-popup" data-testid="clone-questionnaire-popup">
+            <div className="edit-questionnaire-popup-content">
+              <h2>Clone Questionnaire</h2>
+
+              {/* Target Experiment Dropdown */}
+              <label>Experiment*</label>
+              {cloneTargets === null ? (
+                <p>Loading your experiments...</p>
+              ) : cloneTargets.length === 0 ? (
+                <p>You have no upcoming experiments. Create an experiment first to clone this questionnaire into.</p>
+              ) : (
+                <div className={`questionnaireview-interactiontype-dropdown questionnaire-clone-dropdown ${isCloneExperimentDropdownOpen ? 'open' : ''}`}>
+                  <button
+                    type="button"
+                    className="questionnaireview-interactiontype-dropdown-button"
+                    onClick={() => setIsCloneExperimentDropdownOpen(!isCloneExperimentDropdownOpen)}
+                    data-testid="clone-experiment-dropdown-button"
+                  >
+                    {truncateText(cloneTargets.find((exp) => exp.ID === cloneExperimentID)?.name || 'Select Experiment', 25)}
+                    <img
+                      src="/assets/vsvg.svg"
+                      alt="Dropdown Icon"
+                      className="questionnaireview-interactiontype-dropdown-icon"
+                    />
+                  </button>
+                  {isCloneExperimentDropdownOpen && (
+                    <div className="questionnaireview-interactiontype-dropdown-content">
+                      {cloneTargets.map((exp) => (
+                        <div
+                          key={exp.ID}
+                          className="questionnaireview-interactiontype-dropdown-item"
+                          onClick={() => {
+                            setCloneExperimentID(exp.ID);
+                            setIsCloneExperimentDropdownOpen(false);
+                          }}
+                        >
+                          {exp.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Name */}
+              <label>Name*</label>
+              <input
+                type="text"
+                value={cloneName}
+                onChange={(e) => setCloneName(e.target.value)}
+                required
+                data-testid="clone-name-input"
+              />
+
+              {/* Identifier */}
+              <label>Identifier</label>
+              <input
+                type="text"
+                value={cloneIdentifier}
+                onChange={(e) => setCloneIdentifier(e.target.value)}
+              />
+
+              {/* Interaction Type Dropdown */}
+              <label>Interaction Type*</label>
+              <div className={`questionnaireview-interactiontype-dropdown ${isCloneInteractionDropdownOpen ? 'open' : ''}`}>
+                <button
+                  type="button"
+                  className="questionnaireview-interactiontype-dropdown-button"
+                  onClick={() => setIsCloneInteractionDropdownOpen(!isCloneInteractionDropdownOpen)}
+                >
+                  {cloneInteractionTypeID
+                    ? interactionTypes.find((type: InteractionType) => type.ID === cloneInteractionTypeID)?.name || 'Select Interaction Type'
+                    : 'Select Interaction Type'}
+                  <img
+                    src="/assets/vsvg.svg"
+                    alt="Dropdown Icon"
+                    className="questionnaireview-interactiontype-dropdown-icon"
+                  />
+                </button>
+                {isCloneInteractionDropdownOpen && (
+                  <div className="questionnaireview-interactiontype-dropdown-content">
+                    {interactionTypes.map((type: InteractionType) => (
+                      <div
+                        key={type.ID}
+                        className="questionnaireview-interactiontype-dropdown-item"
+                        onClick={() => {
+                          setCloneInteractionTypeID(type.ID);
+                          setIsCloneInteractionDropdownOpen(false);
+                        }}
+                      >
+                        {type.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {cloneError && <p className="questionnaire-clone-error">{cloneError}</p>}
+
+              {/* Buttons */}
+              <div className="edit-questionnaire-popup-buttons">
+                <button
+                  onClick={saveClonedQuestionnaire}
+                  disabled={isCloning || !cloneTargets || cloneTargets.length === 0}
+                  data-testid="clone-save-button"
+                >
+                  {isCloning ? 'Cloning...' : 'Clone'}
+                </button>
+                <button onClick={() => setIsClonePopupVisible(false)} disabled={isCloning}>Cancel</button>
               </div>
             </div>
           </div>

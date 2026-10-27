@@ -8,6 +8,9 @@ RUN npm ci --production
 
 COPY . .
 
+ARG REACT_APP_BASE_URL=https://live-api-wildlifenl.uu.nl
+ENV REACT_APP_BASE_URL=$REACT_APP_BASE_URL
+
 RUN npm run build
 
 FROM nginx:alpine

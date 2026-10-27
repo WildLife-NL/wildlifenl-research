@@ -1,5 +1,6 @@
 import { Message } from '../types/message';
 import { API_BASE_URL } from '../apiBaseUrl';
+import { getProblemMessage } from './problemDetails';
 
 const MESSAGE_API_URL = `${API_BASE_URL}/message/`;
 const MESSAGES_API_URL = `${API_BASE_URL}/messages/experiment/`;
@@ -95,8 +96,8 @@ export const DeleteMessageByID = async (id: string): Promise<Message | void> => 
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to delete Message: ${errorText}`);
+      const errorMessage = await getProblemMessage(response, 'Failed to delete message');
+      throw new Error(errorMessage);
     }
 
     // If the response is 204 No Content, there's no JSON to parse
