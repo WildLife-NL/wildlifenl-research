@@ -8,6 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { LivingLab } from '../../types/livinglab';
 import { Experiment } from '../../types/experiment';
 import { User } from '../../types/user';
+import { RateLimitError } from '../../services/problemDetails';
 
 // Mock useNavigate from react-router-dom
 jest.mock('react-router-dom', () => ({
@@ -185,7 +186,7 @@ describe('Dashboard Component - Unit Tests', () => {
       await waitFor(() => expect(screen.getByTestId('search-input')).toBeInTheDocument());
 
       // Check placeholder text
-      expect(screen.getByTestId('search-input')).toHaveAttribute('placeholder', 'Search experiment...');
+      expect(screen.getByTestId('search-input')).toHaveAttribute('placeholder', 'Search experiments');
     });
 
     test('SEARCH QUERY UPDATES STATE', async () => {
@@ -291,13 +292,40 @@ describe('Dashboard Component - Unit Tests', () => {
 
       await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
 
-      fireEvent.change(screen.getByTestId('start-date-input'), { target: { value: formatDate(liveStartDate) } });
-      fireEvent.change(screen.getByTestId('end-date-input'), { target: { value: formatDate(liveEndDate) } });
+      // A range inside the live experiment's period only shows the live experiment
+      const twoDaysAgo = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000);
+      const inTwoDays = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
+      fireEvent.change(screen.getByTestId('start-date-input'), { target: { value: formatDate(twoDaysAgo) } });
+      fireEvent.change(screen.getByTestId('end-date-input'), { target: { value: formatDate(inTwoDays) } });
 
       await waitFor(() => {
         expect(screen.queryByText('Past Experiment')).not.toBeInTheDocument();
         expect(screen.queryByText('Future Experiment')).not.toBeInTheDocument();
         expect(screen.getByText('Live Experiment')).toBeInTheDocument();
+      });
+    });
+
+    test('DATE RANGE KEEPS EXPERIMENTS THAT ARE ACTIVE FOR PART OF IT', async () => {
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
+      await waitFor(() => expect(screen.getByText('Past Experiment')).toBeInTheDocument());
+
+      // 15 to 5 days ago overlaps the end of the past experiment and the start of the live one
+      const fifteenDaysAgo = new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000);
+      const fiveDaysAgo = new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000);
+      fireEvent.change(screen.getByTestId('start-date-input'), { target: { value: formatDate(fifteenDaysAgo) } });
+      fireEvent.change(screen.getByTestId('end-date-input'), { target: { value: formatDate(fiveDaysAgo) } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Experiment')).toBeInTheDocument();
+        expect(screen.getByText('Live Experiment')).toBeInTheDocument();
+        expect(screen.queryByText('Future Experiment')).not.toBeInTheDocument();
       });
     });
   });
@@ -382,6 +410,41 @@ describe('Dashboard Component - Unit Tests', () => {
 
       const experimentRow = screen.getByTestId('experiment-row-3');
       expect(within(experimentRow).getByText('Live')).toBeInTheDocument();
+    });
+  });
+
+  // CATEGORY 5: RESPONSE COUNTS THE API REFUSES
+  describe('CATEGORY 5: RESPONSE COUNTS THE API REFUSES', () => {
+    test('SHOWS A DASH AND A BANNER, AND TRY AGAIN COUNTS ONLY THE MISSING ONE', async () => {
+      // The API sends experiments without a response count, ResearchConnect counts them
+      jest.spyOn(experimentService, 'getExperiments').mockResolvedValue(mockExperiments.map(({ responses, ...exp }) => exp as Experiment));
+      const counts: Record<string, number> = { '1': 5, '2': 15, '3': 8 };
+      const countSpy = jest.spyOn(responseService, 'getResponseCountByExperimentID').mockImplementation(async (id) => {
+        if (id === '3') throw new RateLimitError(15);
+        return counts[id];
+      });
+
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      fireEvent.click(screen.getByTestId('all-experiments-toggle'));
+
+      const banner = await screen.findByTestId('response-counts-banner');
+      expect(banner).toHaveTextContent("1 response count couldn't be loaded.");
+      expect(banner).toHaveTextContent('Wait 15 seconds before you try again.');
+      expect(within(screen.getByTestId('experiment-row-3')).getByText('—')).toBeInTheDocument();
+
+      countSpy.mockClear();
+      countSpy.mockImplementation(async (id) => counts[id]);
+      fireEvent.click(screen.getByTestId('response-counts-retry'));
+
+      await waitFor(() => expect(screen.queryByTestId('response-counts-banner')).not.toBeInTheDocument());
+      expect(within(screen.getByTestId('experiment-row-3')).getByText('8')).toBeInTheDocument();
+      expect(countSpy).toHaveBeenCalledTimes(1);
+      expect(countSpy).toHaveBeenCalledWith('3');
     });
   });
 });

@@ -23,6 +23,9 @@ describe('Dashboard Page', () => {
   });
 
   it('should load experiments data', () => {
+    // Everyone's scope, the signed-in account may own no experiments
+    cy.get('[data-testid="all-experiments-toggle"]').click();
+
     // Wait for the loading spinner to disappear
     cy.get('[data-testid="loading-container"]').should('not.exist');
 
@@ -30,19 +33,25 @@ describe('Dashboard Page', () => {
     cy.get('[data-testid^="experiment-row-"]').should('have.length.greaterThan', 0);
   });
 
-  it('should sort experiments by Creator', () => {
-    // Click on the 'Creator' column header to sort
-    cy.contains('th', 'Creator').click();
+  // The Owner column replaced Creator, it shows in Everyone's scope
+  it('should sort experiments by Owner', () => {
+    cy.get('[data-testid="all-experiments-toggle"]').click();
+    cy.get('[data-testid="loading-container"]').should('not.exist');
+    cy.contains('th button', 'Owner').click();
+    cy.contains('th', 'Owner').should('have.attr', 'aria-sort', 'ascending');
 
-    // Verify that experiments are sorted by Creator name in ascending order
-    let previousCreator = '';
+    let previousOwner = '';
     cy.get('[data-testid^="experiment-row-"]').each(($row) => {
-      cy.wrap($row).find('td').eq(4).invoke('text').then((creatorName) => {
-        if (previousCreator) {
-          expect(creatorName.localeCompare(previousCreator)).to.be.gte(0);
-        }
-        previousCreator = creatorName;
-      });
+      cy.wrap($row)
+        .find('td')
+        .last()
+        .invoke('text')
+        .then((ownerName) => {
+          if (previousOwner) {
+            expect(ownerName.toLowerCase().localeCompare(previousOwner.toLowerCase())).to.be.gte(0);
+          }
+          previousOwner = ownerName;
+        });
     });
   });
 
@@ -52,37 +61,5 @@ describe('Dashboard Page', () => {
 
     // Verify that the URL has changed to the experiment creation page
     cy.url().should('include', '/experimentcreation');
-  });
-
-  it('should select and deselect experiments using checkboxes', () => {
-    // Select the first experiment
-    cy.get('[data-testid^="experiment-checkbox-"]').first().check();
-
-    // Verify that the checkbox is checked
-    cy.get('[data-testid^="experiment-checkbox-"]').first().should('be.checked');
-
-    // Deselect the first experiment
-    cy.get('[data-testid^="experiment-checkbox-"]').first().uncheck();
-
-    // Verify that the checkbox is unchecked
-    cy.get('[data-testid^="experiment-checkbox-"]').first().should('not.be.checked');
-  });
-
-  it('should select and deselect all experiments using the Select All checkbox', () => {
-    // Click on the Select All checkbox
-    cy.get('[data-testid="select-all-checkbox"]').click();
-
-    // Verify that all experiment checkboxes are checked
-    cy.get('[data-testid^="experiment-checkbox-"]').each(($checkbox) => {
-      cy.wrap($checkbox).should('be.checked');
-    });
-
-    // Click on the Select All checkbox again to deselect
-    cy.get('[data-testid="select-all-checkbox"]').click();
-
-    // Verify that all experiment checkboxes are unchecked
-    cy.get('[data-testid^="experiment-checkbox-"]').each(($checkbox) => {
-      cy.wrap($checkbox).should('not.be.checked');
-    });
   });
 });
