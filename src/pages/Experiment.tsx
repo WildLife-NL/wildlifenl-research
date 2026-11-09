@@ -1,555 +1,214 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
-import Navbar from '../components/Navbar';
-import DynamicView from '../components/DynamicView';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import '../styles/Experiment.css';
-import { Experiment as ExperimentType, UpdateExperiment } from '../types/experiment';
-import { EndExperimentByID, deleteExperimentWithChildren, updateExperiment, getExperiments } from '../services/experimentService';
-import { getAllLivingLabs } from '../services/livingLabService';
+import { Experiment as ExperimentType } from '../types/experiment';
+import { Message } from '../types/message';
+import { Questionnaire } from '../types/questionnaire';
+import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
+import { getMessagesByExperimentID } from '../services/messageService';
 import { getResponseCountByExperimentID } from '../services/responseService';
-import ConfirmationPopup from '../components/ConfirmationPopup';
-import { LivingLab } from '../types/livinglab';
-import { User } from '../types/user'; // Added import
+import ExperimentPage from '../components/ExperimentPage';
+import { hubPath } from '../components/ExperimentHeader';
+import Banner from '../components/ui/Banner';
+import { ButtonLink } from '../components/ui/Button';
+import Icon from '../components/ui/Icon';
+import { LoadingState } from '../components/ui/Layout';
+import { getStatus } from '../utils/experimentStatus';
+import { formatCount, formatDate } from '../utils/format';
+import { getReadiness, ReadinessItem } from '../utils/readiness';
 
-const Experiment: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  // Extract loggedInUser from navigation state
-  const loggedInUser: User | undefined = location.state?.user;
+const ChecklistIcon: React.FC<{ state: ReadinessItem['state'] }> = ({ state }) => (
+  <span className={`rc-checklist__icon rc-checklist__icon--${state}`} aria-hidden="true">
+    {state === 'done' && <Icon name="check" size={12} />}
+    {state === 'warn' && '!'}
+  </span>
+);
 
-  const [currentExperiment, setCurrentExperiment] = useState<ExperimentType | null>(null);
-  
-  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
-  const [confirmationMessage, setConfirmationMessage] = useState('');
-  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(null);
-  const [isStopping, setIsStopping] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
+const STATE_WORDS: Record<ReadinessItem['state'], string> = { done: 'Ready', warn: 'Needs attention', todo: 'Still to come' };
 
-  // For editing
-  const [editName, setEditName] = useState(currentExperiment?.name ?? '');
-  const [editDescription, setEditDescription] = useState(currentExperiment?.description ?? '');
-  const [editStart, setEditStart] = useState(currentExperiment?.start ?? '');
-  const [editEnd, setEditEnd] = useState(currentExperiment?.end ?? '');
-  const [editLivingLabID, setEditLivingLabID] = useState(currentExperiment?.livingLab?.ID ?? '');
-  const [editLivingLabName, setEditLivingLabName] = useState(currentExperiment?.livingLab?.name ?? 'None');
-  const [livingLabs, setLivingLabs] = useState<LivingLab[]>([]);
-  const [loadingLabs, setLoadingLabs] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // New state variables for error messages
-  const [errorName, setErrorName] = useState('');
-  const [errorDescription, setErrorDescription] = useState('');
-  const [errorStart, setErrorStart] = useState('');
-
-  // Add refs for start and end date inputs
-  const editStartDateRef = useRef<HTMLInputElement>(null);
-  const editEndDateRef = useRef<HTMLInputElement>(null);
+// Overview tab of the hub: go-live checklist, description, details and activity
+const ExperimentOverview: React.FC<{ experiment: ExperimentType }> = ({ experiment }) => {
+  const [questionnaires, setQuestionnaires] = useState<Questionnaire[] | null>(null);
+  const [messages, setMessages] = useState<Message[] | null>(null);
+  // null while loading, undefined when the API could not count them
+  const [responses, setResponses] = useState<number | null | undefined>(null);
+  const [childrenError, setChildrenError] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchLabs = async () => {
-      try {
-        const labs = await getAllLivingLabs();
-        setLivingLabs(labs);
-      } catch (error) {
-        console.error('Failed to fetch living labs:', error);
-      } finally {
-        setLoadingLabs(false);
-      }
+    let cancelled = false;
+    Promise.all([getQuestionnaireByExperimentID(experiment.ID), getMessagesByExperimentID(experiment.ID)])
+      .then(([foundQuestionnaires, foundMessages]) => {
+        if (cancelled) return;
+        setQuestionnaires(foundQuestionnaires ?? []);
+        setMessages(foundMessages ?? []);
+      })
+      .catch((error) => {
+        console.error('Error fetching questionnaires and messages:', error);
+        if (!cancelled) setChildrenError(true);
+      });
+    getResponseCountByExperimentID(experiment.ID)
+      .then((count) => !cancelled && setResponses(count))
+      .catch(() => !cancelled && setResponses(undefined));
+    return () => {
+      cancelled = true;
     };
-    fetchLabs();
-  }, []);
+  }, [experiment.ID]);
 
-  useEffect(() => {
-    if (location.state?.experiment?.ID) {
-      (async () => {
-        const allExperiments = await getExperiments();
-        const fresh = allExperiments.find(exp => exp.ID === location.state.experiment.ID);
-        if (!fresh) {
-          setCurrentExperiment(null);
-          return;
-        }
-        const responses = await getResponseCountByExperimentID(fresh.ID).catch(() => 0);
-        setCurrentExperiment({ ...fresh, responses });
-      })();
-    }
-  }, [location.state]);
+  const status = getStatus(experiment.start, experiment.end);
+  const readiness = questionnaires && messages ? getReadiness(experiment, questionnaires, messages) : null;
 
-  useEffect(() => {
-    if (currentExperiment) {
-      setEditName(currentExperiment.name);
-      setEditDescription(currentExperiment.description);
-      setEditStart(currentExperiment.start);
-      setEditEnd(currentExperiment.end);
-      setEditLivingLabID(currentExperiment.livingLab?.ID ?? '');
-      setEditLivingLabName(currentExperiment.livingLab?.name ?? 'None');
-    }
-  }, [currentExperiment]);
-
-  if (!currentExperiment) {
-    return (
-      <>
-        <Navbar />
-        <div className="experiment-not-found">
-          <p>Experiment not found.</p>
-        </div>
-      </>
-    );
-  }
-
-  const fields = [
-    { name: 'Experiment Title', value: currentExperiment.name },
-    { name: 'Description', value: currentExperiment.description },
-    {
-      name: 'Duration',
-      value: currentExperiment.end
-        ? `${new Date(currentExperiment.start).toLocaleDateString()} - ${new Date(currentExperiment.end).toLocaleDateString()}`
-        : `${new Date(currentExperiment.start).toLocaleDateString()} - No End-date`,
-    },
-    { name: 'Specified LivingLab', value: currentExperiment.livingLab?.name || 'N/A' },
-    { name: 'Number of Questionnaires', value: currentExperiment.numberOfQuestionnaires?.toString() || '0' },
-    { name: 'Responses on Questionnaires', value: currentExperiment.responses?.toString() || '0' },
-    { name: 'Number of Messages', value: currentExperiment.numberOfMessages?.toString() || '0' },
-    { name: 'Messages Sent', value: currentExperiment.messageActivity?.toString() || '0' },
-    { name: 'Owner of the experiment', value: currentExperiment.user?.name || 'N/A' },
-  ];
-  
-  // Navigation handlers
-  const handleQuestionnaireOverviewClick = () => {
-    navigate(`/questionnairedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment, user: loggedInUser} });
-  };
-
-  const handleMessageOverviewClick = async () => {
-    if (!currentExperiment) return;
+  const copyId = async () => {
     try {
-      navigate(`/messagedashboard/${currentExperiment.ID}`, { state: { experiment: currentExperiment, user: loggedInUser } });
+      await navigator.clipboard.writeText(experiment.ID);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('Could not copy the experiment ID:', error);
     }
   };
-
-  const confirmStopExperiment = async () => {
-    setIsConfirmationVisible(false);
-    setIsStopping(true);
-
-    if (!currentExperiment) return;
-
-    try {
-      const result = await EndExperimentByID(currentExperiment.ID);
-      console.log('Experiment stopped:', result);
-      alert('Experiment has been successfully stopped.');
-      navigate('/experiments');
-    } catch (error) {
-      console.error('Error stopping experiment:', error);
-      alert('Failed to stop the experiment. Please try again.');
-    } finally {
-      setIsStopping(false);
-    }
-  };
-
-  const confirmDeleteExperiment = async () => {
-    setIsConfirmationVisible(false);
-
-    if (!currentExperiment) return;
-
-    setIsDeleting(true);
-    try {
-      await deleteExperimentWithChildren(currentExperiment.ID);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error deleting experiment:', error);
-      const message = error instanceof Error ? error.message : 'Please try again.';
-      alert(`Failed to delete the experiment.\n${message}`);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const cancelAction = () => {
-    setIsConfirmationVisible(false);
-    setConfirmationMessage('');
-    setOnConfirmAction(null);
-  };
-
-  // Handlers for showing confirmation popup
-  const handleStopExperiment = () => {
-    setConfirmationMessage('Are you sure you want to permanently stop the experiment?');
-    setOnConfirmAction(() => confirmStopExperiment);
-    setIsConfirmationVisible(true);
-  };
-
-  const handleDeleteExperiment = () => {
-    setConfirmationMessage('Are you sure you want to permanently delete the experiment?');
-    setOnConfirmAction(() => confirmDeleteExperiment);
-    setIsConfirmationVisible(true);
-  };
-
-  const handleEditExperimentButton = () => {
-    setIsEditPopupVisible(true);
-  };
-
-  // Add validateDates function
-  const validateDates = (): boolean => {
-    const now = new Date();
-    const start = new Date(editStart);
-    const end = editEnd ? new Date(editEnd) : null;
-
-    let isValid = true;
-
-    // Reset custom validity
-    if (editStartDateRef.current) {
-      editStartDateRef.current.setCustomValidity('');
-    }
-    if (editEndDateRef.current) {
-      editEndDateRef.current.setCustomValidity('');
-    }
-
-    // Validate Start Date
-    if (start < now) {
-      if (editStartDateRef.current) {
-        editStartDateRef.current.setCustomValidity('Start date cannot be in the past.');
-      }
-      isValid = false;
-    }
-
-    // Validate End Date
-    if (end) {
-      if (end <= start) {
-        if (editEndDateRef.current) {
-          editEndDateRef.current.setCustomValidity('End date must be later than start date.');
-        }
-        isValid = false;
-      }
-    }
-
-    return isValid;
-  };
-
-  const handleSaveEdit = async () => {
-    let isValid = true;
-
-    // Reset error messages
-    setErrorName('');
-    setErrorDescription('');
-    setErrorStart('');
-
-    // Perform date validation
-    isValid = validateDates() && isValid;
-
-    if (!isValid) {
-      if (editStartDateRef.current) {
-        editStartDateRef.current.reportValidity();
-      }
-      if (editEndDateRef.current) {
-        editEndDateRef.current.reportValidity();
-      }
-      return;
-    }
-
-    // Validate Name
-    if (!editName.trim()) {
-      setErrorName('Name is required.');
-      isValid = false;
-    }
-
-    // Validate Description
-    if (!editDescription.trim()) {
-      setErrorDescription('Description is required.');
-      isValid = false;
-    }
-
-    // Validate Start Date
-    if (!editStart) {
-      setErrorStart('Start date is required.');
-      isValid = false;
-    }
-
-    if (!isValid) {
-      return;
-    }
-
-    const payload: UpdateExperiment = {
-      ID: currentExperiment.ID, 
-      name: editName,
-      description: editDescription,
-      start: new Date(editStart).toISOString(),
-      ...(editEnd && { end: new Date(editEnd).toISOString() }),
-      ...(editLivingLabID && { livingLabID: editLivingLabID })
-    };
-    try {
-      await updateExperiment(currentExperiment.ID, payload); 
-      const allExperiments = await getExperiments();
-      const updatedExperiment = allExperiments.find(exp => exp.ID === currentExperiment.ID);
-      if (updatedExperiment) {
-        // Replace the experiment in state
-        setCurrentExperiment({ ...updatedExperiment, responses: currentExperiment.responses });
-      }
-      setIsEditPopupVisible(false);
-    } catch (error) {
-      console.error('Error updating experiment:', error);
-      alert('Failed to update experiment.');
-    }
-  };
-
-  const truncateText = (text: string, maxLength: number): string => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
-  const getStatus = (startDate: string, endDate?: string | null): string => {
-    const today = new Date();
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : null;
-    if (start > today) {
-      return 'Upcoming';
-    } else if (end && end < today) {
-      return 'Completed';
-    } else {
-      return 'Live';
-    }
-  };
-
-  const status = getStatus(currentExperiment.start, currentExperiment.end);
-
-  // Determine if the logged-in user is the creator of the experiment
-  const isCreator = loggedInUser?.ID === currentExperiment.user?.ID;
 
   return (
-    <>
-      <Navbar />
-      <div className="experiment-container">
-        {/* Title */}
-        <h1 className="experiment-view-title">
-          View for Experiment: {truncateText(currentExperiment?.name || `Experiment ${currentExperiment.ID}`, 23)}
-        </h1>
-
-        {/* Experiment Details Component */}
-        <div className="experiment-details-component">
-          <DynamicView fields={fields} />
-        </div>
-
-        {/* Buttons Container */}
-        <div className="buttons-container">
-          {/* View Questionnaires (always green, never disabled) */}
-          <button
-            className={`experiment-button green-button`}
-            onClick={handleQuestionnaireOverviewClick}
-            title="View all questionnaires for this experiment"
-          >
-            <span>View Questionnaires</span>
-            <img
-              src="/assets/questionnaireSVG.svg"
-              alt="Questionnaire Icon"
-              className="experiment-button-icon"
-            />
-          </button>
-
-          {/* View Messages (always green, never disabled) */}
-          <button
-            className="experiment-button green-button"
-            onClick={handleMessageOverviewClick}
-            title="View all messages for this experiment"
-          >
-            <span>View Messages</span>
-            <img
-              src="/assets/messageSVG.svg"
-              alt="Message Icon"
-              className="experiment-button-icon"
-            />
-          </button>
-
-          {/* Stop Experiment (red if Live and creator, else gray) */}
-          <button
-            className={`experiment-button ${
-              status === 'Live' && isCreator && !isStopping ? 'red-button' : 'gray-button'
-            }`}
-            title={
-              !isCreator
-                ? 'An experiment can only be stopped by the owner when it is live'
-                : status !== 'Live'
-                ? 'An experiment can only be stopped when it is live'
-                : 'Stop this experiment permanently'
-            }
-            onClick={
-              status === 'Live' && isCreator && !isStopping ? handleStopExperiment : undefined
-            }
-            disabled={status !== 'Live' || !isCreator || isStopping}
-          >
-            <span>{isStopping ? 'Stopping...' : 'Stop Experiment'}</span>
-            <img
-              src="/assets/StopSVG.svg"
-              alt="Stop Icon"
-              className="experiment-button-icon stop-button-icon"
-            />
-          </button>
-
-          {/* Delete Experiment (red if deletable and owner, else gray) */}
-          <button
-            className={`experiment-button ${
-              isCreator && status !== 'Live' && status !== 'Completed' && !isDeleting ? 'red-button' : 'gray-button'
-            }`}
-            title={
-              !isCreator
-                ? 'An experiment can only be deleted by the owner before being live'
-                : status === 'Live' || status === 'Completed'
-                ? 'An experiment can only be deleted while it is not live or completed'
-                : 'Delete this experiment, its questionnaires and its messages permanently'
-            }
-            onClick={
-              isCreator && status !== 'Live' && status !== 'Completed' && !isDeleting ? handleDeleteExperiment : undefined
-            }
-            disabled={!isCreator || status === 'Live' || status === 'Completed' || isDeleting}
-          >
-            <span>{isDeleting ? 'Deleting...' : 'Delete Experiment'}</span>
-            <img
-              src="/assets/TrashSVG.svg"
-              alt="Delete Icon"
-              className="experiment-button-icon"
-            />
-          </button>
-
-          {/* Edit Experiment (blue if Upcoming and owner, else gray) */}
-          <button
-            className={`experiment-button ${
-              status === 'Upcoming' && isCreator ? 'blue-button' : 'gray-button'
-            }`}
-            title={
-              !isCreator
-                ? 'An experiment can only be edited by the owner before being live'
-                : status !== 'Upcoming'
-                ? 'An experiment can only be edited before being live'
-                : 'Edit the experiment details'
-            }
-            onClick={
-              status === 'Upcoming' && isCreator ? handleEditExperimentButton : undefined
-            }
-            disabled={status !== 'Upcoming' || !isCreator}
-          >
-            <span>Edit Experiment</span>
-            <img
-              src="/assets/EditSVG.svg"
-              alt="Edit Icon"
-              className="experiment-button-icon"
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* Confirmation Popup */}
-      {isConfirmationVisible && (
-        <ConfirmationPopup
-          message={confirmationMessage}
-          onConfirm={onConfirmAction!}
-          onCancel={cancelAction}
-        />
-      )}
-
-      {/* Edit Experiment Popup */}
-      {isEditPopupVisible && (
-        <div className="edit-experiment-popup">
-          <div className="edit-popup-content">
-            <h2>Edit Experiment</h2>
-            <label>Name</label>
-            <input
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-            />
-            {errorName && <p className="error-message-update-experiment">{errorName}</p>}
-            
-            <label>Description</label>
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              required
-            />
-            {errorDescription && <p className="error-message-update-experiment">{errorDescription}</p>}
-            
-            <label>Start Date</label>
-            <input
-              type="date"
-              value={editStart.split('T')[0]}
-              onChange={(e) => {
-                setEditStart(e.target.value);
-                validateDates();
-              }}
-              ref={editStartDateRef}
-              required
-            />
-            {errorStart && <p className="error-message-update-experiment">{errorStart}</p>}
-            
-            <label>End Date</label>
-            <input
-              type="date"
-              value={editEnd ? editEnd.split('T')[0] : ''}
-              onChange={(e) => {
-                setEditEnd(e.target.value);
-                validateDates();
-              }}
-              ref={editEndDateRef}
-            />
-            
-            <label>LivingLab</label>
-            <div
-              className={`experimentview-dropdown ${isDropdownOpen ? 'experimentview-open' : ''}`}
-            >
-              <button
-                type="button"
-                className="experimentview-dropdown-button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                {editLivingLabName}
-                <img
-                  src="/assets/vsvg.svg"
-                  alt="Dropdown Icon"
-                  className="experimentview-dropdown-icon"
-                />
-              </button>
-              {isDropdownOpen && (
-                <div className="experimentview-dropdown-content">
-                  {loadingLabs ? (
-                    <div>Loading...</div>
-                  ) : (
-                    <>
-                      <div
-                        className="experimentview-dropdown-item"
-                        onClick={() => {
-                          setEditLivingLabID('');
-                          setEditLivingLabName('None');
-                          setIsDropdownOpen(false);
-                        }}
-                      >
-                        None
-                      </div>
-                      {livingLabs.map((lab) => (
-                        <div
-                          key={lab.ID}
-                          className="experimentview-dropdown-item"
-                          onClick={() => {
-                            setEditLivingLabID(lab.ID);
-                            setEditLivingLabName(lab.name);
-                            setIsDropdownOpen(false);
-                          }}
-                        >
-                          {lab.name}
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
+    <div className="rc-split">
+      <div className="rc-split__main">
+        {status === 'Upcoming' ? (
+          <section className="rc-card" aria-labelledby="readiness-title" data-testid="readiness-checklist">
+            <div className="rc-card__header">
+              <h2 id="readiness-title" className="rc-section-title">
+                Before this goes live
+              </h2>
+              {readiness && (
+                <span className="rc-muted rc-small">
+                  {readiness.ready} of {readiness.items.length} ready
+                </span>
               )}
             </div>
-            
-            <div className="edit-popup-buttons">
-              <button onClick={handleSaveEdit}>Save</button>
-              <button onClick={() => setIsEditPopupVisible(false)}>Cancel</button>
+            {childrenError && (
+              <Banner tone="error" title="Couldn't load questionnaires and messages.">
+                Reload the page to see the checklist.
+              </Banner>
+            )}
+            {!readiness && !childrenError && <LoadingState label="Checking questionnaires and messages…" />}
+            {readiness && (
+              <ol className="rc-checklist">
+                {readiness.items.map((item) => (
+                  <li key={item.id} className="rc-checklist__item">
+                    <ChecklistIcon state={item.state} />
+                    <div className="rc-checklist__body">
+                      <p className="rc-checklist__title">
+                        <span className="rc-visually-hidden">{STATE_WORDS[item.state]}: </span>
+                        {item.title}
+                      </p>
+                      <p className="rc-checklist__text">{item.text}</p>
+                    </div>
+                    {item.action && (
+                      <Link className="rc-checklist__action" to={item.action.to} state={{ experiment }}>
+                        {item.action.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        ) : (
+          <Banner tone="info" title={status === 'Live' ? 'Live.' : 'Completed.'}>
+            {status === 'Live'
+              ? `App users have been receiving its questionnaires and messages since ${formatDate(experiment.start)}. Questionnaires and messages are locked, you can still stop the experiment.`
+              : `The experiment ended on ${formatDate(experiment.end)}. Everything is read-only, the data stays exportable and questionnaires can be cloned into an upcoming experiment.`}
+          </Banner>
+        )}
+
+        <section className="rc-card" aria-labelledby="description-title">
+          <h2 id="description-title" className="rc-section-title">
+            Description
+          </h2>
+          <p className="rc-body">{experiment.description || 'No description.'}</p>
+        </section>
+
+        <section className="rc-card" aria-labelledby="details-title">
+          <h2 id="details-title" className="rc-section-title">
+            Details
+          </h2>
+          <dl className="rc-dl">
+            <dt>Start</dt>
+            <dd>{formatDate(experiment.start)}</dd>
+            <dt>End</dt>
+            <dd>{experiment.end ? formatDate(experiment.end) : 'No end date, runs until stopped'}</dd>
+            <dt>Living lab</dt>
+            <dd>{experiment.livingLab?.name ?? 'No living lab'}</dd>
+            <dt>Owner</dt>
+            <dd>{experiment.user?.name ?? '—'}</dd>
+            <dt>Experiment ID</dt>
+            <dd className="rc-hub__id">
+              <code className="rc-code">{experiment.ID}</code>
+              <button type="button" className="rc-btn rc-btn--secondary rc-btn--sm" onClick={copyId}>
+                <Icon name={copied ? 'check' : 'copy'} size={14} />
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+              <span className="rc-visually-hidden" role="status">
+                {copied ? 'Experiment ID copied' : ''}
+              </span>
+            </dd>
+          </dl>
+        </section>
+      </div>
+
+      <aside className="rc-split__aside rc-split__aside--sticky">
+        <section className="rc-card" aria-labelledby="activity-title">
+          <h2 id="activity-title" className="rc-section-title">
+            Activity
+          </h2>
+          <dl className="rc-stats">
+            <div>
+              <dt>Responses collected</dt>
+              <dd data-testid="activity-responses">{responses === null ? '…' : formatCount(responses)}</dd>
             </div>
-          </div>
-        </div>
-      )}
-    </>
+            <div>
+              <dt>Questionnaires with responses</dt>
+              <dd>
+                {formatCount(experiment.questionnaireActivity ?? 0)} of {formatCount(experiment.numberOfQuestionnaires ?? 0)}
+              </dd>
+            </div>
+            <div>
+              <dt>Messages delivered</dt>
+              <dd>{formatCount(experiment.messageActivity ?? 0)}</dd>
+            </div>
+          </dl>
+          <p className="rc-help">
+            {status === 'Upcoming' ? `Collecting starts on ${formatDate(experiment.start)}. ` : ''}Counts come from the WildlifeNL API and refresh when you open
+            this page.
+          </p>
+          <ButtonLink to={hubPath('data', experiment.ID)} state={{ experiment }} variant="secondary">
+            Export data for this experiment
+          </ButtonLink>
+        </section>
+
+        <section className="rc-card rc-card--sunken" aria-labelledby="lifecycle-title">
+          <h2 id="lifecycle-title" className="rc-subhead">
+            How the lifecycle works
+          </h2>
+          <ul className="rc-bullets">
+            <li>
+              <strong>Upcoming</strong> – everything is editable, delete is allowed.
+            </li>
+            <li>
+              <strong>Live</strong> – app users receive questionnaires and messages, only Stop is allowed.
+            </li>
+            <li>
+              <strong>Completed</strong> – read-only, data stays exportable and questionnaires can be cloned.
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </div>
   );
 };
+
+const Experiment: React.FC = () => (
+  <ExperimentPage activeTab="overview" showTimeline testId="experiment-overview">
+    {(experiment) => <ExperimentOverview key={`${experiment.ID}-${experiment.start}-${experiment.end ?? ''}`} experiment={experiment} />}
+  </ExperimentPage>
+);
 
 export default Experiment;
