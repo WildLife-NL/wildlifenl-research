@@ -1,473 +1,226 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import '../styles/MessageDashboard.css';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import '../styles/Experiment.css';
 import { getMessagesByExperimentID } from '../services/messageService';
 import { Message } from '../types/message';
 import { Experiment } from '../types/experiment';
-import { User } from '../types/user'; // Import User
+import { useCurrentUser } from '../context/UserContext';
+import ExperimentPage from '../components/ExperimentPage';
+import Banner from '../components/ui/Banner';
+import Button, { ButtonLink } from '../components/ui/Button';
+import Icon from '../components/ui/Icon';
+import { EmptyState, LoadingState } from '../components/ui/Layout';
+import SortHeader, { nextSort, SortState } from '../components/ui/SortHeader';
+import { getExperimentPermissions } from '../utils/experimentPermissions';
+import { formatCount, formatDate } from '../utils/format';
+import { severityLabel, speciesLabel, triggerLabel } from '../utils/messageTrigger';
 
-interface TriggerType {
-  ID: string;
-  name: string;
-}
+type SortKey = 'name' | 'trigger' | 'species' | 'severity' | 'activity';
 
-const MessageDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  
+const sortValue = (message: Message, key: SortKey): string | number => {
+  if (key === 'species') return message.species?.commonName?.toLowerCase() ?? '';
+  if (key === 'severity' || key === 'activity') return message[key] ?? 0;
+  return (message[key] ?? '').toLowerCase();
+};
 
-  const severityLabels: { [key: number]: string } = {
-    1: 'debug',
-    2: 'info',
-    3: 'warning',
-    4: 'urgent',
-    5: 'critical',
-  };
+// "within 200 m · readings 10 min apart" for encounter messages
+const encounterDetail = (message: Message): string | null => {
+  if (message.trigger !== 'encounter') return null;
+  const parts = [];
+  if (message.encounterMeters) parts.push(`within ${message.encounterMeters} m`);
+  if (message.encounterMinutes) parts.push(`${message.encounterMinutes} min`);
+  return parts.length ? parts.join(' · ') : null;
+};
 
-  const [interactionTypes, setInteractionTypes] = useState<TriggerType[]>([]);
-  const [speciesList, setSpeciesList] = useState<string[]>([]);
+// Messages tab of the hub: filter by trigger and species, open a message, or start a new one while upcoming
+const MessageList: React.FC<{ experiment: Experiment }> = ({ experiment }) => {
+  const user = useCurrentUser();
+  const permissions = getExperimentPermissions(experiment, user);
+
   const [messages, setMessages] = useState<Message[]>([]);
-  const location = useLocation();
-  const experiment = location.state?.experiment as Experiment | null;
-  const loggedInUser: User | undefined = location.state?.user; // Add loggedInUser
-  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
-  const [selectedTriggerType, setSelectedInteractionType] = useState<string>('All');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<boolean>(false);
+  const [selectedTrigger, setSelectedTrigger] = useState<string>('All');
   const [selectedSpecies, setSelectedSpecies] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Message; direction: string } | null>(null);
-  const [showEncounterMeters, setShowEncounterMeters] = useState<boolean>(false);
-  const [showEncounterMinutes, setShowEncounterMinutes] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSpeciesDropdownOpen, setIsSpeciesDropdownOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortState<SortKey> | null>({ key: 'name', direction: 'ascending' });
 
-  const isCreator = loggedInUser?.ID === experiment?.user.ID; // Define isCreator
-
-  // Define status based on experiment dates
-  const getStatus = (startDate: string, endDate?: string | null): string => {
-    const today = new Date();
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : null;
-    if (start > today) {
-      return 'Upcoming';
-    } else if (end && end < today) {
-      return 'Completed';
-    } else {
-      return 'Live';
-    }
-  };
-
-  const status = experiment
-    ? getStatus(experiment.start, experiment.end)
-    : 'Unknown';
-
-  // Fetch messages and extract unique species and triggers
   useEffect(() => {
-    const fetchMessages = async () => {
-      if (!id) return;
-      try {
-        setIsLoading(true);
-        const fetchedMessages = await getMessagesByExperimentID(id);
-        setMessages(fetchedMessages);
-
-        // Extract unique species' common names
-        const speciesSet = new Set<string>();
-        const interactionTypesSet = new Set<string>();
-
-        fetchedMessages.forEach((msg: Message) => {
-          if (msg.species && msg.species.commonName) {
-            const speciesName = `${msg.species.commonName} (${msg.species.name})`;
-          speciesSet.add(speciesName);
-          }
-          if (msg.trigger) {
-            interactionTypesSet.add(msg.trigger);
-          }
-        });
-
-        setSpeciesList(['All', ...Array.from(speciesSet)]);
-
-        const allTriggerTypesOption: TriggerType = {
-          ID: 'all',
-          name: 'All',
-        };
-        const interactionTypesData = Array.from(interactionTypesSet).map((type) => ({
-          ID: type,
-          name: type,
-        }));
-        setInteractionTypes([allTriggerTypesOption, ...interactionTypesData]);
-
-        setIsLoading(false);
-      } catch (error) {
+    let cancelled = false;
+    getMessagesByExperimentID(experiment.ID)
+      .then((fetched) => !cancelled && setMessages(fetched ?? []))
+      .catch((error) => {
         console.error('Error fetching messages:', error);
-        setIsLoading(false);
-      }
+        if (!cancelled) setLoadError(true);
+      })
+      .finally(() => !cancelled && setIsLoading(false));
+    return () => {
+      cancelled = true;
     };
+  }, [experiment.ID]);
 
-    fetchMessages();
-  }, [id]);
+  const triggers = useMemo(() => Array.from(new Set(messages.map((message) => message.trigger).filter(Boolean))), [messages]);
+  const speciesOptions = useMemo(
+    () => Array.from(new Set(messages.map((message) => speciesLabel(message.species)).filter(Boolean))).sort(),
+    [messages]
+  );
 
-  useEffect(() => {
-    setShowEncounterMeters(
-      filteredMessages.some(
-        (msg) => msg.encounterMeters != null && msg.encounterMeters > 0
-      )
+  const visible = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = messages.filter(
+      (message) =>
+        (selectedTrigger === 'All' || message.trigger === selectedTrigger) &&
+        (selectedSpecies === 'All' || speciesLabel(message.species) === selectedSpecies) &&
+        (!query || message.name.toLowerCase().includes(query) || message.text.toLowerCase().includes(query))
     );
-
-    setShowEncounterMinutes(
-      filteredMessages.some(
-        (msg) => msg.encounterMinutes != null && msg.encounterMinutes > 0
-      )
-    );
-  }, [filteredMessages]);
-
-  // Apply filters whenever filter state changes
-  useEffect(() => {
-    let filtered = [...messages];
-
-    // Filter by Species
-    if (selectedSpecies !== 'All') {
-      filtered = filtered.filter((msg: Message) => {
-        const speciesName = msg.species
-          ? `${msg.species.commonName} (${msg.species.name})`
-          : '';
-        return speciesName === selectedSpecies;
-      });
-    }
-
-    // Filter by TriggerType
-    if (selectedTriggerType !== 'All') {
-      filtered = filtered.filter((msg: Message) => msg.trigger === selectedTriggerType);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter((msg: Message) =>
-        msg.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply sorting
-    if (sortConfig !== null) {
-      filtered.sort((a: Message, b: Message) => {
-        let aValue: any = a[sortConfig.key] || '';
-        let bValue: any = b[sortConfig.key] || '';
-
-        if (sortConfig.key === 'species') {
-          aValue = a.species?.commonName.toLowerCase() || '';
-          bValue = b.species?.commonName.toLowerCase() || '';
-        } else if (typeof aValue === 'string' && typeof bValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
+    if (sortConfig) {
+      const direction = sortConfig.direction === 'ascending' ? 1 : -1;
+      filtered.sort((a, b) => {
+        const aValue = sortValue(a, sortConfig.key);
+        const bValue = sortValue(b, sortConfig.key);
+        if (aValue < bValue) return -direction;
+        if (aValue > bValue) return direction;
         return 0;
       });
     }
+    return filtered;
+  }, [messages, selectedTrigger, selectedSpecies, searchQuery, sortConfig]);
 
-    setFilteredMessages(filtered);
-  }, [selectedSpecies, selectedTriggerType, searchQuery, sortConfig, messages]);
+  const newReason = permissions.canEdit
+    ? undefined
+    : permissions.isOwner
+    ? 'Messages can only be added while the experiment is upcoming.'
+    : `${permissions.reasons.edit}.`;
 
-  // Handle sorting
-  const requestSort = (key: keyof Message) => {
-    let direction = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  // An unavailable action is a real button, a link could still open in a new tab
+  const newButton = permissions.canEdit ? (
+    <ButtonLink to={`/messagecreation/${experiment.ID}`} state={{ experiment }} variant="primary" icon="plus" data-testid="add-message-button">
+      New message
+    </ButtonLink>
+  ) : (
+    <Button variant="primary" icon="plus" unavailable aria-describedby="new-message-reason" data-testid="add-message-button">
+      New message
+    </Button>
+  );
 
-  // Function to get sort icon class
-  const getSortIconClass = (columnKey: keyof Message) => {
-    if (sortConfig?.key === columnKey) {
-      return sortConfig.direction === 'ascending' ? 'sort-ascending' : 'sort-descending';
-    }
-    return '';
-  };
+  const sortBy = (key: SortKey) => setSortConfig((current) => nextSort(current, key));
 
-  // Handle navigation to create message page
-  const navigateToCreateMessage = () => {
-    navigate(`/messagecreation/${id}`);
-  };
+  if (isLoading) return <LoadingState label="Loading messages…" testId="loading-container" />;
 
-  // Handle navigation to message details page
-  const handleMessageClick = (message: Message) => {
-    navigate(`/message/${id}`, { state: { message, user: loggedInUser } });
-  };
+  if (loadError) {
+    return (
+      <Banner tone="error" title="Couldn't load the messages.">
+        Reload the page to try again.
+      </Banner>
+    );
+  }
 
-  // Function to truncate text to a specified length
-  const truncateText = (text: string, maxLength: number): string => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
+  if (messages.length === 0) {
+    return (
+      <EmptyState title="No messages yet" action={newButton}>
+        Messages reach app users when they meet an animal, answer a questionnaire in a certain way or when WildlifeNL raises an alarm.
+        {permissions.canEdit ? ` Add them before ${formatDate(experiment.start)}.` : ` ${newReason}`}
+      </EmptyState>
+    );
+  }
 
   return (
-    <div className="message-dashboard-container" data-testid="message-dashboard-container">
-      {/* Navbar */}
-      <Navbar />
-
-      {/* Messages Title */}
-      <h1 className="messages-title" data-testid="messages-title">
-        Messages for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 23)}
-      </h1>
-
-      {/* Filters Container */}
-      <div className="message-filters-container" data-testid="filters-container">
-        {/* Species Filter */}
-        <div className="message-filter species-filter" data-testid="species-filter">
-          <label className="filter-label">Filter by species:</label>
-          <div className={`dropdown ${isSpeciesDropdownOpen ? 'open' : ''}`}>
-            <button
-              className="dropdown-button"
-              data-testid="species-dropdown-button"
-              onClick={() => setIsSpeciesDropdownOpen(!isSpeciesDropdownOpen)}
-            >
-              {selectedSpecies}
-              <img
-                src="/assets/vsvg.svg"
-                alt="Dropdown Icon"
-                className={`dropdown-icon ${isSpeciesDropdownOpen ? 'dropdown-icon-hover' : ''}`}
-              />
-            </button>
-            {isSpeciesDropdownOpen && (
-              <div className="dropdown-content" data-testid="species-dropdown-content">
-                {speciesList.map((speciesName) => (
-                  <div
-                    key={speciesName}
-                    data-testid={`species-option-${speciesName}`}
-                    className="dropdown-item"
-                    onClick={() => {
-                      setSelectedSpecies(speciesName);
-                      setIsSpeciesDropdownOpen(false);
-                    }}
-                  >
-                    {speciesName}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* TriggerType Filter */}
-        <div className="message-filter interactiontype-filter" data-testid="interactiontype-filter">
-          <label className="filter-label">Filter by trigger:</label>
-          <div className={`dropdown ${isDropdownOpen ? 'open' : ''}`}>
-            <button
-              className="dropdown-button"
-              data-testid="interactiontype-dropdown-button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              {selectedTriggerType}
-              <img
-                src="/assets/vsvg.svg"
-                alt="Dropdown Icon"
-                className={`dropdown-icon ${isDropdownOpen ? 'dropdown-icon-hover' : ''}`}
-              />
-            </button>
-            {isDropdownOpen && (
-              <div className="dropdown-content" data-testid="interactiontype-dropdown-content">
-                {interactionTypes.map((type) => (
-                  <div
-                    key={type.ID}
-                    data-testid={`interactiontype-option-${type.ID}`}
-                    className="dropdown-item"
-                    onClick={() => {
-                      setSelectedInteractionType(type.name);
-                      setIsDropdownOpen(false);
-                    }}
-                  >
-                    {type.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Search Filter */}
-        <div className="message-filter search-filter" data-testid="search-filter">
-          <div className="search-input">
-            <input
-              type="text"
-              placeholder="Search message..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              data-testid="search-input"
-            />
-            <img src="/assets/SearchSVG.svg" alt="Search Icon" className="search-icon" />
-          </div>
-        </div>
+    <div className="rc-stack" data-testid="message-dashboard-container">
+      <div className="rc-toolbar" data-testid="filters-container">
+        <label className="rc-inline-select">
+          <span className="rc-inline-select__label">Trigger</span>
+          <select value={selectedTrigger} onChange={(event) => setSelectedTrigger(event.target.value)}>
+            <option value="All">All</option>
+            {triggers.map((trigger) => (
+              <option key={trigger} value={trigger}>
+                {triggerLabel(trigger)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="rc-inline-select">
+          <span className="rc-inline-select__label">Species</span>
+          <select value={selectedSpecies} onChange={(event) => setSelectedSpecies(event.target.value)}>
+            <option value="All">All</option>
+            {speciesOptions.map((species) => (
+              <option key={species} value={species}>
+                {species}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="rc-search">
+          <Icon name="search" />
+          <span className="rc-visually-hidden">Search messages</span>
+          <input
+            type="search"
+            className="rc-input"
+            placeholder="Search title or text"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            data-testid="search-input"
+          />
+        </label>
+        <div className="rc-toolbar__end">{newButton}</div>
       </div>
-
-      {/* Loading Animation or Messages Table */}
-      {isLoading ? (
-        <div className="loading-container" data-testid="loading-container">
-          <div className="spinner"></div>
-        </div>
-      ) : (
-        <>
-          {/* Messages Table */}
-          <div className="message-table-container" data-testid="table-container">
-            <table
-              className="messages-table"
-              data-testid="messages-table"
-            >
-              <thead>
-                <tr>
-                  <th onClick={() => requestSort('name')}>
-                    Name
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('name')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('species')}>
-                    Species
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('species')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('trigger')}>
-                    Trigger
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('trigger')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('text')}>
-                    Text
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('text')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('severity')}>
-                    Severity
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('severity')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('activity')}>
-                    Activity
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('activity')}`}
-                    />
-                  </th>
-                  {showEncounterMeters && (
-                    <th onClick={() => requestSort('encounterMeters')}>
-                      Encounter Meters
-                      <img
-                        src="/assets/vblacksvg.svg"
-                        alt="Sort Icon"
-                        className={`sort-icon ${getSortIconClass('encounterMeters')}`}
-                      />
-                    </th>
-                  )}
-                  {showEncounterMinutes && (
-                    <th onClick={() => requestSort('encounterMinutes')}>
-                      Encounter Minutes
-                      <img
-                        src="/assets/vblacksvg.svg"
-                        alt="Sort Icon"
-                        className={`sort-icon ${getSortIconClass('encounterMinutes')}`}
-                      />
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMessages.map((msg: Message, index: number) => {
-                  return (
-                    <tr
-                      key={msg.ID}
-                      data-testid={`message-row-${msg.ID}`}
-                      className={index % 2 === 0 ? 'row-even' : 'row-odd'}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <td
-                        data-testid="message-name"
-                        onClick={() => handleMessageClick(msg)}
-                      >
-                        {truncateText(msg.name, 20)}
-                      </td>
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.species
-                          ? `${msg.species.commonName} (${msg.species.name})`
-                          : 'No Species'}
-                      </td>
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.trigger}
-                      </td>
-                      
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {truncateText(msg.text, 12)}
-                      </td>
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {severityLabels[msg.severity] || 'Unknown'}
-                      </td>
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.activity.toString()}
-                      </td>
-                      {showEncounterMeters && (
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.encounterMeters}
-                      </td>
-                    )}
-                    {showEncounterMinutes && (
-                      <td onClick={() => handleMessageClick(msg)}>
-                        {msg.encounterMinutes}
-                      </td>
-                    )}
-                  </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Add Message Button */}
-          <button
-            className="add-message-button"
-            onClick={isCreator && status === 'Upcoming' ? navigateToCreateMessage : undefined}
-            disabled={!isCreator || status !== 'Upcoming'}
-            title={
-              !isCreator
-                ? 'Messages can only be created by the owner of the experiment before it goes live'
-                : status !== 'Upcoming'
-                ? 'Messages can only be created before the experiment goes live'
-                : 'Create new message'
-            }
-            data-testid="add-message-button"
-          >
-            <img
-              src={
-                isCreator && status === 'Upcoming'
-                  ? "/assets/AddButtonSVG.svg"
-                  : "/assets/GrayAddButtonSVG.svg"
-              }
-              alt="Add Message"
-            />
-          </button>
-        </>
+      {newReason && (
+        <p id="new-message-reason" className="rc-help rc-hub__toolbar-note">
+          {newReason}
+        </p>
       )}
+
+      <div className="rc-card rc-card--flush">
+        <div className="rc-table-wrap" data-testid="table-container">
+          <table className="rc-table rc-table--stack" data-testid="messages-table">
+            <caption className="rc-visually-hidden">Messages of this experiment</caption>
+            <thead>
+              <tr>
+                <SortHeader label="Message" sortKey="name" sort={sortConfig} onSort={sortBy} />
+                <SortHeader label="Trigger" sortKey="trigger" sort={sortConfig} onSort={sortBy} />
+                <SortHeader label="Species" sortKey="species" sort={sortConfig} onSort={sortBy} />
+                <SortHeader label="Severity" sortKey="severity" sort={sortConfig} onSort={sortBy} />
+                <SortHeader label="Delivered" sortKey="activity" sort={sortConfig} onSort={sortBy} numeric />
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((message) => {
+                const detail = encounterDetail(message);
+                return (
+                  <tr key={message.ID} data-testid={`message-row-${message.ID}`}>
+                    <td className="rc-table__lead rc-table__name">
+                      <Link to={`/message/${experiment.ID}/${message.ID}`} state={{ message, experiment }} className="rc-name-link">
+                        {message.name}
+                      </Link>
+                      <span className="rc-hub__text-preview">{message.text}</span>
+                    </td>
+                    <td data-label="Trigger">
+                      {triggerLabel(message.trigger)}
+                      {detail && <span className="rc-muted rc-small"> · {detail}</span>}
+                    </td>
+                    <td data-label="Species">{speciesLabel(message.species) || <span className="rc-muted">Any</span>}</td>
+                    <td data-label="Severity">
+                      <span className="rc-hub__severity">
+                        <span className="rc-swatch" style={{ background: `var(--rc-sev-${message.severity})` }} aria-hidden="true" />
+                        {severityLabel(message.severity)}
+                      </span>
+                    </td>
+                    <td data-label="Delivered" className="rc-table__num">
+                      {formatCount(message.activity ?? 0)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {visible.length === 0 && <p className="rc-card__note">No messages match these filters.</p>}
+      </div>
     </div>
   );
 };
+
+const MessageDashboard: React.FC = () => (
+  <ExperimentPage activeTab="messages">{(experiment) => <MessageList key={experiment.ID} experiment={experiment} />}</ExperimentPage>
+);
 
 export default MessageDashboard;
