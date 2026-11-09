@@ -7,7 +7,24 @@ import * as fs from 'fs';
 export default defineConfig({
   e2e: {
     baseUrl: 'http://localhost:3000',
+    // The folder is Cypress with a capital C, so the defaults only matched on case-insensitive disks
+    specPattern: 'Cypress/e2e/**/*.cy.ts',
+    supportFile: 'Cypress/support/e2e.ts',
+    screenshotsFolder: 'Cypress/screenshots',
+    video: false,
+    viewportWidth: 1440,
+    viewportHeight: 900,
+    defaultCommandTimeout: 15000,
     setupNodeEvents(on, config) {
+      // Headless Electron opens a 1280x720 window, which clipped the 1440x900 screenshots
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.name === 'electron') {
+          launchOptions.preferences.width = 1600;
+          launchOptions.preferences.height = 1100;
+        }
+        return launchOptions;
+      });
+
       // Path to the .env file
       const envFilePath = './.env';
       
