@@ -1,144 +1,220 @@
-/* Navbar Container */
-.navbar {
-  width: 100%;
-  height: 90px;
-  background: #734100;
-  box-shadow: 0px 4px 10px rgba(233, 68, 75, 0.25);
+/* Top bar in bark brown, links and the account button sit on it in paper colour */
+.rc-topbar {
+  position: relative;
+  z-index: var(--rc-z-topbar);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 3%;
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
+  gap: 20px;
+  height: var(--rc-topbar-h);
+  padding: 0 var(--rc-space-5);
+  background: var(--rc-bark);
+  color: var(--rc-on-bark);
 }
 
-/* Left Side (Logo and Title) */
-.navbar-left {
+.rc-topbar a:focus-visible,
+.rc-topbar button:focus-visible {
+  outline-color: var(--rc-on-bark);
+}
+
+.rc-topbar__brand {
   display: flex;
   align-items: center;
-  user-select: none;
-  pointer-events: none;
-}
-
-.navbar-logo {
-  width: 75px;
-  height: 67px;
-  border-radius: 33.5px;
-  margin-right: 20px;
-  user-select: none;
-  pointer-events: none;
-}
-
-.navbar-title {
-  color: #FFF;
-  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  font-family: 'Overpass', sans-serif;
-  font-size: 54px;
-  font-weight: 800;
-  line-height: normal;
-  padding-top: 3%;
-  user-select: none;
-}
-
-.navbar-version {
-  align-self: flex-end;
-  margin: 0 0 12px 12px;
-  color: #FFF;
-  opacity: 0.8;
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
+  gap: 10px;
+  color: var(--rc-on-bark);
+  text-decoration: none;
+  font-family: var(--rc-font-display);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -0.01em;
   white-space: nowrap;
-  user-select: text;
-  pointer-events: auto;
 }
 
-/* Actions Container */
-.navbar-actions {
+.rc-topbar__brand:hover {
+  color: #FFFFFF;
+}
+
+.rc-topbar__brand img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.rc-topbar__nav {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  gap: var(--rc-space-1);
+  margin-left: var(--rc-space-3);
+}
+
+.rc-topbar__nav a {
   display: flex;
   align-items: center;
-  justify-content: center; /* Ensure centering */
-  gap: 15%; /* Adjust gap between actions */
-  flex-grow: 1; /* Allow it to take up available space */
-  padding: 0; /* Remove the padding that pushes it right */
-  padding-right: 20%;
-  user-select: none;
+  padding: 0 12px;
+  color: var(--rc-on-bark);
+  font-weight: 600;
+  text-decoration: none;
+  opacity: 0.85;
 }
 
+.rc-topbar__nav a:hover {
+  color: #FFFFFF;
+  opacity: 1;
+}
 
-/* Individual Action */
-.navbar-action {
+.rc-topbar__nav a[aria-current] {
+  opacity: 1;
+  box-shadow: inset 0 -2px 0 var(--rc-on-bark);
+}
+
+.rc-topbar__nav a:focus-visible {
+  outline-offset: -4px;
+}
+
+.rc-topbar__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-4);
+}
+
+.rc-topbar__version {
+  font-family: var(--rc-font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.rc-topbar__badge {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--rc-on-bark);
+  color: var(--rc-bark);
+  font-weight: 500;
+}
+
+.rc-account {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  height: 36px;
+  max-width: 260px;
+  padding: 0 10px 0 4px;
+  border: 1px solid rgba(247, 244, 238, 0.45);
+  border-radius: var(--rc-radius-pill);
+  background: transparent;
+  color: var(--rc-on-bark);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rc-account:hover,
+.rc-account[aria-expanded='true'] {
+  background: rgba(247, 244, 238, 0.12);
+}
+
+.rc-account__avatar {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rc-on-bark);
+  color: var(--rc-bark);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rc-account__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rc-topbar__menu-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(247, 244, 238, 0.45);
+  border-radius: var(--rc-radius);
+  background: transparent;
+  color: var(--rc-on-bark);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rc-sheet-nav {
   display: flex;
   flex-direction: column;
+}
+
+.rc-sheet-nav a {
+  display: flex;
   align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s;
+  min-height: 48px;
+  padding: 0 var(--rc-space-2);
+  border-bottom: 1px solid var(--rc-rule);
+  color: var(--rc-ink);
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.navbar-action:hover {
-  transform: translateY(-5px);
+.rc-sheet-nav a[aria-current] {
+  color: var(--rc-moss);
+  box-shadow: inset 3px 0 0 var(--rc-moss);
+  padding-left: var(--rc-space-4);
 }
 
-.navbar-icon {
-  width: 50px;
-  height: 50px;
-  margin-bottom: 5px;
-  fill: #FFF;
-  transition: fill 0.2s;
-  user-select: none;
-  pointer-events: none;
-}
-
-.navbar-action:hover .navbar-icon {
-  fill: #27A966;
-}
-
-.navbar-action p {
-  color: #FFF;
-  text-align: center;
-  font-family: 'Roboto', sans-serif;
-  font-size: 20px;
-  font-weight: 500;
-  line-height: normal;
-  letter-spacing: 0.6px;
-  margin: 0;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* Hover Effect for Text */
-.navbar-action:hover p {
-  color: #27A966;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    height: auto;
-    padding: 1rem;
+@media (max-width: 719px) {
+  .rc-topbar {
+    gap: var(--rc-space-3);
+    padding: 0 var(--rc-space-4);
   }
 
-  .navbar-left {
-    margin-bottom: 1rem;
+  .rc-topbar__brand {
+    font-size: 18px;
   }
 
-  .navbar-actions {
-    gap: 30px;
+  .rc-topbar__end {
+    gap: var(--rc-space-2);
+  }
+}
+
+@media (max-width: 519px) {
+  .rc-topbar__version-number {
+    display: none;
+  }
+}
+
+/* Very narrow screens keep the words for screen readers and show only the icons, so nothing scrolls sideways at 320px */
+@media (max-width: 419px) {
+  .rc-topbar__menu-button {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
   }
 
-  .navbar-title {
-    font-size: 36px;
+  .rc-topbar__menu-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
+}
 
-  .navbar-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .navbar-action p {
-    font-size: 16px;
+@media (max-width: 359px) {
+  .rc-topbar__wordmark {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 }
