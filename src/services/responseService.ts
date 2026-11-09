@@ -1,4 +1,6 @@
 import { API_BASE_URL } from '../apiBaseUrl';
+import { Experiment } from '../types/experiment';
+import { getProblemMessage, getRateLimitError, isRateLimited, RateLimitError } from './problemDetails';
 
 const RESPONSE_EXPERIMENT_API_URL = `${API_BASE_URL}/responses/experiment/`;
 const RESPONSE_QUESTIONNAIRE_API_URL = `${API_BASE_URL}/responses/questionnaire/`;
@@ -24,8 +26,7 @@ export const getResponsesByExperimentID = async (id: string): Promise<any[]> => 
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch responses: ${errorText}`);
+      throw getRateLimitError(response) ?? new Error(await getProblemMessage(response, 'Failed to fetch responses'));
     }
 
     // Return raw JSON for dynamic fields
@@ -53,8 +54,7 @@ export const getResponsesByQuestionnaireID = async (id: string): Promise<any[]> 
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch responses: ${errorText}`);
+      throw getRateLimitError(response) ?? new Error(await getProblemMessage(response, 'Failed to fetch responses'));
     }
 
     // Return raw JSON for dynamic fields
@@ -69,4 +69,21 @@ export const getResponsesByQuestionnaireID = async (id: string): Promise<any[]> 
 export const getResponseCountByExperimentID = async (id: string): Promise<number> => {
   const responses = await getResponsesByExperimentID(id);
   return responses.length;
+};
+
+// Adds the response count to each experiment that has none yet, a count the API could not give stays undefined
+export const addResponseCounts = async (experiments: Experiment[]): Promise<{ experiments: Experiment[]; rateLimit: RateLimitError | null }> => {
+  let rateLimit: RateLimitError | null = null;
+  const counted = await Promise.all(
+    experiments.map(async (experiment) => {
+      if (experiment.responses !== undefined) return experiment;
+      try {
+        return { ...experiment, responses: await getResponseCountByExperimentID(experiment.ID) };
+      } catch (error) {
+        if (isRateLimited(error)) rateLimit = error;
+        return experiment;
+      }
+    })
+  );
+  return { experiments: counted, rateLimit };
 };

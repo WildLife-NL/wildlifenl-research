@@ -39,3 +39,5 @@ module.exports = function(app: Application) {
   );
 };
 */
+
+export {};

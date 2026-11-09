@@ -1,5 +1,6 @@
 import { User } from '../types/user';
 import { API_BASE_URL } from '../apiBaseUrl';
+import { getRateLimitError } from './problemDetails';
 
 const API_URL = `${API_BASE_URL}/profile/me/`;
 
@@ -24,6 +25,7 @@ export const getMyProfile = async (): Promise<User> => {
     const data = await response.json();
     return data as User;
   } else {
-    throw new Error('Failed to fetch profile');
+    // A rate limit says nothing about the account, so the caller can wait instead of denying access
+    throw getRateLimitError(response) ?? new Error('Failed to fetch profile');
   }
 };
