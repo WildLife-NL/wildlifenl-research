@@ -1,5 +1,7 @@
 import { getMyProfile } from './profileService';
 import { API_BASE_URL } from '../apiBaseUrl';
+import { User } from '../types/user';
+import { getRateLimitError } from './problemDetails';
 
 const API_URL = `${API_BASE_URL}/auth/`;
 
@@ -43,9 +45,11 @@ export const verifyOTP = async (email: string, code: string): Promise<string | n
   if (response.ok) {
     const data = await response.json(); 
     return data.token;  
-  } else {
-    return null;
   }
+  // The API limits sign-in requests per IP address, and a rate limit is not a wrong code
+  const rateLimit = getRateLimitError(response);
+  if (rateLimit) throw rateLimit;
+  return null;
 };
 
 
@@ -55,15 +59,16 @@ export const isAuthenticated = (): boolean => {
   return !!token; 
 };
 
+// True when the profile carries the Researcher role, role ID 3
+export const hasResearcherRole = (profile: User): boolean =>
+  !!profile.roles && profile.roles.some((role) => role.ID === 3);
+
 export const getUserRole = async (): Promise<number | null> => {
   try {
     const profile = await getMyProfile();
 
     // Check if the user has the Researcher role (ID = 3)
-    if (
-      profile.roles &&
-      profile.roles.some((role) => role.ID === 3)
-    ) {
+    if (hasResearcherRole(profile)) {
       return 3; // Researcher role ID
     }
     return null; // User does not have the Researcher role
