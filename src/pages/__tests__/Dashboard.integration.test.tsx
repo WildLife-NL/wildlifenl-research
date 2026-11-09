@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../Dashboard';
 import { getAllLivingLabs } from '../../services/livingLabService';
-import { addExperiment, getExperiments } from '../../services/experimentService';
+import { addExperiment, deleteExperimentWithChildren, getExperiments } from '../../services/experimentService';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -36,7 +36,8 @@ describe('Dashboard Integration Tests', () => {
     for (let i = 0; i < 2; i++) {
       // Generate a unique identifier at the time of creation:
       const uniqueId = new Date().toISOString().replace(/[:.]/g, '-');
-      const name = `Exp ${i + 1} ${uniqueId}`;
+      // Neutral names, the TEST environment is shared with the team
+      const name = `Testing – integration ${i + 1} ${uniqueId}`;
       experimentNames.push(name);
   
       // Calculate future start and end dates based on the current time:
@@ -64,7 +65,11 @@ describe('Dashboard Integration Tests', () => {
     }
   });
 
-  afterAll(() => {
+  afterAll(async () => {
+    // Remove the experiments this suite created so TEST stays clean
+    for (const id of createdExperimentIds) {
+      await deleteExperimentWithChildren(id).catch((error) => console.error('Failed to delete test experiment:', error));
+    }
     // Clear localStorage after tests
     window.localStorage.clear();
   });
@@ -80,6 +85,9 @@ describe('Dashboard Integration Tests', () => {
         <Dashboard />
       </MemoryRouter>
     );
+
+    // Every experiment from the API is only listed in Everyone's scope, Mine shows your own
+    fireEvent.click(screen.getByTestId('all-experiments-toggle'));
 
     // Wait for the experiments table to render
     await waitFor(() => {
@@ -126,6 +134,9 @@ describe('Dashboard Integration Tests', () => {
         <Dashboard />
       </MemoryRouter>
     );
+
+    // Every experiment from the API is only listed in Everyone's scope, Mine shows your own
+    fireEvent.click(screen.getByTestId('all-experiments-toggle'));
 
     await waitFor(() => {
       expect(screen.getByTestId('experiments-table')).toBeInTheDocument();
@@ -204,6 +215,9 @@ describe('Dashboard Integration Tests', () => {
         <Dashboard />
       </MemoryRouter>
     );
+
+    // Every experiment from the API is only listed in Everyone's scope, Mine shows your own
+    fireEvent.click(screen.getByTestId('all-experiments-toggle'));
 
     // Wait for all experiment rows to appear
     for (const experiment of myExperiments) {
