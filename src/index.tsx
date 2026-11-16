@@ -1,6 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+// Self-hosted fonts, Fraunces keeps its optical size axis
+import '@fontsource-variable/fraunces/opsz.css';
+import '@fontsource/source-sans-3/400.css';
+import '@fontsource/source-sans-3/600.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+// Design system, loaded before any page stylesheet
+import './styles/tokens.css';
+import './styles/base.css';
+import './styles/components.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

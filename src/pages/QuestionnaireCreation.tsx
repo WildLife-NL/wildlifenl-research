@@ -1,199 +1,155 @@
-import { useState, useEffect, useRef } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import '../styles/QuestionnaireCreation.css';
+import '../styles/ExperimentCreation.css';
 import { AddQuestionnaire } from '../types/questionnaire';
+import { InteractionType } from '../types/interactiontype';
 import { addQuestionnaire } from '../services/questionnaireService';
 import { getAllInteractions } from '../services/interactionTypeService';
 import { getMinLength } from '../services/schemaService';
-import { InteractionType } from '../types/interactiontype';
+import { useCurrentUser } from '../context/UserContext';
+import { useExperiment } from '../hooks/useExperiment';
+import { getExperimentPermissions } from '../utils/experimentPermissions';
+import { useMinLengths } from '../hooks/useMinLengths';
+import { useDocumentTitle } from '../hooks/usePageChrome';
+import { hubCrumbs, hubPath } from '../components/ExperimentHeader';
+import QuestionnaireDetailsForm, {
+  QuestionnaireDetailsErrors,
+  QuestionnaireDetailsValues,
+  validateQuestionnaireDetails,
+} from '../components/QuestionnaireDetailsForm';
+import Banner from '../components/ui/Banner';
+import Button, { ButtonLink } from '../components/ui/Button';
+import { ActionBar, PageHeader } from '../components/ui/Layout';
+import { formatDate } from '../utils/format';
 
+// New questionnaire for an experiment, it opens in the builder once created so questions can be added
 const QuestionnaireCreation: React.FC = () => {
   const { id: experimentID } = useParams<{ id: string }>(); // Get experimentID from URL
-  const [name, setName] = useState('');
-  const [identifier, setIdentifier] = useState('');
-  const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]);
-  const [interactionTypeID, setInteractionTypeID] = useState<string | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [interactionTypeError, setInteractionTypeError] = useState('');
-  const [nameError, setNameError] = useState('');
-
   const navigate = useNavigate();
-  const formRef = useRef<HTMLFormElement>(null);
+  const { experiment } = useExperiment(experimentID);
+  const user = useCurrentUser();
+  const permissions = experiment ? getExperimentPermissions(experiment, user) : null;
+  const canAdd = !!permissions?.canEdit;
+  const { hints } = useMinLengths([['Questionnaire', 'name']]);
+  useDocumentTitle('New questionnaire');
+
+  const [values, setValues] = useState<QuestionnaireDetailsValues>({ name: '', identifier: '', interactionTypeID: '' });
+  const [errors, setErrors] = useState<QuestionnaireDetailsErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]);
 
   useEffect(() => {
-    const fetchInteractionTypes = async () => {
-      try {
-        const interactionTypes: InteractionType[] = await getAllInteractions();
-        setInteractionTypes(interactionTypes);
-      } catch (error) {
-        console.error('Failed to fetch interaction types:', error);
-      }
-    };
-    fetchInteractionTypes();
+    getAllInteractions()
+      .then(setInteractionTypes)
+      .catch((error) => console.error('Failed to fetch interaction types:', error));
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const requiredFilled = [values.name.trim(), values.interactionTypeID].filter(Boolean).length;
 
-    let isValid = true;
-
-    // Reset custom error messages
-    setInteractionTypeError('');
-    setNameError('');
+  const handleSubmit = async (event?: FormEvent) => {
+    event?.preventDefault();
+    if (submitting || !canAdd) return;
+    setSubmitting(true);
+    setSubmitError(null);
 
     let nameMinLength: number | undefined;
     try {
       nameMinLength = await getMinLength('Questionnaire', 'name');
     } catch (error) {
-      alert(`Failed to create questionnaire: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      setSubmitError(error instanceof Error ? error.message : 'Could not load the validation rules. Please try again.');
+      setSubmitting(false);
       return;
     }
 
-    if (name && nameMinLength && name.length < nameMinLength) {
-      setNameError(`Name must be at least ${nameMinLength} characters long.`);
-      isValid = false;
-    }
-
-    // Validate Interaction Type
-    if (!interactionTypeID) {
-      setInteractionTypeError('Please select an interaction type.');
-      isValid = false;
-    }
-
-    // Trigger native validation messages
-    const form = formRef.current;
-    if (form && !form.checkValidity()) {
-      form.reportValidity();
-      isValid = false;
-    }
-
-    if (!isValid) {
+    const found = validateQuestionnaireDetails(values, nameMinLength);
+    setErrors(found);
+    if (Object.keys(found).length || !experimentID) {
+      setSubmitting(false);
       return;
     }
 
     const questionnaireData: AddQuestionnaire = {
-      experimentID: experimentID!,
-      name: name,
-      identifier: identifier,
-      interactionTypeID: interactionTypeID!,
+      experimentID,
+      name: values.name.trim(),
+      identifier: values.identifier.trim(),
+      interactionTypeID: values.interactionTypeID,
     };
 
     try {
-      const response = await addQuestionnaire(questionnaireData);
-      console.log('Questionnaire added successfully:', response);
-      navigate(-1);
+      const created = await addQuestionnaire(questionnaireData);
+      navigate(`/questionnaire/${created.ID}`, {
+        state: {
+          questionnaire: { ...created, questions: created.questions ?? [] },
+          experiment,
+          flash: { tone: 'success', title: 'Questionnaire created.', text: 'Add its questions below, then save.' },
+        },
+      });
     } catch (error) {
       console.error('Error adding questionnaire:', error);
-      alert(`Failed to create questionnaire: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      setSubmitError(error instanceof Error ? error.message : 'Please try again.');
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="questionnaire-creation-container">
-      {/* Navbar */}
-      <Navbar />
+    <>
+      <div className="rc-page rc-page--detail">
+        <PageHeader
+          breadcrumbs={experiment ? [...hubCrumbs(experiment, 'questionnaires'), { label: 'New questionnaire' }] : [{ label: 'Experiments', to: '/dashboard' }, { label: 'New questionnaire' }]}
+          title="New questionnaire"
+          meta={
+            <span>
+              {experiment ? `For ${experiment.name}, editable until ${formatDate(experiment.start)}. ` : ''}You add the questions in the next step.
+            </span>
+          }
+        />
 
-      {/* Main Container */}
-      <div className="questionnaire-creation-main-container">
-        {/* Title */}
-        <h1 className="questionnaire-creation-page-title">New Questionnaire</h1>
-
-        {/* Content Box */}
-        <form
-          className="questionnaire-creation-content-box"
-          onSubmit={handleSubmit}
-          noValidate
-          ref={formRef}
-        >
-          {/* Name */}
-          <label className="questionnaire-creation-section-label">
-            Name*
-          </label>
-          <input
-            type="text"
-            className="questionnaire-creation-text-input"
-            placeholder="Enter questionnaire name..."
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setNameError('');
-            }}
-            required
-          />
-          {nameError && (
-            <div className="error-message">{nameError}</div>
+        <form className="rc-form" onSubmit={handleSubmit} noValidate id="questionnaire-form">
+          {experiment && !canAdd && (
+            <Banner tone="info" title="Read-only.">
+              {permissions?.isOwner ? 'Questionnaires can only be added while the experiment is upcoming.' : `${permissions?.reasons.edit}.`}
+            </Banner>
           )}
-
-          {/* Identifier */}
-          <label className="questionnaire-creation-section-label">
-            Internal Name
-          </label>
-          <input
-            type="text"
-            className="questionnaire-creation-text-input"
-            placeholder="Enter internal questionnaire name..."
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-          />
-
-          {/* Interaction Type */}
-          <label className="questionnaire-creation-section-label">
-            Interaction Type*
-          </label>
-          <div
-            className={`questionnaire-creation-dropdown ${
-              isDropdownOpen ? 'open' : ''
-            } ${interactionTypeError ? 'error' : ''}`}
-          >
-            <button
-              type="button"
-              className="questionnaire-creation-dropdown-button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              {interactionTypeID
-                ? interactionTypes.find((type) => type.ID === interactionTypeID)?.name
-                : 'Select Interaction Type'}
-              <img
-                src="/assets/vsvg.svg"
-                alt="Dropdown Icon"
-                className="questionnaire-creation-dropdown-icon"
-              />
-            </button>
-            {isDropdownOpen && (
-              <div className="questionnaire-creation-dropdown-content">
-                {interactionTypes.map((type) => (
-                  <div
-                    key={type.ID}
-                    className="questionnaire-creation-dropdown-item"
-                    onClick={() => {
-                      setInteractionTypeID(type.ID);
-                      setIsDropdownOpen(false);
-                      setInteractionTypeError('');
-                    }}
-                  >
-                    {type.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Interaction Type Error Message */}
-          {interactionTypeError && (
-            <div className="error-message">{interactionTypeError}</div>
+          {submitError && (
+            <Banner tone="error" title="Couldn't create the questionnaire.">
+              {submitError}
+            </Banner>
           )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="questionnaire-creation-submit-button"
-            title = "Submit questionnaire"
-          >
-            <img src="/assets/saveSVG.svg" alt="Submit Questionnaire" />
-          </button>
+          <section className="rc-card" aria-labelledby="questionnaire-details-title">
+            <h2 id="questionnaire-details-title" className="rc-section-title">
+              Details
+            </h2>
+            <QuestionnaireDetailsForm
+              idPrefix="new-questionnaire"
+              values={values}
+              onChange={setValues}
+              errors={errors}
+              interactionTypes={interactionTypes}
+              nameMinLength={hints['Questionnaire.name']}
+              interactionAs="cards"
+            />
+          </section>
         </form>
       </div>
-    </div>
+
+      <ActionBar status={`${requiredFilled} of 2 required fields filled`}>
+        <ButtonLink to={experimentID ? hubPath('questionnaires', experimentID) : '/dashboard'} state={{ experiment }} variant="quiet">
+          Cancel
+        </ButtonLink>
+        <Button
+          type="submit"
+          form="questionnaire-form"
+          variant="primary"
+          busy={submitting}
+          busyLabel="Creating…"
+          unavailable={!canAdd}
+          data-testid="submit-questionnaire-button"
+        >
+          Create questionnaire
+        </Button>
+      </ActionBar>
+    </>
   );
 };
 

@@ -1,344 +1,88 @@
-* {
+/* Experiment hub pages, the parts come from components.css */
+.rc-hub__id {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.rc-hub__toolbar-note {
+  margin-top: calc(-1 * var(--rc-space-3));
+  text-align: right;
+}
+
+.rc-hub__text-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 52ch;
+  color: var(--rc-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.rc-hub__severity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  white-space: nowrap;
+}
+
+.rc-hub__datasets {
+  list-style: none;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
-body {
-  font-family: 'Roboto', sans-serif;
-}
-
-/* Experiment Container */
-.experiment-container {
-  max-width: 1200px; /* Set a max width */
-  margin: 0 auto;    /* Center the container */
-  padding: 20px;     /* Add padding for spacing */
-}
-
-/* Title styling */
-.experiment-view-title {
-  position: absolute;
-  top: 90px;
-  left: 25px;
-  width: 100%;
-  height: 60px;
-  color: #000;
-  font-size: 50px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: normal;
-}
-
-/* Experiment Details Component */
-.experiment-details-component {
-  width: 100%;        
-  margin-top: 160px;  
-}
-
-
-/* Buttons Container */
-.buttons-container {
+.rc-hub__dataset {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
-  margin-top: 11px; /* Spacing above the buttons */
+  gap: var(--rc-space-3) var(--rc-space-4);
+  padding: var(--rc-space-4) var(--rc-space-5);
+  border-top: 1px solid var(--rc-rule);
 }
 
-/* Unified Button Styles */
-.experiment-button {
-  width: 300px;
-  height: 60px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-left: 20px;
-  padding-right: 20px; /* Adjust as needed */
-  border: none;
-  cursor: pointer;
-  color: #FFF;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 500;
-  letter-spacing: 1.35px;
-  line-height: normal;
-  font-size: 20px;
+.rc-hub__dataset:first-child {
+  border-top: 0;
 }
 
-.experiment-button-icon {
-  width: 30px;
-  height: 30px;
-  margin-left: 10px; /* Add space between label and icon */
+.rc-hub__dataset-text {
+  flex: 1 1 320px;
+  min-width: 0;
 }
 
-.stop-button-icon {
-  width: 40px;
-  height: 40px;
+.rc-hub__dataset-count {
+  flex: 0 0 auto;
+  min-width: 96px;
+  color: var(--rc-ink-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
-.red-button {
-  background-color: #E81E21;
-}
-.red-button:hover {
-  background-color: #bf181e;
+.rc-hub__dataset--sub {
+  padding-left: 48px;
+  background: var(--rc-row-hover);
 }
 
-.blue-button {
-  background-color: #007BFF;
-}
-.blue-button:hover {
-  background-color: #0060cc;
+@media (max-width: 719px) {
+  .rc-hub__toolbar-note {
+    margin-top: 0;
+    text-align: left;
+  }
+
+  .rc-hub__dataset--sub {
+    padding-left: var(--rc-space-5);
+  }
+
+  .rc-hub__dataset-count {
+    text-align: left;
+  }
 }
 
-.green-button {
-  background-color: #27A966;
+.rc-hub__warn {
+  color: var(--rc-ochre);
+  font-weight: 600;
+  white-space: nowrap;
 }
-.green-button:hover {
-  background-color: #1e8a52;
-}
-
-.gray-button {
-  background-color: #BEBEBE;
-  cursor: not-allowed;
-}
-
-/* View Questionnaires Button */
-.view-questionnaires-button {
-  width: 430px;
-  height: 91px;
-  flex-shrink: 0;
-  border-radius: 19px;
-  background-color: #27A966;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-left: 45px;
-  padding-right: 111px; /* Ensures the text ends 111px from the right edge */
-  border: none;
-  cursor: pointer;
-}
-
-.view-questionnaires-button:hover {
-  background-color: #1e8a52;
-}
-
-/* Text Inside the Button */
-.view-questionnaires-button-text {
-  color: #FFF;
-  font-family: 'Roboto', sans-serif;
-  font-size: 27px;
-  font-weight: 500;
-  letter-spacing: 1.35px;
-  line-height: normal;
-}
-
-/* Icon Inside the Button */
-.view-questionnaires-button-icon {
-  width: 46px;
-  height: 52px;
-  position: absolute;
-  right: 30px; 
-  top: 19px;   
-  fill: #FFF;  
-}
-
-/* View Messages Button */
-.view-messages-button {
-  width: 400px;
-  height: 91px;
-  flex-shrink: 0;
-  border-radius: 19px;
-  background-color: #27A966;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-left: 45px;
-  padding-right: 111px; 
-  border: none;
-  cursor: pointer;
-}
-
-.view-messages-button:hover {
-  background-color: #1e8a52;
-}
-
-/* Text Inside the Button */
-.view-messages-button-text {
-  color: #FFF;
-  font-family: 'Roboto', sans-serif;
-  font-size: 32px;
-  font-weight: 500;
-  letter-spacing: 1.35px;
-  line-height: normal;
-}
-
-/* Icon Inside the Button */
-.view-messages-button-icon {
-  width: 46px;
-  height: 52px;
-  position: absolute;
-  right: 30px; /* 30px from the right edge */
-  top: 23px;   /* 19px from the top edge */
-  fill: #FFF;  /* For SVG icons */
-}
-
-/* Stop Experiment Button */
-.stop-experiment-button {
-  width: 400px;
-  height: 91px;
-  flex-shrink: 0;
-  border-radius: 19px;
-  background-color: #E81E21;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-}
-
-/* Text Inside the Top Section */
-.stop-button-text {
-  color: #FFF;
-  font-family: 'Roboto', sans-serif;
-  font-size: 34px;
-  font-weight: 500;
-  letter-spacing: 0.95px;
-}
-
-.stop-experiment-button:hover {
-  background-color: #bf181e;
-}
-
-.delete-experiment-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.delete-experiment-button img {
-  width: 85px; /* Match other button icons */
-  height: 85px;
-}
-
-.edit-experiment-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.edit-popup-content {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  width: 500px;
-  max-width: 90%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-}
-
-.edit-popup-content h2 {
-  margin-bottom: 10px;
-}
-
-.edit-popup-content label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-.edit-popup-content input,
-.edit-popup-content textarea {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
-.edit-popup-buttons {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.experimentview-dropdown {
-  position: relative;
-  width: 300px;
-}
-
-.experimentview-dropdown .experimentview-dropdown-button {
-  width: 100%; /* Adjusted to fill the parent width */
-  height: 50px; /* Match the date input height */
-  background: #27A966;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 500;
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0px 4px 10px rgba(39, 169, 102, 0.25); /* Adjusted color to match the button */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative; /* Added position relative */
-  user-select: none;
-  cursor: pointer;
-  padding: 0 15px; /* Added padding for left and right */
-}
-
-.experimentview-dropdown .experimentview-dropdown-button:focus {
-  outline: none; /* Remove default focus outline */
-}
-
-.experimentview-dropdown .experimentview-dropdown-icon {
-  position: absolute; /* Changed to absolute positioning */
-  right: 15px; /* Position the icon 15px from the right */
-  width: 17px;
-  height: 11px;
-  transition: transform 0.2s;
-}
-
-.experimentview-dropdown .experimentview-dropdown-content {
-  display: none;
-  position: absolute;
-  top: 55px; /* Position the dropdown content below the button */
-  left: 0; /* Align with the left of the button */
-  background-color: #fff;
-  min-width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Adjusted shadow to point downwards */
-  z-index: 1;
-  border-radius: 12px;
-  margin-top: 5px; /* Space between button and dropdown content */
-}
-
-.experimentview-dropdown.experimentview-open .experimentview-dropdown-content {
-  display: block;
-}
-
-.experimentview-dropdown .experimentview-dropdown-item {
-  padding: 10px;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.experimentview-dropdown .experimentview-dropdown-item:hover {
-  background-color: #f1f1f1;
-}
-
-/* Error Message Styles */
-.error-message-update-experiment {
-  color: #E81E21;
-  font-size: 15px;
-  margin-top: -18px;
-  width: 100%;
-}
-
-

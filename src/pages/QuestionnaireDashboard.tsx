@@ -1,339 +1,192 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import '../styles/QuestionnaireDashboard.css';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import '../styles/Experiment.css';
 import { Questionnaire } from '../types/questionnaire';
-import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
 import { Experiment } from '../types/experiment';
-import { getAllInteractions } from '../services/interactionTypeService';
 import { InteractionType } from '../types/interactiontype';
-import { User } from '../types/user';
+import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
+import { getAllInteractions } from '../services/interactionTypeService';
+import { useCurrentUser } from '../context/UserContext';
+import ExperimentPage from '../components/ExperimentPage';
+import Banner from '../components/ui/Banner';
+import Button, { ButtonLink } from '../components/ui/Button';
+import Icon from '../components/ui/Icon';
+import { EmptyState, LoadingState } from '../components/ui/Layout';
+import SortHeader, { nextSort, SortState } from '../components/ui/SortHeader';
+import { getExperimentPermissions } from '../utils/experimentPermissions';
+import { formatCount, formatDate } from '../utils/format';
 
-const QuestionnaireDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const location = useLocation();
+type SortKey = 'name' | 'identifier' | 'interactionType' | 'questions';
+
+const sortValue = (questionnaire: Questionnaire, key: SortKey): string | number => {
+  if (key === 'questions') return questionnaire.questions?.length ?? 0;
+  if (key === 'interactionType') return questionnaire.interactionType?.name?.toLowerCase() ?? '';
+  return (questionnaire[key] ?? '').toLowerCase();
+};
+
+// Questionnaires tab of the hub: filter, search and open, or start a new one while the experiment is upcoming
+const QuestionnaireList: React.FC<{ experiment: Experiment }> = ({ experiment }) => {
+  const user = useCurrentUser();
+  const permissions = getExperimentPermissions(experiment, user);
 
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
-  const experiment = location.state?.experiment as Experiment | null;
-  const [filteredQuestionnaires, setFilteredQuestionnaires] = useState<Questionnaire[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // Interaction Type Filter State
+  const [loadError, setLoadError] = useState<boolean>(false);
   const [interactionTypes, setInteractionTypes] = useState<InteractionType[]>([]);
   const [selectedInteractionType, setSelectedInteractionType] = useState<string>('All');
-  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-
-  // Sorting State
-  type SortKey = keyof Questionnaire | 'numberOfQuestions';
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: string } | null>(null);
-
-  // Add retrieval of loggedInUser from location state
-  const loggedInUser = location.state?.user as User | undefined;
-
-  // Determine if the logged-in user is the creator of the experiment
-  const isCreator = loggedInUser?.ID === experiment?.user?.ID;
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortConfig, setSortConfig] = useState<SortState<SortKey> | null>({ key: 'name', direction: 'ascending' });
 
   useEffect(() => {
-    const fetchQuestionnaires = async () => {
-      if (!id) return;
-      try {
-        setIsLoading(true);
-        const fetchedQuestionnaires = await getQuestionnaireByExperimentID(id);
-
-        // Process the data to ensure interactionType and questions are defined
-        const processedQuestionnaires = fetchedQuestionnaires.map((questionnaire) => ({
-          ...questionnaire,
-          interactionType: questionnaire.interactionType || { name: 'Unknown' },
-          questions: questionnaire.questions || [],
-        }));
-
-        setQuestionnaires(processedQuestionnaires);
-        setIsLoading(false);
-      } catch (error) {
+    let cancelled = false;
+    getQuestionnaireByExperimentID(experiment.ID)
+      .then((fetched) => !cancelled && setQuestionnaires(fetched ?? []))
+      .catch((error) => {
         console.error('Error fetching questionnaires:', error);
-        setIsLoading(false);
-      }
+        if (!cancelled) setLoadError(true);
+      })
+      .finally(() => !cancelled && setIsLoading(false));
+    getAllInteractions()
+      .then((types) => !cancelled && setInteractionTypes(types))
+      .catch((error) => console.error('Failed to fetch interaction types:', error));
+    return () => {
+      cancelled = true;
     };
+  }, [experiment.ID]);
 
-    fetchQuestionnaires();
-  }, [id]);
-
-  // Fetch Interaction Types for the Filter
-  useEffect(() => {
-    const fetchInteractionTypes = async () => {
-      try {
-        const types = await getAllInteractions();
-        setInteractionTypes(types);
-      } catch (error) {
-        console.error('Failed to fetch interaction types:', error);
-      }
-    };
-    fetchInteractionTypes();
-  }, []);
-
-  useEffect(() => {
-    let filtered = [...questionnaires];
-
-    // Filter by Interaction Type
-    if (selectedInteractionType !== 'All') {
-      filtered = filtered.filter((q: Questionnaire) =>
-        q.interactionType?.name === selectedInteractionType
-      );
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter((q: Questionnaire) =>
-        q.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply sorting
-    if (sortConfig !== null) {
-      filtered.sort((a: Questionnaire, b: Questionnaire) => {
-        let aValue: any;
-        let bValue: any;
-
-        if (sortConfig.key === 'numberOfQuestions') {
-          aValue = a.questions ? a.questions.length : 0;
-          bValue = b.questions ? b.questions.length : 0;
-        } else if (sortConfig.key === 'interactionType') {
-          aValue = a.interactionType?.name || '';
-          bValue = b.interactionType?.name || '';
-        } else {
-          aValue = a[sortConfig.key] || '';
-          bValue = b[sortConfig.key] || '';
-        }
-
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
+  const visible = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = questionnaires.filter(
+      (questionnaire) =>
+        (selectedInteractionType === 'All' || questionnaire.interactionType?.name === selectedInteractionType) &&
+        (!query || questionnaire.name.toLowerCase().includes(query) || (questionnaire.identifier ?? '').toLowerCase().includes(query))
+    );
+    if (sortConfig) {
+      const direction = sortConfig.direction === 'ascending' ? 1 : -1;
+      filtered.sort((a, b) => {
+        const aValue = sortValue(a, sortConfig.key);
+        const bValue = sortValue(b, sortConfig.key);
+        if (aValue < bValue) return -direction;
+        if (aValue > bValue) return direction;
         return 0;
       });
     }
+    return filtered;
+  }, [questionnaires, selectedInteractionType, searchQuery, sortConfig]);
 
-    setFilteredQuestionnaires(filtered);
-  }, [searchQuery, sortConfig, questionnaires, selectedInteractionType]);
+  const newReason = permissions.canEdit
+    ? undefined
+    : permissions.isOwner
+    ? 'Questionnaires can only be added while the experiment is upcoming.'
+    : `${permissions.reasons.edit}.`;
 
-  const requestSort = (key: SortKey) => {
-    let direction = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  // An unavailable action is a real button, a link could still open in a new tab
+  const newButton = permissions.canEdit ? (
+    <ButtonLink to={`/questionnairecreation/${experiment.ID}`} state={{ experiment }} variant="primary" icon="plus" data-testid="add-questionnaire-button">
+      New questionnaire
+    </ButtonLink>
+  ) : (
+    <Button variant="primary" icon="plus" unavailable aria-describedby="new-questionnaire-reason" data-testid="add-questionnaire-button">
+      New questionnaire
+    </Button>
+  );
 
-  const getSortIconClass = (columnKey: SortKey) => {
-    if (sortConfig?.key === columnKey) {
-      return sortConfig.direction === 'ascending' ? 'sort-ascending' : 'sort-descending';
-    }
-    return '';
-  };
+  if (isLoading) return <LoadingState label="Loading questionnaires…" testId="loading-container" />;
 
-  // Update the navigateToCreateQuestionnaire function to pass loggedInUser
-  const navigateToCreateQuestionnaire = () => {
-    navigate(`/questionnairecreation/${id}`, { state: { experiment, user: loggedInUser } });
-  };
+  if (loadError) {
+    return (
+      <Banner tone="error" title="Couldn't load the questionnaires.">
+        Reload the page to try again.
+      </Banner>
+    );
+  }
 
-  // Update the handleQuestionnaireClick function to pass loggedInUser
-  const handleQuestionnaireClick = (questionnaire: Questionnaire) => {
-    navigate(`/questionnaire/${questionnaire.ID}`, { state: { questionnaire, experiment, user: loggedInUser } });
-  };
-
-  const truncateText = (text: string, maxLength: number): string => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
-  const getStatus = (startDate: string, endDate?: string | null): string => {
-    const today = new Date();
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : null;
-    if (start > today) {
-      return 'Upcoming';
-    } else if (end && end < today) {
-      return 'Completed';
-    } else {
-      return 'Live';
-    }
-  };
-
-  const status = experiment ? getStatus(experiment.start, experiment.end) : 'Unknown';
+  if (questionnaires.length === 0) {
+    return (
+      <EmptyState title="No questionnaires yet" action={newButton}>
+        A questionnaire is what app users fill in after a sighting, damage or collision report.
+        {permissions.canEdit ? ` Add one before ${formatDate(experiment.start)}.` : ` ${newReason}`}
+      </EmptyState>
+    );
+  }
 
   return (
-    <div className="questionnaire-dashboard-container" data-testid="questionnaire-dashboard-container">
-      {/* Navbar */}
-      <Navbar />
-
-      {/* Questionnaires Title */}
-      <h1 className="questionnaires-title" data-testid="questionnaires-title">
-        Questionnaires for Experiment: {truncateText(experiment?.name || `Experiment ${id}`, 21)}
-      </h1>
-
-      {/* Filters Container */}
-      <div className="questionnaire-filters-container" data-testid="filters-container">
-        {/* Interaction Type Filter */}
-        <div className="questionnaire-filter interactiontype-filter" data-testid="interactiontype-filter">
-          <label className="questionnaire-filter-label">Filter by Interaction Type:</label>
-          <div className={`dropdown ${isDropdownOpen ? 'open' : ''}`}>
-            <button
-              className="dropdown-button"
-              data-testid="interactiontype-dropdown-button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              {selectedInteractionType}
-              <img
-                src="/assets/vsvg.svg"
-                alt="Dropdown Icon"
-                className={`dropdown-icon ${isDropdownOpen ? 'dropdown-icon-hover' : ''}`}
-              />
-            </button>
-            {isDropdownOpen && (
-              <div className="dropdown-content" data-testid="interactiontype-dropdown-content">
-                <div
-                  data-testid="interactiontype-option-All"
-                  className="dropdown-item"
-                  onClick={() => {
-                    setSelectedInteractionType('All');
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  All
-                </div>
-                {interactionTypes.map((type) => (
-                  <div
-                    key={type.ID}
-                    data-testid={`interactiontype-option-${type.ID}`}
-                    className="dropdown-item"
-                    onClick={() => {
-                      setSelectedInteractionType(type.name);
-                      setIsDropdownOpen(false);
-                    }}
-                  >
-                    {type.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Search Filter */}
-        <div className="questionnaire-filter search-filter" data-testid="search-filter">
-          <div className="search-input">
-            <input
-              type="text"
-              placeholder="Search by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              data-testid="search-input"
-            />
-            <img src="/assets/SearchSVG.svg" alt="Search Icon" className="search-icon" />
-          </div>
-        </div>
+    <div className="rc-stack" data-testid="questionnaire-dashboard-container">
+      <div className="rc-toolbar" data-testid="filters-container">
+        <label className="rc-inline-select">
+          <span className="rc-inline-select__label">Interaction type</span>
+          <select value={selectedInteractionType} onChange={(event) => setSelectedInteractionType(event.target.value)}>
+            <option value="All">All</option>
+            {interactionTypes.map((type) => (
+              <option key={type.ID} value={type.name}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="rc-search">
+          <Icon name="search" />
+          <span className="rc-visually-hidden">Search questionnaires</span>
+          <input
+            type="search"
+            className="rc-input"
+            placeholder="Search by name"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            data-testid="search-input"
+          />
+        </label>
+        <div className="rc-toolbar__end">{newButton}</div>
       </div>
-
-      {/* Loading Animation or Questionnaires Table */}
-      {isLoading ? (
-        <div className="loading-container" data-testid="loading-container">
-          <div className="spinner"></div>
-        </div>
-      ) : (
-        <>
-          {/* Questionnaires Table */}
-          <div className="questionnaire-table-container" data-testid="table-container">
-            <table className="questionnaires-table" data-testid="questionnaires-table">
-              <thead>
-                <tr>
-                  <th onClick={() => requestSort('name')}>
-                    Name
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('name')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('identifier')}>
-                    Internal Name
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('identifier')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('interactionType')}>
-                    Interaction Type
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('interactionType')}`}
-                    />
-                  </th>
-                  <th onClick={() => requestSort('numberOfQuestions')}>
-                    Number of Questions
-                    <img
-                      src="/assets/vblacksvg.svg"
-                      alt="Sort Icon"
-                      className={`sort-icon ${getSortIconClass('numberOfQuestions')}`}
-                    />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredQuestionnaires.map((questionnaire, index) => (
-                  <tr
-                    key={questionnaire.ID}
-                    className={index % 2 === 0 ? 'row-even' : 'row-odd'}
-                    onClick={() => handleQuestionnaireClick(questionnaire)}
-                    data-testid={`questionnaire-row-${index}`}
-                  >
-                    <td>{truncateText(questionnaire.name, 60)}</td>
-                    <td>{truncateText(questionnaire.identifier, 60)}</td>
-                    <td>{questionnaire.interactionType?.name || 'N/A'}</td>
-                    <td>{questionnaire.questions ? questionnaire.questions.length : 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Add Questionnaire Button */}
-          <button
-            className="add-questionnaire-button"
-            onClick={isCreator && status === 'Upcoming' ? navigateToCreateQuestionnaire : undefined}
-            disabled={!isCreator || status !== 'Upcoming'}
-            title={
-              !isCreator
-                ? 'A questionnaire can only be created by the owner of the experiment before it goes live.'
-                : status !== 'Upcoming'
-                ? 'Questionnaires can only be created before the experiment goes live'
-                : 'Add a new questionnaire'
-            }
-            data-testid="add-questionnaire-button"
-          >
-            <img
-              src={
-                isCreator && status === 'Upcoming'
-                  ? "/assets/AddButtonSVG.svg"
-                  : "/assets/GrayAddButtonSVG.svg"
-              }
-              alt="Add Questionnaire"
-            />
-          </button>
-        </>
+      {newReason && (
+        <p id="new-questionnaire-reason" className="rc-help rc-hub__toolbar-note">
+          {newReason}
+        </p>
       )}
+
+      <div className="rc-card rc-card--flush">
+        <div className="rc-table-wrap" data-testid="table-container">
+          <table className="rc-table rc-table--stack" data-testid="questionnaires-table">
+            <caption className="rc-visually-hidden">Questionnaires of this experiment</caption>
+            <thead>
+              <tr>
+                <SortHeader label="Name" sortKey="name" sort={sortConfig} onSort={(key) => setSortConfig((current) => nextSort(current, key))} />
+                <SortHeader label="Internal name" sortKey="identifier" sort={sortConfig} onSort={(key) => setSortConfig((current) => nextSort(current, key))} />
+                <SortHeader label="Interaction type" sortKey="interactionType" sort={sortConfig} onSort={(key) => setSortConfig((current) => nextSort(current, key))} />
+                <SortHeader label="Questions" sortKey="questions" sort={sortConfig} onSort={(key) => setSortConfig((current) => nextSort(current, key))} numeric />
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((questionnaire) => {
+                const questionCount = questionnaire.questions?.length ?? 0;
+                return (
+                  <tr key={questionnaire.ID} data-testid={`questionnaire-row-${questionnaire.ID}`}>
+                    <td className="rc-table__lead rc-table__name">
+                      <Link to={`/questionnaire/${questionnaire.ID}`} state={{ questionnaire, experiment }} className="rc-name-link">
+                        {questionnaire.name}
+                      </Link>
+                    </td>
+                    <td data-label="Internal name" className="rc-mono rc-small">
+                      {questionnaire.identifier || <span className="rc-muted">—</span>}
+                    </td>
+                    <td data-label="Interaction type">{questionnaire.interactionType?.name ?? '—'}</td>
+                    <td data-label="Questions" className="rc-table__num">
+                      {questionCount === 0 ? <span className="rc-hub__warn">0 · add questions</span> : formatCount(questionCount)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {visible.length === 0 && <p className="rc-card__note">No questionnaires match these filters.</p>}
+      </div>
     </div>
   );
 };
+
+const QuestionnaireDashboard: React.FC = () => (
+  <ExperimentPage activeTab="questionnaires">{(experiment) => <QuestionnaireList key={experiment.ID} experiment={experiment} />}</ExperimentPage>
+);
 
 export default QuestionnaireDashboard;
