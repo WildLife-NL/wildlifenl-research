@@ -5,7 +5,7 @@ Welcome to the official GitHub repository of **ResearchConnect** for **WildlifeN
 ## Deployment
 
 ResearchConnect runs as two instances, both built from the `Dockerfile`. The API is chosen at build time with the `REACT_APP_BASE_URL` build argument, which defaults to the LIVE API.
-The REACT_APP_BASE_URL is also set in the Vercel deployment. Make sure the URL in the variable is matching the one from the GitHub settings.
+The `REACT_APP_BASE_URL` is also set in the **Vercel** deployment. Make sure the URL in the variable is matching the one from the GitHub settings.
 
 | Instance | SITE URL | Build |
 | --- | --- | --- |
