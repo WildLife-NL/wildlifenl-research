@@ -1,0 +1,88 @@
+/* Design tokens of the field notebook redesign, every text pair meets WCAG AA (4.5:1) and every control edge 3:1 */
+:root {
+  /* Surfaces */
+  --rc-paper: #F7F4EE;
+  --rc-surface: #FFFFFF;
+  --rc-sunken: #EFEAE1;
+  --rc-row-hover: #FBF9F5;
+  --rc-rule: #E2DBCF;
+  --rc-control: #8C8070;
+  --rc-disabled-border: #CFC6B8;
+
+  /* Text */
+  --rc-ink: #241B12;
+  --rc-ink-muted: #5C5247;
+  --rc-placeholder: #7A7064;
+
+  /* Brand and actions */
+  --rc-bark: #734100;
+  --rc-on-bark: #F7F4EE;
+  --rc-moss: #1B6F45;
+  --rc-moss-hover: #15573A;
+  --rc-moss-tint: #DDEFE3;
+
+  /* Status */
+  --rc-slate: #64809A;
+  --rc-slate-tint: #E3EAF1;
+  --rc-umber: #4A3F33;
+  --rc-rust: #9B2C1C;
+  --rc-rust-hover: #7E2416;
+  --rc-rust-tint: #F7E3DF;
+  --rc-ochre: #7A4F00;
+  --rc-ochre-tint: #F6E8C8;
+
+  /* Message severity 1 to 5, always shown beside its word */
+  --rc-sev-1: #CFC6B8;
+  --rc-sev-2: #B89B73;
+  --rc-sev-3: #A0703A;
+  --rc-sev-4: #8E4520;
+  --rc-sev-5: #7F1F12;
+
+  /* Elevation, dialogs and menus are the only shadows */
+  --rc-overlay: rgba(36, 27, 18, 0.45);
+  --rc-shadow-dialog: 0 12px 32px rgba(36, 27, 18, 0.18);
+  --rc-shadow-menu: 0 8px 24px rgba(36, 27, 18, 0.14);
+
+  /* Type */
+  --rc-font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+  --rc-font-body: 'Source Sans 3', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --rc-font-mono: 'IBM Plex Mono', Menlo, Consolas, monospace;
+
+  /* Spacing scale 4 8 12 16 24 32 48 */
+  --rc-space-1: 4px;
+  --rc-space-2: 8px;
+  --rc-space-3: 12px;
+  --rc-space-4: 16px;
+  --rc-space-5: 24px;
+  --rc-space-6: 32px;
+  --rc-space-7: 48px;
+
+  /* Shape */
+  --rc-radius-sm: 6px;
+  --rc-radius: 8px;
+  --rc-radius-card: 10px;
+  --rc-radius-dialog: 12px;
+  --rc-radius-pill: 999px;
+
+  /* Sizes */
+  --rc-control-h-sm: 32px;
+  --rc-control-h: 40px;
+  --rc-control-h-lg: 44px;
+  --rc-topbar-h: 56px;
+  --rc-content-max: 1200px;
+  --rc-gutter: 32px;
+  --rc-form-max: 760px;
+
+  /* Layers */
+  --rc-z-sticky: 10;
+  --rc-z-topbar: 20;
+  --rc-z-menu: 30;
+  --rc-z-dialog: 40;
+}
+
+@media (max-width: 719px) {
+  :root {
+    --rc-gutter: 16px;
+    --rc-control-h: 44px;
+  }
+}
