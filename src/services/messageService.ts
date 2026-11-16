@@ -33,15 +33,8 @@ export const addMessage = async (messageData: any): Promise<Message> => {
       const data = await response.json();
       return data;
     } else {
-      const contentType = response.headers.get('content-type');
-      let errorMessage = 'Failed to add message';
-      if (contentType && contentType.includes('application/json')) {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } else {
-        const errorText = await response.text();
-        errorMessage = errorText || errorMessage;
-      }
+      // application/problem+json never matched the old content-type check, so the raw JSON reached the user
+      const errorMessage = await getProblemMessage(response, 'Failed to add message');
       console.error('Failed to add message:', errorMessage);
       throw new Error(errorMessage);
     }

@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../apiBaseUrl';
+import { getProblemMessage } from './problemDetails';
 
 const API_URL = `${API_BASE_URL}/conveyances/experiment/`;
 const getAuthToken = (): string | null => {
@@ -19,8 +20,8 @@ export const getConveyancesByExperimentID = async (id: string): Promise<any[]> =
       },
     });
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch responses: ${errorText}`);
+      const errorMessage = await getProblemMessage(response, 'Failed to fetch delivered messages');
+      throw new Error(errorMessage);
     }
     const data = await response.json();
     return data as any[];
