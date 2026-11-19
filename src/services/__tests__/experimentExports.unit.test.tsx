@@ -1,4 +1,4 @@
-import { getInteractionsByExperimentID } from '../interactionService';
+import { getInteractionsByExperimentID, getInteractionsWithQuestionnaireByExperimentID } from '../interactionService';
 import { getTrackingReadingsByExperimentID } from '../trackingReadingService';
 import { loadUserLocationRows } from '../exportService';
 import { NOT_ON_THIS_API } from '../problemDetails';
@@ -81,6 +81,22 @@ describe('experiment exports - Unit Tests', () => {
 
     await expect(getTrackingReadingsByExperimentID('experiment-1')).rejects.toThrow('No authentication token found');
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test('KEEPS ONLY THE INTERACTIONS THAT GOT A QUESTIONNAIRE OF THIS EXPERIMENT', async () => {
+    fetchMock.mockResolvedValue(
+      apiResponse(200, [
+        { ID: 'from-this-experiment', questionnaire: { ID: 'questionnaire-1', name: 'Testing', experiment: { ID: 'experiment-1' } } },
+        { ID: 'without-questionnaire' },
+        { ID: 'null-questionnaire', questionnaire: null },
+        { ID: 'from-another-experiment', questionnaire: { ID: 'questionnaire-2', name: 'Testing', experiment: { ID: 'experiment-2' } } },
+        { ID: 'by-experiment-id', questionnaire: { ID: 'questionnaire-3', name: 'Testing', experimentID: 'experiment-1' } },
+      ])
+    );
+
+    const interactions = await getInteractionsWithQuestionnaireByExperimentID('experiment-1');
+    expect(interactions.map((interaction) => interaction.ID)).toEqual(['from-this-experiment', 'by-experiment-id']);
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/interactions\/experiment\/experiment-1$/), expect.anything());
   });
 
   test('USER LOCATION ROWS KEEP THE API ORDER AND ONLY THE LOCATION COLUMNS', async () => {

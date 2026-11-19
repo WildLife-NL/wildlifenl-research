@@ -7,6 +7,7 @@ import { InteractionType } from '../types/interactiontype';
 import { getQuestionnaireByExperimentID } from '../services/questionnaireService';
 import { getAllInteractions } from '../services/interactionTypeService';
 import { useCurrentUser } from '../context/UserContext';
+import AssignedInteractions from '../components/AssignedInteractions';
 import ExperimentPage from '../components/ExperimentPage';
 import Banner from '../components/ui/Banner';
 import Button, { ButtonLink } from '../components/ui/Button';
@@ -14,6 +15,7 @@ import Icon from '../components/ui/Icon';
 import { EmptyState, LoadingState } from '../components/ui/Layout';
 import SortHeader, { nextSort, SortState } from '../components/ui/SortHeader';
 import { getExperimentPermissions } from '../utils/experimentPermissions';
+import { getStatus } from '../utils/experimentStatus';
 import { formatCount, formatDate } from '../utils/format';
 
 type SortKey = 'name' | 'identifier' | 'interactionType' | 'questions';
@@ -181,6 +183,8 @@ const QuestionnaireList: React.FC<{ experiment: Experiment }> = ({ experiment })
         </div>
         {visible.length === 0 && <p className="rc-card__note">No questionnaires match these filters.</p>}
       </div>
+
+      {getStatus(experiment.start, experiment.end) !== 'Upcoming' && <AssignedInteractions experiment={experiment} questionnaires={questionnaires} />}
     </div>
   );
 };

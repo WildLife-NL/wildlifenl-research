@@ -1,20 +1,21 @@
+import { InteractionType } from './interactiontype';
 import { Location } from './location';
 import { Questionnaire } from './questionnaire';
 import { Species } from './species';
-import { Type } from './type';
 import { UserApp } from './user';
 
-export interface Interaction{
-
-    ID: string;
-    description: string;
-    name: string;
-    location: Location;
-    questionnaire: Questionnaire;
-    species: Species;
-    speciesID: Species["ID"];
-    timestamp: string;
-    type: Type;
-    typeID: Type["ID"];
-    user: UserApp;
+// An interaction as the API sends it, the report fields depend on its type and stay untyped
+export interface Interaction {
+  ID: string;
+  location: Location;
+  moment?: string;
+  notes?: string;
+  place?: Location;
+  questionnaire?: Questionnaire | null;
+  species: Species;
+  speciesID?: Species['ID'];
+  timestamp: string;
+  type: InteractionType;
+  typeID?: number;
+  user: UserApp;
 }

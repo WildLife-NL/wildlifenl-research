@@ -2,6 +2,7 @@
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const dayMonthFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+const dateTimeFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 const countFormat = new Intl.NumberFormat('en-GB');
 
 const toDate = (value: string | Date | null | undefined): Date | null => {
@@ -14,6 +15,12 @@ const toDate = (value: string | Date | null | undefined): Date | null => {
 export const formatDate = (value: string | Date | null | undefined, fallback = '—'): string => {
   const date = toDate(value);
   return date ? dateFormat.format(date) : fallback;
+};
+
+// "11 Jun 2026, 11:43" in local time, or the fallback when the timestamp is missing or invalid
+export const formatDateTime = (value: string | Date | null | undefined, fallback = '—'): string => {
+  const date = toDate(value);
+  return date ? dateTimeFormat.format(date) : fallback;
 };
 
 // "1 Mar – 30 Jun 2026", "1 Oct 2025 – 31 Mar 2026" or "15 Jul 2026 – open"

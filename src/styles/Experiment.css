@@ -66,6 +66,10 @@
   background: var(--rc-row-hover);
 }
 
+.rc-hub__card-message {
+  padding: var(--rc-space-4) var(--rc-space-5);
+}
+
 @media (max-width: 719px) {
   .rc-hub__toolbar-note {
     margin-top: 0;
