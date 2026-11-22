@@ -3,8 +3,11 @@ import { getQuestionnaireByExperimentID } from './questionnaireService';
 import { getResponsesByQuestionnaireID } from './responseService';
 import { getDetectionsInLivingLab } from './detectionService';
 import { getTrackingReadingsByExperimentID } from './trackingReadingService';
+import { getAllAlarms } from './alarmService';
+import { isInLivingLab, polygonsOverlap } from './spatiotemporalSpan';
 import { Questionnaire } from '../types/questionnaire';
-import { LivingLab } from '../types/livinglab';
+import { Coordinate, LivingLab } from '../types/livinglab';
+import { Alarm } from '../types/alarm';
 
 // responsesById holds null for a questionnaire whose responses could not be loaded
 export interface QuestionnaireExports {
@@ -66,4 +69,80 @@ export const loadUserLocationRows = async (experimentID: string): Promise<any[]>
     latitude: reading.location?.latitude,
     longitude: reading.location?.longitude,
   }));
+};
+
+// Every part is optional, start and end are ISO timestamps
+export interface AlarmFilter {
+  livingLab?: LivingLab | null;
+  start?: string | null;
+  end?: string | null;
+  speciesID?: string | null;
+}
+
+const alarmSource = (alarm: Alarm): string =>
+  alarm.animal ? 'animal' : alarm.detection ? 'detection' : alarm.interaction ? 'interaction' : '';
+
+const alarmSpecies = (alarm: Alarm) => alarm.animal?.species ?? alarm.detection?.species ?? alarm.interaction?.species;
+
+// Where the detection or the reported interaction happened, a tagged animal only comes with where it is now
+const alarmLocation = (alarm: Alarm): Coordinate | null => {
+  if (alarm.detection?.location) return alarm.detection.location;
+  const place = alarm.interaction?.place;
+  if (place && (place.latitude || place.longitude)) return place;
+  return alarm.interaction?.location ?? null;
+};
+
+// By its location when it has one, otherwise by its zone overlapping the living lab
+export const isAlarmInLivingLab = (alarm: Alarm, livingLab: LivingLab): boolean => {
+  const location = alarmLocation(alarm);
+  return location ? isInLivingLab(location, livingLab) : polygonsOverlap(alarm.zone?.definition ?? [], livingLab.definition ?? []);
+};
+
+export const filterAlarms = (alarms: Alarm[], filter: AlarmFilter): Alarm[] => {
+  const start = filter.start ? new Date(filter.start).getTime() : -Infinity;
+  const end = filter.end ? new Date(filter.end).getTime() : Infinity;
+  return alarms.filter((alarm) => {
+    const time = new Date(alarm.timestamp).getTime();
+    return (
+      time >= start &&
+      time <= end &&
+      (!filter.speciesID || alarmSpecies(alarm)?.ID === filter.speciesID) &&
+      (!filter.livingLab || isAlarmInLivingLab(alarm, filter.livingLab))
+    );
+  });
+};
+
+// One row per alarm, the columns of the animal, detection or interaction that raised it stay empty for the other two
+export const toAlarmRow = (alarm: Alarm) => {
+  const species = alarmSpecies(alarm);
+  const location = alarmLocation(alarm);
+  return {
+    alarmID: alarm.ID,
+    timestamp: alarm.timestamp,
+    raisedBy: alarmSource(alarm),
+    species: species?.name ?? '',
+    commonName: species?.commonName ?? '',
+    zoneID: alarm.zone?.ID,
+    zoneName: alarm.zone?.name,
+    zoneOwner: alarm.zone?.user?.name ?? '',
+    latitude: location?.latitude ?? '',
+    longitude: location?.longitude ?? '',
+    animalID: alarm.animal?.ID ?? '',
+    animalName: alarm.animal?.name ?? alarm.animal?.identifier ?? '',
+    detectionID: alarm.detection?.ID ?? '',
+    deploymentID: alarm.detection?.deploymentID ?? '',
+    sensorType: alarm.detection?.sensorType ?? '',
+    interactionID: alarm.interaction?.ID ?? '',
+    interactionType: alarm.interaction?.type?.name ?? '',
+    deliveredMessages: alarm.conveyances?.length ?? 0,
+  };
+};
+
+// The alarms that match the filter, newest first
+export const loadAlarmRows = async (filter: AlarmFilter): Promise<ReturnType<typeof toAlarmRow>[]> => {
+  if (filter.livingLab && !filter.livingLab.definition?.length) {
+    throw new Error('This LivingLab has no area defined.');
+  }
+  const alarms = filterAlarms(await getAllAlarms(), filter);
+  return alarms.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map(toAlarmRow);
 };

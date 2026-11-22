@@ -67,8 +67,8 @@ export const getLivingLabSpans = (livingLab: LivingLab, start: string, end: stri
   return spans;
 };
 
-export const isInLivingLab = (point: Coordinate, livingLab: LivingLab): boolean => {
-  const polygon = livingLab.definition || [];
+// Ray casting, a point exactly on an edge may fall either way
+export const isInPolygon = (point: Coordinate, polygon: Coordinate[]): boolean => {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const a = polygon[i];
@@ -81,6 +81,25 @@ export const isInLivingLab = (point: Coordinate, livingLab: LivingLab): boolean 
     }
   }
   return inside;
+};
+
+export const isInLivingLab = (point: Coordinate, livingLab: LivingLab): boolean => isInPolygon(point, livingLab.definition || []);
+
+// Which side of the line from a to b the point c is on
+const orientation = (a: Coordinate, b: Coordinate, c: Coordinate): number =>
+  Math.sign((b.longitude - a.longitude) * (c.latitude - a.latitude) - (b.latitude - a.latitude) * (c.longitude - a.longitude));
+
+const segmentsCross = (a: Coordinate, b: Coordinate, c: Coordinate, d: Coordinate): boolean =>
+  orientation(a, b, c) * orientation(a, b, d) < 0 && orientation(c, d, a) * orientation(c, d, b) < 0;
+
+// Two areas overlap when a corner of one lies inside the other or their edges cross
+export const polygonsOverlap = (first: Coordinate[], second: Coordinate[]): boolean => {
+  if (first.length < 3 || second.length < 3) return false;
+  if (first.some((point) => isInPolygon(point, second)) || second.some((point) => isInPolygon(point, first))) return true;
+  return first.some((a, i) => {
+    const b = first[(i + 1) % first.length];
+    return second.some((c, j) => segmentsCross(a, b, c, second[(j + 1) % second.length]));
+  });
 };
 
 export const isInPeriod = (timestamp: string, start: string, end: string): boolean => {

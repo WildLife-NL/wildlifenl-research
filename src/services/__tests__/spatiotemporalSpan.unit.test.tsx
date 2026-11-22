@@ -1,4 +1,4 @@
-import { getLivingLabSpans, isInLivingLab, toSpanQuery } from '../spatiotemporalSpan';
+import { getLivingLabSpans, isInLivingLab, polygonsOverlap, toSpanQuery } from '../spatiotemporalSpan';
 import { LivingLab } from '../../types/livinglab';
 
 const START = '2026-01-01T00:00:00.000Z';
@@ -71,6 +71,25 @@ describe('spatiotemporalSpan - Unit Tests', () => {
     expect(isInLivingLab({ latitude: 52.087, longitude: 5.17 }, smallLab)).toBe(true);
     expect(isInLivingLab({ latitude: 52.095, longitude: 5.17 }, smallLab)).toBe(false);
     expect(isInLivingLab({ latitude: 52.087, longitude: 5.18 }, smallLab)).toBe(false);
+  });
+
+  test('AREAS OVERLAP WHEN ONE HOLDS A CORNER OF THE OTHER OR THEIR EDGES CROSS', () => {
+    const square = (south: number, west: number, north: number, east: number) => [
+      { latitude: south, longitude: west },
+      { latitude: north, longitude: west },
+      { latitude: north, longitude: east },
+      { latitude: south, longitude: east },
+    ];
+    const lab = smallLab.definition;
+
+    // A corner inside, one inside the other, and a cross shape with no corner inside either
+    expect(polygonsOverlap(square(52.088, 5.172, 52.09, 5.176), lab)).toBe(true);
+    expect(polygonsOverlap(square(52.087, 5.17, 52.088, 5.171), lab)).toBe(true);
+    expect(polygonsOverlap(square(52.08, 5.17, 52.1, 5.171), lab)).toBe(true);
+    expect(polygonsOverlap(lab, square(52.08, 5.17, 52.1, 5.171))).toBe(true);
+
+    expect(polygonsOverlap(square(52.09, 5.168, 52.1, 5.174), lab)).toBe(false);
+    expect(polygonsOverlap([], lab)).toBe(false);
   });
 
   test('THE SPAN QUERY CONTAINS ALL PARAMETERS WITH AN INTEGER RADIUS', () => {

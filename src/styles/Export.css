@@ -71,7 +71,7 @@
   font-weight: 600;
 }
 
-.rc-export__animal-fields {
+.rc-export__fields {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -82,7 +82,11 @@
   flex: 0 1 240px;
 }
 
-.rc-export__animal-fields .rc-input[type='date'] {
+.rc-export__species-field {
+  flex: 0 1 260px;
+}
+
+.rc-export__fields .rc-input[type='date'] {
   width: 160px;
 }
 
@@ -144,7 +148,8 @@
     justify-content: end;
   }
 
-  .rc-export__lab-field {
+  .rc-export__lab-field,
+  .rc-export__species-field {
     flex: 1 1 100%;
   }
 }

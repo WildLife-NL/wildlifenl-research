@@ -8,16 +8,19 @@ import { getConveyancesByExperimentID } from '../services/conveyanceService';
 import { getInteractionsByExperimentID } from '../services/interactionService';
 import { getAllLivingLabs } from '../services/livingLabService';
 import { getAnimalLocationsInLivingLab } from '../services/animalService';
-import { loadDetectionRows, loadQuestionnaireExports, loadUserLocationRows, QuestionnaireExports } from '../services/exportService';
+import { getAllSpecies } from '../services/speciesService';
+import { loadAlarmRows, loadDetectionRows, loadQuestionnaireExports, loadUserLocationRows, QuestionnaireExports } from '../services/exportService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
 import { LivingLab } from '../types/livinglab';
+import { Species } from '../types/species';
 import { useCurrentUser } from '../context/UserContext';
 import { useDocumentTitle } from '../hooks/usePageChrome';
 import ExportPreviewDialog, { useExportPreview } from '../components/ExportPreviewDialog';
 import ResponseCountsBanner from '../components/ResponseCountsBanner';
 import Banner from '../components/ui/Banner';
 import Button from '../components/ui/Button';
+import Combobox from '../components/ui/Combobox';
 import Icon from '../components/ui/Icon';
 import { Field, LoadingState, PageHeader, SegmentedControl } from '../components/ui/Layout';
 import SortHeader, { nextSort, SortState } from '../components/ui/SortHeader';
@@ -53,6 +56,13 @@ const Export: React.FC = () => {
   const [animalDataEndDate, setAnimalDataEndDate] = useState<string>('');
   const [animalError, setAnimalError] = useState<string | null>(null);
 
+  const [speciesList, setSpeciesList] = useState<Species[]>([]);
+  const [alarmLabID, setAlarmLabID] = useState<string>('');
+  const [alarmStartDate, setAlarmStartDate] = useState<string>('');
+  const [alarmEndDate, setAlarmEndDate] = useState<string>('');
+  const [alarmSpeciesID, setAlarmSpeciesID] = useState<string>('');
+  const [alarmError, setAlarmError] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -77,7 +87,18 @@ const Export: React.FC = () => {
     getAllLivingLabs()
       .then(setLivingLabs)
       .catch((error) => console.error('Error fetching living labs:', error));
+    getAllSpecies()
+      .then(setSpeciesList)
+      .catch((error) => console.error('Error fetching species:', error));
   }, []);
+
+  const speciesOptions = useMemo(
+    () =>
+      speciesList
+        .map((candidate) => ({ value: candidate.ID, label: candidate.commonName || candidate.name, secondary: candidate.commonName ? `(${candidate.name})` : undefined }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [speciesList]
+  );
 
   const visibleExperiments = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -219,6 +240,32 @@ const Export: React.FC = () => {
     });
   };
 
+  // Every filter is optional, the dates are whole local days like the animal data period
+  const handleShowAlarms = () => {
+    const start = alarmStartDate ? new Date(`${alarmStartDate}T00:00:00`) : null;
+    const end = alarmEndDate ? new Date(`${alarmEndDate}T23:59:59.999`) : null;
+    if (start && end && start > end) {
+      setAlarmError('The From date must be on or before the To date.');
+      return;
+    }
+    setAlarmError(null);
+
+    const lab = livingLabs.find((candidate) => candidate.ID === alarmLabID) ?? null;
+    const species = speciesList.find((candidate) => candidate.ID === alarmSpeciesID) ?? null;
+    const speciesName = species ? species.commonName || species.name : null;
+    const fileScope = [lab?.name ?? 'everywhere', speciesName, alarmStartDate && `from ${alarmStartDate}`, alarmEndDate && `to ${alarmEndDate}`]
+      .filter(Boolean)
+      .join(' ');
+    openPreview({
+      title: `Alarms · ${[lab?.name ?? 'Everywhere', speciesName].filter(Boolean).join(' · ')}`,
+      fileName: exportFileName('Alarms', fileScope),
+      emptyText: 'No alarms match these filters.',
+      note: 'One row per alarm, newest first. Times are shown as the API sends them (UTC).',
+      load: () =>
+        loadAlarmRows({ livingLab: lab, start: start?.toISOString() ?? null, end: end?.toISOString() ?? null, speciesID: species?.ID ?? null }),
+    });
+  };
+
   const showOwner = scope === 'everyone';
   const columnCount = showOwner ? 8 : 7;
 
@@ -295,8 +342,8 @@ const Export: React.FC = () => {
         title="Export"
         meta={
           <span className="rc-lede">
-            Download CSV files of what your experiments collected, or animal data recorded in a living lab. Every export shows a preview of the first
-            rows before you download.
+            Download CSV files of what your experiments collected, animal data recorded in a living lab, or the alarms WildlifeNL raised. Every export
+            shows a preview of the first rows before you download.
           </span>
         }
       />
@@ -449,7 +496,7 @@ const Export: React.FC = () => {
           <p className="rc-muted">Independent of your experiments. Choose a living lab and a period.</p>
         </div>
 
-        <div className="rc-export__animal-fields">
+        <div className="rc-export__fields">
           <Field id="animal-lab" label="Living lab" className="rc-export__lab-field">
             {(control) => (
               <select
@@ -510,6 +557,81 @@ const Export: React.FC = () => {
             </Button>
             <span>Camera and sensor detections of animals in the living lab during the period: sensor, species, time, location.</span>
           </div>
+        </div>
+      </section>
+
+      <section className="rc-card" aria-labelledby="alarm-data-title" data-testid="alarm-export">
+        <div className="rc-stack rc-stack--sm">
+          <h2 id="alarm-data-title" className="rc-section-title">
+            Alarms
+          </h2>
+          <p className="rc-muted">
+            Raised when a tagged animal, a camera or sensor detection or an app user's report comes into an alarm zone. Every filter is optional.
+          </p>
+        </div>
+
+        <div className="rc-export__fields">
+          <Field id="alarm-lab" label="Area" className="rc-export__lab-field">
+            {(control) => (
+              <select {...control} className="rc-select" value={alarmLabID} onChange={(event) => setAlarmLabID(event.target.value)} data-testid="alarm-livinglab-select">
+                <option value="">Everywhere</option>
+                {livingLabs.map((lab) => (
+                  <option key={lab.ID} value={lab.ID}>
+                    {lab.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+          <Field id="alarm-from" label="From">
+            {(control) => (
+              <input
+                {...control}
+                type="date"
+                className="rc-input"
+                value={alarmStartDate}
+                onChange={(event) => setAlarmStartDate(event.target.value)}
+                data-testid="alarm-start-date-input"
+              />
+            )}
+          </Field>
+          <Field id="alarm-until" label="To">
+            {(control) => (
+              <input
+                {...control}
+                type="date"
+                className="rc-input"
+                value={alarmEndDate}
+                onChange={(event) => setAlarmEndDate(event.target.value)}
+                data-testid="alarm-end-date-input"
+              />
+            )}
+          </Field>
+          <Field id="alarm-species" label="Species" className="rc-export__species-field">
+            {(control) => (
+              <Combobox
+                id={control.id}
+                aria-describedby={control['aria-describedby']}
+                options={speciesOptions}
+                value={alarmSpeciesID}
+                onChange={setAlarmSpeciesID}
+                placeholder={speciesList.length ? 'All species' : 'Loading species…'}
+                testId="alarm-species-input"
+              />
+            )}
+          </Field>
+        </div>
+
+        {alarmError && <Banner tone="error">{alarmError}</Banner>}
+
+        <div className="rc-export__option">
+          <Button size="md" onClick={handleShowAlarms} data-testid="export-alarms-button">
+            Preview alarms
+          </Button>
+          <span>
+            One row per alarm: time, zone, species, what raised it and where. In an area means the detection or report was inside the living lab, or for
+            a tagged animal, that its alarm zone overlaps the living lab. Dates are whole days, local time.
+          </span>
         </div>
       </section>
 
