@@ -4,7 +4,7 @@ import { Experiment } from '../types/experiment';
 import { getResponsesByExperimentID, getResponseCountByExperimentID } from '../services/responseService';
 import { getConveyancesByExperimentID } from '../services/conveyanceService';
 import { getInteractionsByExperimentID } from '../services/interactionService';
-import { loadQuestionnaireExports, loadUserLocationRows, QuestionnaireExports } from '../services/exportService';
+import { loadContactRows, loadQuestionnaireExports, loadUserLocationRows, QuestionnaireExports } from '../services/exportService';
 import ExperimentPage from '../components/ExperimentPage';
 import ExportPreviewDialog, { useExportPreview } from '../components/ExportPreviewDialog';
 import Banner from '../components/ui/Banner';
@@ -25,6 +25,7 @@ const ExperimentDataContent: React.FC<{ experiment: Experiment }> = ({ experimen
   const [responses, setResponses] = useState<RowCount>(null);
   const [interactions, setInteractions] = useState<RowCount>(null);
   const [userLocations, setUserLocations] = useState<RowCount>(null);
+  const [contacts, setContacts] = useState<RowCount>(null);
   const [questionnaireExports, setQuestionnaireExports] = useState<QuestionnaireExports | null>(null);
   const [questionnaireError, setQuestionnaireError] = useState<boolean>(false);
 
@@ -39,6 +40,9 @@ const ExperimentDataContent: React.FC<{ experiment: Experiment }> = ({ experimen
     loadUserLocationRows(experiment.ID)
       .then((rows) => !cancelled && setUserLocations(rows.length))
       .catch(() => !cancelled && setUserLocations('error'));
+    loadContactRows(experiment.ID)
+      .then((rows) => !cancelled && setContacts(rows.length))
+      .catch(() => !cancelled && setContacts('error'));
     loadQuestionnaireExports(experiment.ID)
       .then((data) => !cancelled && setQuestionnaireExports(data))
       .catch((error) => {
@@ -198,9 +202,33 @@ const ExperimentDataContent: React.FC<{ experiment: Experiment }> = ({ experimen
               Preview app user locations
             </Button>
           </li>
+          <li className="rc-hub__dataset">
+            <div className="rc-hub__dataset-text">
+              <p className="rc-strong">Contacts</p>
+              <p className="rc-help">
+                One row per Bluetooth contact between an app user's phone and a tagged animal's collar in the living lab during the experiment.
+              </p>
+            </div>
+            <span className="rc-hub__dataset-count">{formatRowCount(contacts)}</span>
+            <Button
+              size="md"
+              onClick={() =>
+                openPreview({
+                  title: `Contacts · ${experiment.name}`,
+                  fileName: exportFileName('Contacts', experiment.name),
+                  emptyText: 'No Bluetooth contacts between app users and tagged animals were recorded in the living lab of this experiment during its period.',
+                  note: "One row per Bluetooth contact between an app user's phone and a tagged animal's collar in the living lab during the experiment. An empty end means the contact was still going on. Times are shown as the API sends them (UTC).",
+                  load: () => loadContactRows(experiment.ID),
+                })
+              }
+              data-testid="data-contacts-button"
+            >
+              Preview contacts
+            </Button>
+          </li>
         </ul>
         <p className="rc-card__note">
-          Interactions and app user locations cover everywhere when the experiment has no living lab. Files are named after the experiment or questionnaire and
+          Interactions, app user locations and contacts cover everywhere when the experiment has no living lab. Files are named after the experiment or questionnaire and
           the export date. Animal data in a living lab is on the Export page.
         </p>
       </section>

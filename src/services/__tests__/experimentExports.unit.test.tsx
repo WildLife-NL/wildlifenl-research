@@ -1,6 +1,7 @@
 import { getInteractionsByExperimentID, getInteractionsWithQuestionnaireByExperimentID } from '../interactionService';
 import { getTrackingReadingsByExperimentID } from '../trackingReadingService';
-import { loadUserLocationRows } from '../exportService';
+import { getContactsByExperimentID } from '../contactService';
+import { loadContactRows, loadUserLocationRows } from '../exportService';
 import { NOT_ON_THIS_API } from '../problemDetails';
 
 // The by-experiment exports for interactions and app user locations, against a mocked API
@@ -74,6 +75,7 @@ describe('experiment exports - Unit Tests', () => {
 
     await expect(getTrackingReadingsByExperimentID('experiment-1')).rejects.toThrow(NOT_ON_THIS_API);
     await expect(getInteractionsByExperimentID('experiment-1')).rejects.toThrow(NOT_ON_THIS_API);
+    await expect(getContactsByExperimentID('experiment-1')).rejects.toThrow(NOT_ON_THIS_API);
   });
 
   test('THROWS WITHOUT A TOKEN AND DOES NOT CALL THE API', async () => {
@@ -97,6 +99,71 @@ describe('experiment exports - Unit Tests', () => {
     const interactions = await getInteractionsWithQuestionnaireByExperimentID('experiment-1');
     expect(interactions.map((interaction) => interaction.ID)).toEqual(['from-this-experiment', 'by-experiment-id']);
     expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/interactions\/experiment\/experiment-1$/), expect.anything());
+  });
+
+  test('GETS THE CONTACTS OF AN EXPERIMENT AND TREATS NULL AS NONE', async () => {
+    fetchMock.mockResolvedValue(apiResponse(200, null));
+
+    await expect(getContactsByExperimentID('experiment-1')).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/contacts\/experiment\/experiment-1$/),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer testing-token' }) })
+    );
+  });
+
+  test('CONTACT ROWS ARE NEWEST FIRST WITH THE ANIMAL, COLLAR AND PLACES', async () => {
+    const deployment = {
+      sensorID: 'sensor-1',
+      contactHardwareAddress: 'AA:BB:CC:DD:EE:FF',
+      animalID: 'animal-1',
+      animal: { ID: 'animal-1', name: 'Testing fox', species: { ID: 'species-fox', name: 'Vulpes vulpes', commonName: 'Vos' } },
+    };
+    fetchMock.mockResolvedValue(
+      apiResponse(200, [
+        {
+          ID: 'contact-old',
+          start: '2026-06-11T09:00:00Z',
+          end: '2026-06-11T09:05:00Z',
+          startLocation: { latitude: 51.69, longitude: 5.27 },
+          endLocation: { latitude: 51.691, longitude: 5.271 },
+          user: { ID: 'user-1', name: 'Testing Reporter' },
+          borneSensorDeployment: deployment,
+          conveyances: [{ ID: 'conveyance-1' }],
+        },
+        // Still going on, recorded before the API stored locations (the north pole)
+        {
+          ID: 'contact-new',
+          start: '2026-06-12T10:00:00Z',
+          end: null,
+          startLocation: { latitude: 90, longitude: 0 },
+          user: { ID: 'user-2', name: 'user-2' },
+          borneSensorDeployment: { sensorID: 'sensor-2', animalID: 'animal-2' },
+          conveyances: null,
+        },
+      ])
+    );
+
+    const rows = await loadContactRows('experiment-1');
+    expect(rows.map((row) => row.contactID)).toEqual(['contact-new', 'contact-old']);
+    expect(rows[1]).toEqual({
+      contactID: 'contact-old',
+      start: '2026-06-11T09:00:00Z',
+      end: '2026-06-11T09:05:00Z',
+      userID: 'user-1',
+      userName: 'Testing Reporter',
+      animalID: 'animal-1',
+      animalName: 'Testing fox',
+      species: 'Vulpes vulpes',
+      commonName: 'Vos',
+      sensorID: 'sensor-1',
+      contactHardwareAddress: 'AA:BB:CC:DD:EE:FF',
+      startLatitude: 51.69,
+      startLongitude: 5.27,
+      endLatitude: 51.691,
+      endLongitude: 5.271,
+      deliveredMessages: 1,
+    });
+    expect(rows[0]).toMatchObject({ end: '', animalID: 'animal-2', startLatitude: '', startLongitude: '', endLatitude: '', deliveredMessages: 0 });
   });
 
   test('USER LOCATION ROWS KEEP THE API ORDER AND ONLY THE LOCATION COLUMNS', async () => {

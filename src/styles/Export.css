@@ -30,7 +30,7 @@
   width: 44px;
 }
 
-/* Four exports per experiment sit in two aligned columns */
+/* The exports of an experiment sit in two aligned columns */
 .rc-export__buttons {
   display: grid;
   grid-template-columns: repeat(2, max-content);

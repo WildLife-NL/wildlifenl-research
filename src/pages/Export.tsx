@@ -9,7 +9,14 @@ import { getInteractionsByExperimentID } from '../services/interactionService';
 import { getAllLivingLabs } from '../services/livingLabService';
 import { getAnimalLocationsInLivingLab } from '../services/animalService';
 import { getAllSpecies } from '../services/speciesService';
-import { loadAlarmRows, loadDetectionRows, loadQuestionnaireExports, loadUserLocationRows, QuestionnaireExports } from '../services/exportService';
+import {
+  loadAlarmRows,
+  loadContactRows,
+  loadDetectionRows,
+  loadQuestionnaireExports,
+  loadUserLocationRows,
+  QuestionnaireExports,
+} from '../services/exportService';
 import { Experiment } from '../types/experiment';
 import { Questionnaire } from '../types/questionnaire';
 import { LivingLab } from '../types/livinglab';
@@ -185,6 +192,15 @@ const Export: React.FC = () => {
       emptyText: 'No app user locations were recorded in the living lab of this experiment during its period.',
       note: 'One row per GPS reading of an app user in the living lab during the experiment, newest first. Times are shown as the API sends them (UTC).',
       load: () => loadUserLocationRows(experiment.ID),
+    });
+
+  const previewContacts = (experiment: Experiment) =>
+    openPreview({
+      title: `Contacts · ${experiment.name}`,
+      fileName: exportFileName('Contacts', experiment.name),
+      emptyText: 'No Bluetooth contacts between app users and tagged animals were recorded in the living lab of this experiment during its period.',
+      note: "One row per Bluetooth contact between an app user's phone and a tagged animal's collar in the living lab during the experiment. An empty end means the contact was still going on. Times are shown as the API sends them (UTC).",
+      load: () => loadContactRows(experiment.ID),
     });
 
   const previewQuestionnaire = (questionnaire: Questionnaire, rows: any[]) =>
@@ -467,6 +483,9 @@ const Export: React.FC = () => {
                               <Button size="sm" onClick={() => previewUserLocations(experiment)} data-testid={`export-user-locations-${experiment.ID}`}>
                                 App user locations
                               </Button>
+                              <Button size="sm" onClick={() => previewContacts(experiment)} data-testid={`export-contacts-${experiment.ID}`}>
+                                Contacts
+                              </Button>
                             </span>
                           )}
                         </td>
@@ -484,7 +503,9 @@ const Export: React.FC = () => {
           <strong className="rc-export__term">Responses</strong> – one row per answer an app user gave. <strong className="rc-export__term">Delivered messages</strong>{' '}
           (conveyances) – one row per message delivered to an app user. <strong className="rc-export__term">Interactions</strong> – one row per sighting,
           damage or collision reported in the experiment's living lab during its period. <strong className="rc-export__term">App user locations</strong> – one row
-          per GPS reading of an app user there and then. Without a living lab both cover everywhere. Files are named after the experiment and the export date.
+          per GPS reading of an app user there and then. <strong className="rc-export__term">Contacts</strong> – one row per Bluetooth contact between an app
+          user's phone and a tagged animal's collar there and then. Without a living lab these three cover everywhere. Files are named after the experiment
+          and the export date.
         </p>
       </section>
 

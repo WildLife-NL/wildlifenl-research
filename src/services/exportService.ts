@@ -4,10 +4,13 @@ import { getResponsesByQuestionnaireID } from './responseService';
 import { getDetectionsInLivingLab } from './detectionService';
 import { getTrackingReadingsByExperimentID } from './trackingReadingService';
 import { getAllAlarms } from './alarmService';
+import { getContactsByExperimentID } from './contactService';
 import { isInLivingLab, polygonsOverlap } from './spatiotemporalSpan';
 import { Questionnaire } from '../types/questionnaire';
 import { Coordinate, LivingLab } from '../types/livinglab';
 import { Alarm } from '../types/alarm';
+import { Contact } from '../types/contact';
+import { Location } from '../types/location';
 
 // responsesById holds null for a questionnaire whose responses could not be loaded
 export interface QuestionnaireExports {
@@ -69,6 +72,42 @@ export const loadUserLocationRows = async (experimentID: string): Promise<any[]>
     latitude: reading.location?.latitude,
     longitude: reading.location?.longitude,
   }));
+};
+
+// The API stores the north pole for contacts recorded before it kept the user's location, those cells stay empty
+const contactPlace = (location: Location | null | undefined): Location | null =>
+  location && !(location.latitude === 90 && location.longitude === 0) ? location : null;
+
+// One row per contact, an empty end means the app user was still within range of the collar when the data was exported
+export const toContactRow = (contact: Contact) => {
+  const deployment = contact.borneSensorDeployment;
+  const animal = deployment?.animal;
+  const startPlace = contactPlace(contact.startLocation);
+  const endPlace = contactPlace(contact.endLocation);
+  return {
+    contactID: contact.ID,
+    start: contact.start,
+    end: contact.end ?? '',
+    userID: contact.user?.ID,
+    userName: contact.user?.name ?? '',
+    animalID: animal?.ID ?? deployment?.animalID ?? '',
+    animalName: animal?.name ?? animal?.identifier ?? '',
+    species: animal?.species?.name ?? '',
+    commonName: animal?.species?.commonName ?? '',
+    sensorID: deployment?.sensorID ?? '',
+    contactHardwareAddress: deployment?.contactHardwareAddress ?? '',
+    startLatitude: startPlace?.latitude ?? '',
+    startLongitude: startPlace?.longitude ?? '',
+    endLatitude: endPlace?.latitude ?? '',
+    endLongitude: endPlace?.longitude ?? '',
+    deliveredMessages: contact.conveyances?.length ?? 0,
+  };
+};
+
+// Contacts of an experiment, newest first
+export const loadContactRows = async (experimentID: string): Promise<ReturnType<typeof toContactRow>[]> => {
+  const contacts = await getContactsByExperimentID(experimentID);
+  return contacts.sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime()).map(toContactRow);
 };
 
 // Every part is optional, start and end are ISO timestamps
