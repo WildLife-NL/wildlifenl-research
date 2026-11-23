@@ -5,6 +5,7 @@ import { Question } from "./question";
 export interface Questionnaire{
   ID: string;
   experiment: Experiment;
+  experimentID?: string;
   identifier: string;
   interactionType: InteractionType
   name: string;

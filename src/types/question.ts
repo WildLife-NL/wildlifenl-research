@@ -21,3 +21,12 @@ export interface AddQuestion {
   openResponseFormat: string;
   text: string;
 }
+
+export interface AddQuestionWithAnswers extends AddQuestion {
+  localId: string;
+  answers: {
+    index: number;
+    text: string;
+    nextQuestionID: string | null; // localId of the follow-up question
+  }[];
+}

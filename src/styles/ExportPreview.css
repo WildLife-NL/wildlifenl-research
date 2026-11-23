@@ -1,0 +1,60 @@
+/* Export preview dialog table */
+.rc-preview__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2);
+  padding: 10px var(--rc-space-5);
+  background: var(--rc-paper);
+  border-bottom: 1px solid var(--rc-rule);
+  color: var(--rc-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.rc-preview__toggle {
+  font-size: 13px;
+}
+
+.rc-preview__toggle input {
+  width: 16px;
+  height: 16px;
+}
+
+.rc-preview__scroll {
+  overflow: auto;
+  max-height: min(420px, 55vh);
+}
+
+.rc-preview__scroll:focus-visible {
+  outline-offset: -2px;
+}
+
+.rc-preview__table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.rc-preview__table th {
+  position: sticky;
+  top: 0;
+  padding: 8px 12px;
+  background: var(--rc-sunken);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.rc-preview__table td {
+  max-width: 280px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rc-rule);
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
